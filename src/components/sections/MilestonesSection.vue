@@ -1,0 +1,88 @@
+<script setup lang="ts">
+import type { Milestone } from '@/domain/milestone';
+import MilestoneCard from '@/components/milestones/MilestoneCard.vue';
+
+const props = defineProps<{
+  milestones: Milestone[];
+  totalTargetAmount: number;
+  totalRaisedAmount: number;
+  progressPercentage: number;
+}>();
+</script>
+
+<template>
+  <section class="milestones" id="milestones">
+    <div class="container">
+      <header class="section-header">
+        <div>
+          <h2>Avance por hitos</h2>
+          <p>Seguimiento transparente del proyecto en tiempo real.</p>
+        </div>
+        <div class="summary" aria-live="polite">
+          <p><strong>Progreso total:</strong> {{ props.progressPercentage }}%</p>
+          <p><strong>Recaudado:</strong> ARS {{ props.totalRaisedAmount.toLocaleString() }}</p>
+          <p><strong>Meta total:</strong> ARS {{ props.totalTargetAmount.toLocaleString() }}</p>
+        </div>
+      </header>
+
+      <div class="milestones-grid">
+        <MilestoneCard
+          v-for="milestone in props.milestones"
+          :key="milestone.id"
+          :milestone="milestone"
+        />
+      </div>
+    </div>
+  </section>
+</template>
+
+<style scoped>
+.milestones {
+  padding: 80px 20px;
+  background: #f9fafb;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 24px;
+}
+
+.section-header h2 {
+  margin-bottom: 12px;
+}
+
+.summary {
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  padding: 20px 24px;
+  display: grid;
+  gap: 8px;
+  min-width: 260px;
+}
+
+.milestones-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 24px;
+  margin-top: 40px;
+}
+
+@media (max-width: 900px) {
+  .section-header {
+    flex-direction: column;
+  }
+
+  .summary {
+    width: 100%;
+    min-width: unset;
+  }
+}
+</style>
