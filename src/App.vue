@@ -31,7 +31,7 @@ const startContribution = () => {
     <main>
       <HeroSection
         title="Financiemos juntxs la nueva capacidad productiva de Madygraf"
-        subtitle="Tu aporte acelera la RKHA190. Seguís cada hito, ves el avance, recibís tu beneficio."
+        subtitle="Tu aporte acelera la RKHA190. Seguís cada hito, ves el avance, recibís tu beneficio. "
         primary-label="Quiero aportar"
         secondary-label="Ver avance"
         secondary-href="#milestones"
