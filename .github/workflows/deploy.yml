@@ -16,6 +16,17 @@ jobs:
         with:
           node-version: '20'
 
+      - name: Validar secrets requeridos
+        run: |
+          missing=0
+          for v in FTP_SERVER FTP_USERNAME FTP_PASSWORD FTP_DIR; do
+            if [ -z "${!v}" ]; then
+              echo "::error::Falta el secreto $v"
+              missing=1
+            fi
+          done
+          if [ "$missing" -eq 1 ]; then exit 1; fi
+
       - run: npm ci
       - run: npm run build
 
@@ -39,6 +50,7 @@ jobs:
 
       - name: Debug DNS y conectividad FTP
         run: |
+          set -x
           echo "Resolviendo $FTP_SERVER"
           nslookup "$FTP_SERVER" || true
           ping -c 3 "$FTP_SERVER" || true
