@@ -1,7 +1,9 @@
 name: deploy-vue-to-ferozo
+
 on:
   push:
     branches: [ main ]
+
 concurrency:
   group: deploy-vue
   cancel-in-progress: true
@@ -9,14 +11,25 @@ concurrency:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
+    # 👉 Expone los secrets como variables de entorno para TODOS los steps
+    env:
+      FTP_SERVER: ${{ secrets.FTP_SERVER }}
+      FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
+      FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+      FTP_DIR: ${{ secrets.FTP_DIR }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: "20"
 
       - name: Validar secrets requeridos
+        shell: bash
         run: |
           missing=0
           for v in FTP_SERVER FTP_USERNAME FTP_PASSWORD FTP_DIR; do
@@ -27,15 +40,17 @@ jobs:
           done
           if [ "$missing" -eq 1 ]; then exit 1; fi
 
-      - run: npm ci
-      - run: npm run build
+      - name: Instalar dependencias
+        run: npm ci
 
-      # Ensure dist/assets exists (even if empty)
+      - name: Build
+        run: npm run build
+
       - name: Ensure dist/assets folder exists
         run: mkdir -p dist/assets
 
-      # (Opcional) generar .htaccess dentro de dist si no lo versionás
       - name: Ensure .htaccess for SPA (sin forzar HTTPS)
+        shell: bash
         run: |
           DIST="dist"
           mkdir -p "$DIST"
@@ -49,8 +64,11 @@ jobs:
           EOF
 
       - name: Debug DNS y conectividad FTP
+        shell: bash
         run: |
           set -x
+          echo "FTP_SERVER=$FTP_SERVER"
+          echo "FTP_DIR=$FTP_DIR"
           echo "Resolviendo $FTP_SERVER"
           nslookup "$FTP_SERVER" || true
           ping -c 3 "$FTP_SERVER" || true
