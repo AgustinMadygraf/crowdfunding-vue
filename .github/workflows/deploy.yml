@@ -31,6 +31,7 @@ jobs:
       - name: Validar secrets requeridos
         shell: bash
         run: |
+          set -e
           missing=0
           for v in FTP_SERVER FTP_USERNAME FTP_PASSWORD FTP_DIR; do
             if [ -z "${!v}" ]; then
@@ -39,6 +40,24 @@ jobs:
             fi
           done
           if [ "$missing" -eq 1 ]; then exit 1; fi
+
+          # Validaciones de formato para FTP_SERVER
+          if [[ "$FTP_SERVER" == *"://"* ]]; then
+            echo "::error::FTP_SERVER no debe incluir protocolo (ftp:// o ftps://)"
+            exit 1
+          fi
+          if [[ "$FTP_SERVER" == *"/"* ]]; then
+            echo "::error::FTP_SERVER no debe incluir path (solo host o IP)"
+            exit 1
+          fi
+          if [[ "$FTP_SERVER" == *":"* ]]; then
+            echo "::error::FTP_SERVER no debe incluir puerto (ej :21)"
+            exit 1
+          fi
+          if [[ "$FTP_SERVER" =~ [[:space:]] ]]; then
+            echo "::error::FTP_SERVER contiene espacios/saltos de línea"
+            exit 1
+          fi
 
       - name: Instalar dependencias
         run: npm ci
@@ -85,3 +104,5 @@ jobs:
           server-dir: ${{ secrets.FTP_DIR }}/
           log-level: verbose
           timeout: 60000
+
+
