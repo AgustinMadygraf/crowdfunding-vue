@@ -30,7 +30,7 @@ const startContribution = () => {
     <AppHeader :links="navigationLinks" />
     <main>
       <HeroSection
-        title="Financiemos juntos la nueva capacidad productiva de Madygraf"
+        title="Financiemos juntxs la nueva capacidad productiva de Madygraf"
         subtitle="Tu aporte acelera la RKH‑A190. Seguís cada hito, ves el avance, recibís tu beneficio."
         primary-label="Quiero aportar"
         secondary-label="Ver avance"
