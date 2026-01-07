@@ -37,7 +37,15 @@ jobs:
           RewriteRule . /index.html [L]
           EOF
 
-      - name: Deploy dist via FTP
+      - name: Debug DNS y conectividad FTP
+        run: |
+          echo "Resolviendo $FTP_SERVER"
+          nslookup "$FTP_SERVER" || true
+          ping -c 3 "$FTP_SERVER" || true
+          echo "Probando puerto 21"
+          nc -zv "$FTP_SERVER" 21 || true
+
+      - name: Deploy dist via FTP (verbose)
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: ${{ secrets.FTP_SERVER }}
@@ -45,3 +53,5 @@ jobs:
           password: ${{ secrets.FTP_PASSWORD }}
           local-dir: dist/
           server-dir: ${{ secrets.FTP_DIR }}/
+          log-level: verbose
+          timeout: 60000
