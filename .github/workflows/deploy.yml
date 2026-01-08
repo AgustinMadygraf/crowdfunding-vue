@@ -14,7 +14,7 @@ permissions:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
 
     steps:
       - name: Checkout
@@ -26,171 +26,110 @@ jobs:
           node-version: "20"
           cache: "npm"
 
-      - name: Validar config (vars + secrets)
+      - name: Validar config requerida
         shell: bash
         env:
           FTP_SERVER: ${{ vars.FTP_SERVER }}
           FTP_SERVER_IP: ${{ vars.FTP_SERVER_IP }}
+          SITE_DOMAIN: ${{ vars.SITE_DOMAIN }}
           FTP_DIR: ${{ vars.FTP_DIR }}
-          FTP_PROTOCOL: ${{ vars.FTP_PROTOCOL }}
           FTP_PORT: ${{ vars.FTP_PORT }}
-          FTP_TLS_VERIFY: ${{ vars.FTP_TLS_VERIFY }}
           FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
           FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
         run: |
           set -euo pipefail
 
-          # Requeridos siempre
           for v in FTP_DIR FTP_USERNAME FTP_PASSWORD; do
             if [ -z "${!v:-}" ]; then
-              echo "::error::Falta $v (revisá Variables/Secrets)"
+              echo "::error::Falta $v"
               exit 1
             fi
           done
 
-          # Requerido: o FTP_SERVER o FTP_SERVER_IP
-          if [ -z "${FTP_SERVER:-}" ] && [ -z "${FTP_SERVER_IP:-}" ]; then
-            echo "::error::Falta FTP_SERVER (var) y no hay FTP_SERVER_IP (var) como fallback"
+          if [ -z "${FTP_SERVER:-}" ] && [ -z "${FTP_SERVER_IP:-}" ] && [ -z "${SITE_DOMAIN:-}" ]; then
+            echo "::error::Necesitás al menos una de estas vars: FTP_SERVER o FTP_SERVER_IP o SITE_DOMAIN"
             exit 1
           fi
 
-          # Defaults
-          FTP_PROTOCOL="${FTP_PROTOCOL:-ftp}"
-          FTP_TLS_VERIFY="${FTP_TLS_VERIFY:-true}"
-
-          case "$FTP_PROTOCOL" in
-            ftp|ftps|sftp) ;;
-            *)
-              echo "::error::FTP_PROTOCOL inválido: '$FTP_PROTOCOL' (usa ftp|ftps|sftp)"
-              exit 1
-              ;;
-          esac
-
-          # Validaciones de formato para FTP_SERVER (si viene)
-          if [ -n "${FTP_SERVER:-}" ]; then
-            if [[ "$FTP_SERVER" == *"://"* ]]; then
-              echo "::error::FTP_SERVER no debe incluir protocolo (ftp://, ftps://, sftp://)"
-              exit 1
-            fi
-            if [[ "$FTP_SERVER" == *"/"* ]]; then
-              echo "::error::FTP_SERVER no debe incluir path (solo host o IP)"
-              exit 1
-            fi
-            if [[ "$FTP_SERVER" =~ [[:space:]] ]]; then
-              echo "::error::FTP_SERVER contiene espacios/saltos de línea"
-              exit 1
-            fi
-          fi
-
-          # Validación simple del DIR
           if [[ "$FTP_DIR" != /* ]]; then
             echo "::error::FTP_DIR debe ser absoluto (ej: /public_html/crowdfunding)"
             exit 1
           fi
 
-      - name: Resolver host y derivar parámetros de conexión (con depuración)
+          # Default port
+          echo "FTP_PORT=${FTP_PORT:-21}" >> "$GITHUB_ENV"
+
+      - name: Resolver host efectivo (DNS) + fallback IP (depuración)
         shell: bash
         env:
           FTP_SERVER: ${{ vars.FTP_SERVER }}
           FTP_SERVER_IP: ${{ vars.FTP_SERVER_IP }}
-          FTP_PROTOCOL: ${{ vars.FTP_PROTOCOL }}
-          FTP_PORT: ${{ vars.FTP_PORT }}
-          FTP_TLS_VERIFY: ${{ vars.FTP_TLS_VERIFY }}
+          SITE_DOMAIN: ${{ vars.SITE_DOMAIN }}
         run: |
           set -euo pipefail
-
           sudo apt-get update -y
           sudo apt-get install -y dnsutils
 
-          FTP_PROTOCOL="${FTP_PROTOCOL:-ftp}"
-          FTP_TLS_VERIFY="${FTP_TLS_VERIFY:-true}"
+          # Armamos lista de candidatos
+          candidates=()
 
-          # Puerto default por protocolo
-          if [ -z "${FTP_PORT:-}" ]; then
-            if [ "$FTP_PROTOCOL" = "sftp" ]; then
-              FTP_PORT="22"
-            else
-              FTP_PORT="21"
-            fi
+          [ -n "${FTP_SERVER:-}" ] && candidates+=("$FTP_SERVER")
+
+          if [ -n "${SITE_DOMAIN:-}" ]; then
+            # candidatos típicos en hostings
+            candidates+=("ftp.${SITE_DOMAIN}")
+            candidates+=("${SITE_DOMAIN}")
+            candidates+=("www.${SITE_DOMAIN}")
           fi
 
-          echo "resolv.conf:"
-          cat /etc/resolv.conf || true
+          # Fallback IP al final (no requiere DNS)
+          [ -n "${FTP_SERVER_IP:-}" ] && candidates+=("$FTP_SERVER_IP")
+
+          echo "::group::Candidatos y diagnóstico DNS"
+          for h in "${candidates[@]}"; do
+            echo ""
+            echo "==> $h"
+            if [[ "$h" =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}$ ]]; then
+              echo "IP detectada (sin DNS)"
+              continue
+            fi
+            nslookup "$h" || true
+            dig +short "$h" A || true
+            dig +short "$h" AAAA || true
+          done
+          echo "::endgroup::"
 
           chosen=""
-          if [ -n "${FTP_SERVER:-}" ]; then
-            echo "Diagnóstico DNS para FTP_SERVER='$FTP_SERVER'"
-            echo "getent:"
-            getent hosts "$FTP_SERVER" || true
-            echo "nslookup:"
-            nslookup "$FTP_SERVER" || true
-            echo "dig A/AAAA:"
-            dig +short "$FTP_SERVER" A || true
-            dig +short "$FTP_SERVER" AAAA || true
 
-            if getent hosts "$FTP_SERVER" >/dev/null 2>&1; then
-              chosen="$FTP_SERVER"
-              echo "::notice::DNS OK: se usará FTP_SERVER"
-            else
-              echo "::warning::DNS NO resuelve para FTP_SERVER desde GitHub Actions"
+          for h in "${candidates[@]}"; do
+            if [[ "$h" =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}$ ]]; then
+              chosen="$h"
+              echo "::notice::Usando IP fallback: $chosen"
+              break
             fi
-          fi
 
-          if [ -z "$chosen" ] && [ -n "${FTP_SERVER_IP:-}" ]; then
-            chosen="$FTP_SERVER_IP"
-            echo "::notice::Usando fallback FTP_SERVER_IP='$FTP_SERVER_IP'"
-          fi
+            if getent hosts "$h" >/dev/null 2>&1; then
+              chosen="$h"
+              echo "::notice::DNS OK, usando host: $chosen"
+              break
+            fi
+          done
 
           if [ -z "$chosen" ]; then
-            echo "::error::No se pudo resolver FTP_SERVER y no hay FTP_SERVER_IP usable. Corregí el host (probable .com.ar vs .com) o cargá IP."
+            echo "::error::No se pudo resolver ningún host. Tomá el 'Servidor FTP' desde 'Acceso por FTP' del panel o cargá FTP_SERVER_IP."
             exit 1
           fi
 
-          # URL de conexión para lftp
-          # (lftp soporta ftp://, ftps://, sftp://)
-          CONNECT_URL="${FTP_PROTOCOL}://${chosen}:${FTP_PORT}"
-
           echo "FTP_HOST_EFFECTIVE=$chosen" >> "$GITHUB_ENV"
-          echo "FTP_PORT_EFFECTIVE=$FTP_PORT" >> "$GITHUB_ENV"
-          echo "FTP_PROTOCOL_EFFECTIVE=$FTP_PROTOCOL" >> "$GITHUB_ENV"
-          echo "FTP_TLS_VERIFY_EFFECTIVE=$FTP_TLS_VERIFY" >> "$GITHUB_ENV"
-          echo "FTP_CONNECT_URL=$CONNECT_URL" >> "$GITHUB_ENV"
+          echo "FTP_CONNECT_URL=ftp://${chosen}:${FTP_PORT}" >> "$GITHUB_ENV"
+          echo "::notice::FTP_CONNECT_URL=ftp://${chosen}:${FTP_PORT}"
 
-          echo "::notice::FTP_CONNECT_URL=$CONNECT_URL"
-
-      - name: Preflight conectividad (host:puerto)
+      - name: Preflight puerto (host:puerto)
         shell: bash
         run: |
           set -euo pipefail
-          echo "Probando $FTP_HOST_EFFECTIVE:$FTP_PORT_EFFECTIVE"
-          nc -zv "$FTP_HOST_EFFECTIVE" "$FTP_PORT_EFFECTIVE"
-
-      - name: Preflight login + acceso a FTP_DIR
-        shell: bash
-        env:
-          FTP_DIR: ${{ vars.FTP_DIR }}
-          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
-          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
-        run: |
-          set -euo pipefail
-          sudo apt-get update -y
-          sudo apt-get install -y lftp
-
-          TLS_VERIFY="${FTP_TLS_VERIFY_EFFECTIVE:-true}"
-
-          lftp -u "$FTP_USERNAME","$FTP_PASSWORD" "$FTP_CONNECT_URL" <<EOF
-          set net:max-retries 1
-          set net:timeout 15
-          set net:persist-retries 0
-          set cmd:fail-exit true
-
-          # Si usás FTPS y el cert jode, podés setear FTP_TLS_VERIFY=false en Variables
-          $( [ "$TLS_VERIFY" = "false" ] && echo "set ssl:verify-certificate no" )
-
-          cd "$FTP_DIR"
-          ls
-          bye
-          EOF
+          echo "Probando conectividad a $FTP_HOST_EFFECTIVE:$FTP_PORT"
+          nc -zv "$FTP_HOST_EFFECTIVE" "$FTP_PORT"
 
       - name: Instalar dependencias
         run: npm ci
@@ -215,7 +154,7 @@ jobs:
           EOF
           fi
 
-      - name: Deploy con lftp mirror (sync dist -> FTP_DIR)
+      - name: Deploy con lftp mirror (dist -> FTP_DIR)
         shell: bash
         env:
           FTP_DIR: ${{ vars.FTP_DIR }}
@@ -226,19 +165,13 @@ jobs:
           sudo apt-get update -y
           sudo apt-get install -y lftp
 
-          TLS_VERIFY="${FTP_TLS_VERIFY_EFFECTIVE:-true}"
-
           lftp -u "$FTP_USERNAME","$FTP_PASSWORD" "$FTP_CONNECT_URL" <<EOF
-          set net:max-retries 2
-          set net:timeout 30
           set cmd:fail-exit true
+          set net:timeout 30
+          set net:max-retries 2
+          set ftp:passive-mode on
 
-          $( [ "$TLS_VERIFY" = "false" ] && echo "set ssl:verify-certificate no" )
-
-          # Asegura carpeta remota
           mkdir -p "$FTP_DIR"
-
-          # Sync completo (ojo: --delete borra en remoto lo que no está en dist/)
           mirror -R --delete --only-newer --verbose --no-perms --parallel=2 dist/ "$FTP_DIR/"
           bye
           EOF
