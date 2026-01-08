@@ -26,21 +26,20 @@ jobs:
           node-version: "20"
           cache: "npm"
 
-      # ✅ Validación temprana (sin exponer secrets a todo el job)
-      - name: Validar secrets requeridos y formato
+      - name: Validar config requerida (vars + secrets) y formato
         shell: bash
         env:
-          FTP_SERVER: ${{ secrets.FTP_SERVER }}
+          FTP_SERVER: ${{ vars.FTP_SERVER }}
+          FTP_DIR: ${{ vars.FTP_DIR }}
           FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
           FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
-          FTP_DIR: ${{ secrets.FTP_DIR }}
         run: |
           set -euo pipefail
 
           missing=0
-          for v in FTP_SERVER FTP_USERNAME FTP_PASSWORD FTP_DIR; do
+          for v in FTP_SERVER FTP_DIR FTP_USERNAME FTP_PASSWORD; do
             if [ -z "${!v:-}" ]; then
-              echo "::error::Falta el secreto $v"
+              echo "::error::Falta config $v (revisá Variables/Secrets)"
               missing=1
             fi
           done
@@ -64,20 +63,18 @@ jobs:
             exit 1
           fi
 
-      # ✅ Chequeo REAL: autentica y verifica permisos en FTP_DIR (fail-fast por credenciales)
-      - name: Chequear login FTP y acceso a FTP_DIR
+      - name: Chequear login FTP y acceso a FTP_DIR (fail-fast)
         shell: bash
         env:
-          FTP_SERVER: ${{ secrets.FTP_SERVER }}
+          FTP_SERVER: ${{ vars.FTP_SERVER }}
+          FTP_DIR: ${{ vars.FTP_DIR }}
           FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
           FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
-          FTP_DIR: ${{ secrets.FTP_DIR }}
         run: |
           set -euo pipefail
           sudo apt-get update -y
           sudo apt-get install -y lftp
 
-          # Nota: esto prueba FTP (no FTPS/SFTP). Si tu hosting requiere FTPS/SFTP, hay que ajustar.
           lftp -u "$FTP_USERNAME","$FTP_PASSWORD" "$FTP_SERVER" <<EOF
           set net:max-retries 1
           set net:timeout 10
@@ -96,14 +93,12 @@ jobs:
       - name: Ensure dist/assets folder exists
         run: mkdir -p dist/assets
 
-      # ✅ No pisa un .htaccess que ya venga del repo/build
       - name: Ensure .htaccess for SPA (history mode)
         shell: bash
         run: |
           set -euo pipefail
           if [ ! -f "dist/.htaccess" ]; then
             cat > "dist/.htaccess" <<'EOF'
-          # SPA fallback (history mode)
           RewriteEngine On
           RewriteRule ^index\.html$ - [L]
           RewriteCond %{REQUEST_FILENAME} !-f
@@ -112,25 +107,22 @@ jobs:
           EOF
           fi
 
-      # 🔎 Debug de red (sin imprimir secretos)
       - name: Debug DNS y conectividad (sin exponer valores)
         shell: bash
         env:
-          FTP_SERVER: ${{ secrets.FTP_SERVER }}
+          FTP_SERVER: ${{ vars.FTP_SERVER }}
         run: |
           set -euo pipefail
-          echo "Resolviendo host (oculto)"
           nslookup "$FTP_SERVER" || true
-          echo "Probando puerto 21"
           nc -zv "$FTP_SERVER" 21 || true
 
       - name: Deploy dist via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
-          server: ${{ secrets.FTP_SERVER }}
+          server: ${{ vars.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
           local-dir: dist/
-          server-dir: ${{ secrets.FTP_DIR }}/
+          server-dir: ${{ vars.FTP_DIR }}/
           log-level: minimal
           timeout: 60000
