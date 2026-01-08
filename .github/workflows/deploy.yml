@@ -62,6 +62,28 @@ jobs:
             echo "::error::FTP_SERVER contiene espacios/saltos de línea"
             exit 1
           fi
+      - name: Debug DNS (runner)
+        shell: bash
+        env:
+          FTP_SERVER: ${{ vars.FTP_SERVER }}
+        run: |
+          set -euo pipefail
+          echo "FTP_SERVER='$FTP_SERVER'"
+          echo "resolv.conf:"
+          cat /etc/resolv.conf || true
+
+          sudo apt-get update -y
+          sudo apt-get install -y dnsutils
+
+          echo "getent:"
+          getent hosts "$FTP_SERVER" || true
+
+          echo "nslookup:"
+          nslookup "$FTP_SERVER" || true
+
+          echo "dig:"
+          dig +short "$FTP_SERVER" A || true
+          dig +short "$FTP_SERVER" AAAA || true
 
       - name: Chequear login FTP y acceso a FTP_DIR (fail-fast)
         shell: bash
