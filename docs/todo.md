@@ -44,6 +44,16 @@
 - [ ] Convertir App.vue de single-page a router-based
 - [ ] Implementar lazy loading para `/admin`
 
+### 1.5 Sistema de Diseño y SRS (DECISIÓN TOMADA)
+- [ ] **Actualizar SRS Sección 2.2:**
+  - Cambiar: `"Frontend: Vue + TypeScript + Bootstrap"`
+  - Hacia: `"Frontend: Vue + TypeScript + CSS vanilla con Variables CSS"`
+- [ ] Documentar sistema de diseño en SRS:
+  - Paleta de colores (base.css)
+  - Tipografía: Inter, system fonts
+  - Responsive breakpoints
+- [ ] Crear `docs/DESIGN_SYSTEM.md` con guía de componentes CSS
+
 ### 2. Integración API (FR-010 a FR-014, todos los API 4.*)
 - [ ] Crear `src/infrastructure/api.ts` (cliente HTTP)
 - [ ] Definir DTOs/interfaces para API
@@ -247,18 +257,38 @@ Sí
   - ✅ `.env.example` actualizado con placeholders únicamente
 - **Estado:** SEGURO ✅
 
-### 2. ⚠️ **DISCREPANCIA SRS vs IMPLEMENTACIÓN: Bootstrap**
-**Riesgo:** MEDIO - El SRS especifica Bootstrap pero no está instalado
+### 2. ✅ **DECISIÓN: Bootstrap - RECOMENDACIÓN**
+**Status:** ANALIZADO Y RECOMENDADO ✅
 - **SRS dice:** "Frontend: Vue + TypeScript + Bootstrap" (Sección 2.2)
-- **Realidad:** Proyecto usa CSS vanilla con variables CSS
-- **Impacto:** 
-  - Componentes UI deben construirse desde cero
-  - Mayor tiempo de desarrollo
-  - Inconsistencia con especificaciones
-- **Decisión requerida:**
-  - [ ] Opción A: Instalar Bootstrap 5.x y migrar componentes existentes
-  - [ ] Opción B: Actualizar SRS para reflejar CSS custom
-  - [ ] Opción C: Instalar librería de componentes Vue (PrimeVue, Vuetify)
+- **Realidad:** Proyecto usa CSS vanilla + Variables CSS (73 líneas base.css + 10 líneas main.css)
+- **Estado de dependencias:** Sin Bootstrap, sin otra librería de componentes
+
+**ANÁLISIS COMPARATIVO:**
+
+| Aspecto | Opción A: Bootstrap 5 | Opción B: Actualizar SRS | Opción C: PrimeVue/Vuetify |
+|---------|--------|---------|---------|
+| **Cumplimiento SRS** | ✅ 100% | ⚠️ Requiere actualizar docs | ❌ Desvío mayor |
+| **Esfuerzo implementación** | ⚠️ ALTO (migrar componentes) | ✅ BAJO (solo documentar) | ⚠️ ALTO (nueva librería) |
+| **Peso final del app** | ⚠️ ~30KB (minified) | ✅ Sin cambios (~83 líneas) | ❌ ~100KB+ (Vuetify) |
+| **Disponibilidad de componentes** | ✅ Amplia (gratis) | ✅ Construir propios | ✅ Muy amplia (premium) |
+| **Flexibilidad personalización** | ⚠️ Limitada | ✅ Ilimitada | ⚠️ Limitada |
+| **Tiempo a MVP** | ⚠️ +2 semanas | ✅ Inmediato | ❌ +3 semanas |
+| **Mantenimiento a largo plazo** | ✅ Bien documentado | ⚠️ Requiere expertise | ✅ Bien documentado |
+
+**RECOMENDACIÓN: Opción B - Actualizar SRS ✅**
+
+**Justificación:**
+1. **Estado actual funcional:** CSS custom ya implementado y funcionando (83 líneas de código limpio)
+2. **Componentes ya creados:** HeroSection, MilestonesSection, ContributionSection, etc. están completos
+3. **Consistencia visual:** Paleta Vue.js theme bien definida (base.css con variables CSS)
+4. **Tiempo crítico:** Introducir Bootstrap ahora añadiría 2+ semanas de refactor
+5. **Mantenimiento:** CSS custom es más ligero y se adapta mejor a diseño específico de Madygraf
+6. **SRS es documento vivo:** Es más práctico actualizar SRS que refactorizar código funcional
+
+**PLAN DE ACCIÓN:**
+- [ ] Actualizar SRS Sección 2.2: cambiar de "Bootstrap" a "CSS vanilla con Variables CSS"
+- [ ] Documentar sistema de diseño (paleta de colores, tipografía)
+- [ ] Continuar con desarrollo usando CSS custom (costo menor, entrega más rápida)
 
 ### 3. ⚠️ **DISCREPANCIA: 4 vs 6 Milestones**
 **Riesgo:** BAJO - Inconsistencia en número de etapas
@@ -346,11 +376,13 @@ Sí
 ## 🎯 RECOMENDACIONES PRIORIZADAS
 
 ### Fase 0: Urgente (Antes de continuar)
-1. **Rotar credenciales de Chatwoot expuestas** ⚠️
-2. **Definir proveedor de suscripción** (bloqueante)
-3. **Aclarar situación del backend** (bloqueante)
-4. **Decidir sobre Bootstrap vs CSS custom**
-5. **Confirmar número de milestones (4 o 6)**
+1. ✅ **Credenciales verificadas - NO expuestas**
+2. ✅ **Bootstrap: Decisión tomada → Mantener CSS custom, actualizar SRS**
+3. **Responder preguntas críticas restantes:**
+   - ¿Documentación/especificación de Donweb (API, parámetros, webhook)?
+   - ¿Documentación de backend Flask en Pythonanywhere?
+   - Fecha límite v1.0
+4. **[DECISIÓN]** Confirmar número de milestones (4 o 6)
 
 ### Fase 1: Fundación (Sprint 1-2)
 1. Instalar y configurar vue-router
@@ -389,12 +421,14 @@ Sí
 
 ### 🔴 URGENTE (Hoy/Esta Semana)
 1. ✅ **[SEGURIDAD]** Credenciales verificadas - NO expuestas en historial
-2. **[BLOQUEANTE]** Responder preguntas críticas restantes:
+2. ✅ **[DISEÑO]** Bootstrap: Decisión tomada → Mantener CSS custom, actualizar SRS
+3. **[BLOQUEANTE]** Responder preguntas críticas restantes:
    - ¿Documentación/especificación de Donweb (API, parámetros, webhook)?
    - ¿Documentación de backend Flask en Pythonanywhere?
    - Fecha límite v1.0
-3. **[DECISIÓN]** Bootstrap vs CSS custom
-4. **[DECISIÓN]** 4 o 6 milestones finales
+4. **[DECISIÓN]** Confirmar número de milestones (4 o 6)
+   - [ ] Actualizar SRS Sección 2.2 (Bootstrap → CSS custom)
+   - [ ] Crear DESIGN_SYSTEM.md con guía de componentes
 
 ### 🟡 ESTA SEMANA
 1. Configurar entorno de desarrollo completo
