@@ -8,17 +8,18 @@
 
 ## 1. Contexto y objetivo
 
-El portal de crowdfunding Madypack captura pre-registros mediante un formulario (Zod-validado) y necesita registrar trazabilidad en **Chatwoot** (actualmente en producción con web widget).
+El portal de crowdfunding Madypack captura pre-registros mediante un formulario (Zod-validado) y **Chatwoot es el backend** para persistencia de leads.
 
-**Objetivo:** integrar el flujo de pre-registro con Chatwoot para:
-- Crear/actualizar contactos en el inbox
+**Objetivo:** integrar el flujo de pre-registro directamente con Chatwoot para:
+- Crear contactos en el inbox (via Client API)
 - Registrar atributos personalizados (UTM, level, consent, etc.)
 - Mantener historial de interacciones para soporte
 - Validar identidad con HMAC (en producción)
 
-**Scope:**
-- Frontend (Vue 3): preparación y envío desde formulario
-- Backend: creación de contactos, cálculo de HMAC, persistencia de `contact_identifier`
+**Arquitectura:**
+- **Frontend (Vue 3):** formulario validado → POST directo a Chatwoot Client API
+- **Backend:** Chatwoot (SaaS) — no hay backend propio
+- **Persistencia:** Chatwoot database
 - No incluye: webhooks entrantes, resolución de conflictos complejos, multi-inbox
 
 ---
@@ -209,104 +210,71 @@ ej: sub_1704753600_a1b2c3d4
 │                                                              │
 │  1. Usuario completa formulario (validado con Zod)          │
 │  2. Click en "Continuar"                                     │
-│  3. POST /api/subscriptions → backend                        │
+│  3. POST /public/api/v1/inboxes/.../contacts → Chatwoot    │
 └──────────────┬──────────────────────────────────────────────┘
                │
                ▼
 ┌─────────────────────────────────────────────────────────────┐
-│ BACKEND (Python/Flask)                                      │
+│ CHATWOOT (Backend SaaS)                                     │
 │                                                              │
-│  4. Crear suscripción en DB                                 │
-│  5. Calcular identifier_hash si needed                      │
-│  6. POST /public/api/v1/inboxes/.../contacts → Chatwoot    │
-│  7. Guardar chatwoot_source_id en DB                        │
-│  8. Response: { subscription_id, redirect_url,              │
-│                 chatwoot_identifier_hash }                  │
+│  4. Crear/actualizar contacto                              │
+│  5. Response: { contact.id, contact.source_id }            │
 └──────────────┬──────────────────────────────────────────────┘
                │
                ▼
 ┌─────────────────────────────────────────────────────────────┐
 │ FRONTEND (post-response)                                    │
 │                                                              │
-│  9. En chatwoot:ready event:                                │
-│     - setUser(identifier, { identifier_hash })             │
-│     - setCustomAttributes({ subscription_id, utm, ... })   │
-│  10. Redirect a proveedor externo (si redirect_url)         │
+│  6. En chatwoot:ready event:                                │
+│     - setUser(identifier, { name, email, identifier_hash }) │
+│     - setCustomAttributes({ subscription_id, utm, ... })    │
+│  7. Mostrar página de éxito o redirect (si aplica)          │
 └─────────────────────────────────────────────────────────────┘
 ```
 
+**Diferencia clave vs arquitectura anterior:** No hay backend intermedio. El frontend llama directamente a Chatwoot Client API.
+
 ### 4.2 Payloads
 
-**Frontend → Backend (POST /api/subscriptions)**
+**Frontend → Chatwoot Client API (POST /public/api/v1/inboxes/.../contacts)**
 
-```typescript
-interface CreateSubscriptionRequest {
-  lead: {
-    name: string
-    email: string
-    phone?: string
-    whatsapp?: string
-    province?: string
-    type?: 'persona' | 'empresa' | 'cooperativa' | 'otro'
-    amount_range?: string
-  }
-  level_id: string
-  consent: {
-    accepted: boolean
-    version: string
-    accepted_at: string // ISO 8601
-  }
-  utm: {
-    utm_source?: string
-    utm_medium?: string
-    utm_campaign?: string
-    utm_term?: string
-    utm_content?: string
-    campaign_id?: string
-    referrer?: string
-    timestamp?: number
+```json
+{
+  "identifier": "lead_<uuid>_<timestamp>",
+  "identifier_hash": "abc123def...",
+  "email": "juan@example.com",
+  "name": "Juan Pérez",
+  "phone_number": "+541112345678",
+  "custom_attributes": {
+    "form_source": "web_widget",
+    "level_id": "Anticipo",
+    "amount_range": "100000_200000",
+    "type": "persona",
+    "province": "Buenos Aires",
+    "utm_source": "google",
+    "utm_medium": "cpc",
+    "utm_campaign": "madypack_v1",
+    "utm_term": "crowdfunding",
+    "utm_content": "banner_hero",
+    "campaign_id": "summer_2026",
+    "referrer": "facebook.com",
+    "consent_version": "1.0",
+    "consent_accepted_at": "2026-01-09T12:00:00Z"
   }
 }
 ```
 
-**Backend → Frontend (Response 201)**
+**Chatwoot → Frontend (Response 200)**
 
-```typescript
-interface CreateSubscriptionResponse {
-  subscription_id: string
-  redirect_url: string
-  status: 'pre_registered' | 'iniciado'
-  chatwoot_identifier?: string // subscription_id
-  chatwoot_identifier_hash?: string // HMAC (si enforce = true)
-  chatwoot_custom_attributes?: Record<string, string | number | boolean>
-}
-```
-
-**Backend → Chatwoot (POST /public/api/v1/inboxes/.../contacts)**
-
-```typescript
-interface ChatwootCreateContactRequest {
-  identifier: string // subscription_id
-  identifier_hash: string // HMAC SHA256
-  email: string
-  name: string
-  phone_number?: string
-  custom_attributes: {
-    subscription_id: string
-    status: 'pre_registered'
-    level_id: string
-    amount_range?: string
-    type?: string
-    province?: string
-    utm_source?: string
-    utm_medium?: string
-    utm_campaign?: string
-    utm_term?: string
-    utm_content?: string
-    campaign_id?: string
-    referrer?: string
-    consent_version: string
-    consent_accepted_at: string
+```json
+{
+  "contact": {
+    "id": 123,
+    "source_id": "lead_<uuid>_<timestamp>",
+    "name": "Juan Pérez",
+    "email": "juan@example.com",
+    "phone_number": "+541112345678",
+    "custom_attributes": { ... }
   }
 }
 ```
@@ -317,63 +285,54 @@ interface ChatwootCreateContactRequest {
 
 | Decisión | Opciones | Recomendación | Impacto |
 |----------|----------|---------------|---------|
-| **Inbox actual vs API-only** | Usar Website inbox para Client API calls / Crear inbox "API" dedicado | Website (más simple) | Si falla, cambiar a inbox "API" |
-| **Crear conversación automática** | Sí (spam) / No (manual) | No (v1.0) | UX del soporte (será manual hasta v1.1) |
+| **CORS / HMAC signing** | Usar CORS públicamente / Usar backend proxy para HMAC | Usar CORS (si permite) o requiere proxy mínimo para HMAC | Si Chatwoot no permite CORS, necesitamos proxy |
+| **Identificador único** | `lead_<uuid>_<timestamp>` / `<email>` / `<subscription_id>` | `lead_<uuid>_<timestamp>` (evita duplicados) | Qué se considera "mismo usuario" |
 | **Enforce HMAC en dev** | Sí / No | No (dev), Sí (prod) | Complejidad local; simplificar testing |
-| **Sincronizar teléfono** | Via `phone_number` campo / Via `custom_attributes` | `phone_number` | API nativa vs custom |
+| **Conversación automática** | Sí (crear) / No (solo contacto) | No (v1.0) | UX del soporte |
 | **Datos históricos existentes** | Migrar / Empezar limpio | Empezar limpio | Si hay contacts viejos, ignorar |
 
 ---
 
 ## 6. Checklist de implementación
 
-### Backend (Flask / Python)
+### Frontend (Vue 3)
 
 - [ ] Variables de entorno:
-  - [ ] `CHATWOOT_BASE_URL` (ej: `https://chatwoot.madygraf.com`)
-  - [ ] `CHATWOOT_INBOX_IDENTIFIER` (obtener de Chatwoot)
-  - [ ] `CHATWOOT_HMAC_TOKEN` (obtener de Chatwoot si enforce = true)
+  - [x] `VITE_CHATWOOT_TOKEN` (widget token)
+  - [x] `VITE_CHATWOOT_BASE_URL` (base URL)
+  - [ ] `VITE_CHATWOOT_INBOX_IDENTIFIER` (para Client API)
+  - [ ] `VITE_CHATWOOT_HMAC_TOKEN` (opcional, solo si enforce = true)
 
-- [ ] Función helper: `compute_identifier_hash(identifier: str) -> str`
-  - Usar `hmac.sha256(identifier.encode(), HMAC_TOKEN.encode()).hexdigest()`
-
-- [ ] Servicio: `chatwoot_service.py`
-  - Función: `create_or_update_contact(subscription_id, lead, level_id, utm, consent)`
-  - Hacer POST a Chatwoot Client API
-  - Capturar `source_id` → guardar en DB
-
-- [ ] Endpoint `POST /api/subscriptions`:
-  - [ ] Validar request
-  - [ ] Crear subscription en DB (status = `pre_registered`)
-  - [ ] Llamar `chatwoot_service.create_or_update_contact(...)`
-  - [ ] Guardar `chatwoot_source_id` en tabla subscriptions
-  - [ ] Response con `subscription_id`, `redirect_url`, `chatwoot_identifier_hash`
-
-- [ ] (Opcional) Endpoint `GET /api/subscriptions/:id`:
-  - [ ] Devolver status + `chatwoot_source_id` (para debugging)
-
-### Frontend (Vue 3 / TypeScript)
-
-- [ ] Composable `useChatwoot`:
-  - [ ] Esperar evento `chatwoot:ready`
-  - [ ] Métodos: `setUser(identifier, hash?)`, `setCustomAttributes(attrs)`
-  - [ ] Error handling
+- [ ] Servicio: `chatwootClientService.ts`
+  - Función: `createContact(lead, level_id, utm, consent)`
+  - POST `/public/api/v1/inboxes/{INBOX_IDENTIFIER}/contacts`
+  - Retornar `{ contact.id, contact.source_id }`
+  - Error handling
 
 - [ ] Actualizar `SubscribeView.vue`:
-  - [ ] Tras POST /api/subscriptions exitoso:
-    - [ ] Obtener `chatwoot_identifier_hash` del response
-    - [ ] Llamar `useChatwoot().setUser(subscription_id, hash)`
-    - [ ] Llamar `useChatwoot().setCustomAttributes({...})`
-  - [ ] Luego: redirect o mostrar estado
+  - [ ] Tras validar formulario:
+    - [ ] Generar `identifier = lead_<uuid>_<timestamp>`
+    - [ ] Calcular `identifier_hash = HMAC(identifier, HMAC_TOKEN)` (si enforce)
+    - [ ] Llamar `chatwootClientService.createContact(...)`
+  - [ ] Si éxito:
+    - [ ] Obtener `contact.source_id`
+    - [ ] Llamar `setUser(source_id, { name, email, identifier_hash })`
+    - [ ] Llamar `setCustomAttributes({...})`
+    - [ ] Mostrar página de éxito
 
-- [ ] (Opcional) Página `SubscriptionStatusView.vue`:
-  - [ ] GET /api/subscriptions/:id para mostrar estado
-  - [ ] `setCustomAttributes({ status: 'iniciado' | 'verificacion' | ... })`
+- [ ] (Opcional) Crear `useSubscription` composable:
+  - Loading, error, success states
+  - Reutilizable en otras vistas
 
-- [ ] Tests:
-  - [ ] Mock `window.$chatwoot`
-  - [ ] Verificar que se llama con payloads correctos
-  - [ ] Error handling (ej: chatwoot:ready no dispara)
+### Tests
+
+- [ ] Mock `fetch` / `axios` para Client API
+- [ ] Verificar que payloads sean válidos
+- [ ] Error handling (CORS, timeout, etc.)
+
+---
+
+**No hay backend propio.** Chatwoot es el backend.
 
 ---
 

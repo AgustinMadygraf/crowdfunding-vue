@@ -339,7 +339,9 @@ No incluye (en esta versión):
 * ✅ Validación de formularios con Zod (subscriptionFormSchema + useFormValidation).
 * ✅ SubscribeView actualizado con validación en tiempo real y mensajes de error específicos.
 * ✅ Composable `useChatwoot` para integración con widget (setUser, setCustomAttributes, waitForReady).
-* ✅ SubscribeView integrado con Chatwoot: sincroniza lead post-registro (nombre, email, subscription_id, UTM, consent).
+* ✅ Servicio `chatwootClientService` para Client API directo (createContact con HMAC SHA256).
+* ✅ SubscribeView integrado con Chatwoot: POST directo a `/public/api/v1/inboxes/.../contacts`.
+* ✅ **Arquitectura final:** Chatwoot es el backend (SaaS) — no hay backend propio.
 
 ### ⏳ Pendientes
 

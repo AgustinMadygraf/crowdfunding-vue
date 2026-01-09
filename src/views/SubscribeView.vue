@@ -5,8 +5,7 @@ import { getUTMFromSessionStorage, hasUTMParams, type UTMParams } from '@/utils/
 import { useFormValidation } from '@/application/composables/useFormValidation'
 import { useChatwoot } from '@/application/composables/useChatwoot'
 import { subscriptionFormSchema, type SubscriptionFormData } from '@/application/schemas/subscriptionSchema'
-import { subscriptionsService } from '@/infrastructure/services/subscriptionsService'
-import type { CreateSubscriptionRequest } from '@/infrastructure/dto'
+import { chatwootClientService } from '@/infrastructure/services/chatwootClientService'
 
 const { levels, selectedLevel, selectLevel, benefitAmount } = useContributionLevels()
 const { setUser, setCustomAttributes } = useChatwoot()
@@ -69,85 +68,67 @@ const handleSubmit = async () => {
   submitError.value = null
   isSubmitting.value = true
 
-  // Preparar payload para POST /api/subscriptions
-  const subscriptionPayload: CreateSubscriptionRequest = {
-    lead: {
-      name: formData.value.nombre,
-      email: formData.value.email,
-      phone: formData.value.telefono || undefined,
-      whatsapp: formData.value.whatsapp || undefined,
-      province: formData.value.provincia || undefined,
-      type: formData.value.tipo_interesado || undefined,
-      amount_range: formData.value.rango_monto || undefined
-    },
-    level_id: selectedLevel.value?.name || '',
-    consent: {
-      accepted: true,
-      version: '1.0', // TODO: Get from config
-      accepted_at: new Date().toISOString()
-    },
-    utm: utmParams.value || {}
-  }
-
   try {
-    // Si no hay backend configurado, simular respuesta
-    if (!import.meta.env.VITE_API_BASE_URL) {
-      console.warn('VITE_API_BASE_URL no configurada. Simulando respuesta de suscripción.')
-      setTimeout(() => {
-        alert(
-          `Pre-registro simulado.\n\nNivel: ${selectedLevel.value?.name}\nEmail: ${formData.value.email}\nUTM: ${utmParams.value?.utm_source || 'N/A'}`
-        )
-        isSubmitting.value = false
-      }, 1000)
-      return
-    }
-
-    const response = await subscriptionsService.create(subscriptionPayload)
-
-    // Sincronizar con Chatwoot si está disponible
-    if (response?.subscription_id) {
-      // Preparar datos para Chatwoot (resumen aplanado)
-      const chatwootAttributes = {
-        subscription_id: response.subscription_id,
-        status: response.status || 'pre_registered',
-        level_id: selectedLevel.value?.name || '',
-        amount_range: formData.value.rango_monto || '',
-        type: formData.value.tipo_interesado || '',
-        province: formData.value.provincia || '',
-        utm_source: utmParams.value?.utm_source || '',
-        utm_medium: utmParams.value?.utm_medium || '',
-        utm_campaign: utmParams.value?.utm_campaign || '',
-        utm_term: utmParams.value?.utm_term || '',
-        utm_content: utmParams.value?.utm_content || '',
-        campaign_id: utmParams.value?.campaign_id || '',
-        referrer: utmParams.value?.referrer || '',
-        consent_version: '1.0',
-        consent_accepted_at: new Date().toISOString()
-      }
-
-      // Llamar setUser (identificación)
-      const userIdentity = {
+    // Crear contacto en Chatwoot directamente (Cliente API)
+    const response = await chatwootClientService.createContact(
+      {
         name: formData.value.nombre,
         email: formData.value.email,
-        identifier_hash: response.chatwoot_identifier_hash
+        phone: formData.value.telefono || undefined,
+        whatsapp: formData.value.whatsapp || undefined,
+        province: formData.value.provincia || undefined,
+        type: formData.value.tipo_interesado || undefined,
+        amount_range: formData.value.rango_monto || undefined
+      },
+      selectedLevel.value?.name || '',
+      utmParams.value || {},
+      {
+        version: '1.0',
+        accepted_at: new Date().toISOString()
       }
-      await setUser(response.subscription_id, userIdentity)
+    )
 
-      // Llamar setCustomAttributes (atributos personalizados)
-      await setCustomAttributes(chatwootAttributes)
+    // Contacto creado en Chatwoot exitosamente
+    const sourceId = response.contact.source_id
 
-      console.log('Lead sincronizado con Chatwoot:', response.subscription_id)
+    // Sincronizar con widget de Chatwoot (setUser + setCustomAttributes)
+    await setUser(sourceId, {
+      name: formData.value.nombre,
+      email: formData.value.email
+    })
+
+    const chatwootAttributes = {
+      source_id: sourceId,
+      form_source: 'web_widget',
+      level_id: selectedLevel.value?.name || '',
+      amount_range: formData.value.rango_monto || '',
+      type: formData.value.tipo_interesado || '',
+      province: formData.value.provincia || '',
+      utm_source: utmParams.value?.utm_source || '',
+      utm_medium: utmParams.value?.utm_medium || '',
+      utm_campaign: utmParams.value?.utm_campaign || '',
+      utm_term: utmParams.value?.utm_term || '',
+      utm_content: utmParams.value?.utm_content || '',
+      campaign_id: utmParams.value?.campaign_id || '',
+      referrer: utmParams.value?.referrer || '',
+      consent_version: '1.0',
+      consent_accepted_at: new Date().toISOString()
     }
 
-    if (response?.redirect_url) {
-      window.location.href = response.redirect_url
-      return
-    }
+    await setCustomAttributes(chatwootAttributes)
 
-    submitError.value = 'No se recibió la URL de redirección. Intenta nuevamente.'
+    console.log('Lead registrado en Chatwoot:', sourceId)
+
+    // Mostrar página de éxito
+    alert(
+      `¡Pre-registro completado!\n\nGracias ${formData.value.nombre}.\nNivel: ${selectedLevel.value?.name}\nEmail: ${formData.value.email}\n\nPróximamente te contactaremos para continuar el proceso.`
+    )
+
+    // Limpiar formulario (opcional)
+    // formData.value = { ... }
   } catch (error) {
-    console.error('Error al iniciar suscripción:', error)
-    submitError.value = 'No pudimos iniciar la suscripción. Intenta más tarde.'
+    console.error('Error al registrar en Chatwoot:', error)
+    submitError.value = `No pudimos completar tu pre-registro. ${(error as Error).message}`
   } finally {
     isSubmitting.value = false
   }

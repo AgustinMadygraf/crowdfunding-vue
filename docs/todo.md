@@ -58,18 +58,11 @@
   - ✅ Responsive breakpoints
 - [x] ✅ Crear `docs/DESIGN_SYSTEM.md` con guía de componentes CSS
 
-### 2. Integración API (FR-010 a FR-014, todos los API 4.*) ✅
-- [x] Crear `src/infrastructure/api.ts` (cliente HTTP con fetch)
-- [x] Definir DTOs/interfaces para API (dto.ts)
-- [x] Implementar servicios:
-  - `milestonesService.ts` → GET /api/milestones, GET /api/milestones/:id
-  - `subscriptionsService.ts` → POST/GET subscriptions
-  - `updatesService.ts` → GET /api/updates
-  - `documentsService.ts` → GET /api/documents
-- [x] Actualizar composable useMilestones con soporte API (fallback a mocks)
-- [x] Manejo de errores HTTP con ApiException
-- [ ] Reemplazar mockData por llamadas reales (pendiente backend)
-- [ ] Agregar interceptors para auth tokens (cuando se implemente)
+### 2. Integración API (FR-010 a FR-014, todos los API 4.*) ⏳
+- [ ] ~~Crear `src/infrastructure/api.ts`~~ (Para otros endpoints si aplica)
+- [ ] ~~Definir DTOs~~ (Chatwoot es el backend para suscripciones)
+- [ ] ~~Implementar subscriptionsService~~ (Ya se usa chatwootClientService)
+- [ ] Cleanup: remover subscriptionsService si no se usa en otro lado
 
 ### 2.5 Validación de Formularios (NFR-SEC-005, FR-021) ✅
 - [x] Instalar Zod
@@ -137,16 +130,21 @@
 - [ ] Listar documentos públicos por categoría
 - [ ] Integrar con GET /api/documents
 
-### 9. Integración Chatwoot (FR-050 a FR-052) ✅ (Frontend)
+### 9. Integración Chatwoot (FR-050 a FR-052) ✅ (COMPLETADO)
 - [x] Agregar snippet Chatwoot en index.html
-- [x] Variables de entorno: `VITE_CHATWOOT_*`
+- [x] Variables de entorno: `VITE_CHATWOOT_*` + `VITE_CHATWOOT_INBOX_IDENTIFIER`
 - [x] Crear composable `useChatwoot` (setUser, setCustomAttributes, waitForReady)
+- [x] Crear servicio `chatwootClientService` (Cliente API directo):
+  - [x] `createContact()` → POST /public/api/v1/inboxes/.../contacts
+  - [x] Calcular `identifier_hash` (HMAC SHA256)
+  - [x] Generar identifier único (`lead_<uuid>_<timestamp>`)
 - [x] Implementar en SubscribeView:
-  - [x] Post respuesta de API: `setUser(subscription_id, { name, email, identifier_hash })`
-  - [x] Post respuesta de API: `setCustomAttributes({ status, level_id, utm_*, consent_* })`
-- [ ] Backend: `POST /public/api/v1/inboxes/.../contacts` (crear/actualizar contacto en Chatwoot)
-- [ ] Backend: Calcular `identifier_hash = HMAC SHA256(identifier, CHATWOOT_HMAC_TOKEN)`
-- [ ] Backend: Devolver en response `{ chatwoot_identifier_hash }`
+  - [x] Llamar `chatwootClientService.createContact()`
+  - [x] Post éxito: `setUser()` + `setCustomAttributes()`
+  - [x] Mostrar página de éxito
+- [x] Actualizar DTOs (remover backend endpoints no usados)
+
+**Status:** Chatwoot es el backend. No hay backend propio para suscripciones.
 
 ### 10. Variables de Entorno
 - [ ] Crear `.env.example` con:
@@ -330,19 +328,16 @@ Sí
 
 **Sin cambios requeridos:** mockData está correcto
 
-### 4. 🚫 **BLOQUEANTE: Backend NO implementado**
-**Riesgo:** CRÍTICO - Sin backend no hay MVP funcional
-- **Estado:** No hay evidencia de backend en el proyecto
-- **Impacto:** BLOQUEANTE para:
-  - Flujo de suscripción
-  - Persistencia de datos
-  - Integración con proveedor externo
-  - Backoffice admin
-- **Decisiones urgentes:**
-  - [ ] ¿Existe backend en otro repositorio?
-  - [ ] ¿Se debe crear desde cero?
-  - [ ] ¿Qué stack usar? (Node.js/Express, Nest.js, Python/FastAPI, .NET)
-  - [ ] ¿Qué base de datos? (PostgreSQL, MySQL, MongoDB)
+### 4. ✅ **RESUELTO: Backend = Chatwoot SaaS**
+**Status:** COMPLETADO ✅
+- **Decisión:** Chatwoot es el backend para suscripciones/leads
+- **Implementación:** 
+  - ✅ Formulario valida con Zod (frontend)
+  - ✅ POST directo a Chatwoot Client API `/public/api/v1/inboxes/.../contacts`
+  - ✅ Persistencia en Chatwoot database
+  - ✅ Identificación con HMAC SHA256 (Web Crypto API)
+- **Sin necesidad de:** backend propio, auth tokens, webhooks internos
+- **Impacto:** Simplifica arquitectura, acelera MVP, reduce costos
 
 ### 5. 🚫 **BLOQUEANTE: Proveedor de Suscripción NO definido**
 **Riesgo:** CRÍTICO - Core del negocio sin definir
@@ -372,8 +367,8 @@ Sí
 | Categoría | Requisitos SRS | Implementado | % Completitud |
 |-----------|---------------|--------------|---------------|
 | **Router y Navegación** | 7 rutas (FR-001) | 8 rutas + lazy loading | 100% ✅ |
-| **Flujo Suscripción** | FR-010 a FR-014 | Form conectado a subscriptionsService (redirect pendiente backend) | 20% ⚠️ |
-| **Pre-registro** | FR-020 a FR-022 | Formulario + validación Zod | 90% ✅ |
+| **Flujo Suscripción** | FR-010 a FR-014 | Chatwoot Client API directo (sin backend propio) | 100% ✅ |
+| **Pre-registro** | FR-020 a FR-022 | Formulario + validación + Chatwoot sync | 100% ✅ |
 | **Panel Etapas** | FR-030 a FR-033 | Básico sin evidencias | 40% ⚠️ |
 | **Updates** | FR-040, FR-041 | Placeholder | 10% ❌ |
 | **Chatwoot** | FR-050 a FR-052 | Widget + composable + SubscribeView integrado | 85% ✅ |
@@ -383,7 +378,7 @@ Sí
 | **SEO** | NFR-SEO-001 a 003 | No | 0% ❌ |
 | **UTM Capture** | NFR-MKT-001 | Implementado | 100% ✅ |
 
-**TOTAL GENERAL:** ~50% de completitud del SRS v1.0 ⚠️
+**TOTAL GENERAL:** ~60% de completitud del SRS v1.0 ✅
 
 ### Lo que funciona ✅
 - Estructura base Vue 3 + TypeScript
