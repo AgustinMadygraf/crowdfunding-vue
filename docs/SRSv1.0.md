@@ -332,12 +332,16 @@ No incluye (en esta versión):
 * ✅ Navigation guard preparado para autenticación.
 * ✅ Formulario de pre-registro creado en SubscribeView (FR-020 a FR-022) - validación básica implementada.
 * ✅ Captura UTM implementada en `main.ts` (NFR-MKT-001) - almacenamiento en sessionStorage + integración en SubscribeView.
+* ✅ `src/infrastructure/api.ts` implementado (cliente HTTP con fetch + manejo de errores).
+* ✅ DTOs completos en `src/infrastructure/dto.ts` (basados en SRS Sección 5).
+* ✅ Servicios API: milestonesService, subscriptionsService, updatesService, documentsService.
+* ✅ useMilestones actualizado con soporte API (useApi parameter + fallback a mocks).
 
 ### ⏳ Pendientes
 
-* Introducir `src/infrastructure/api.ts` (fetch/axios) + DTOs.
-* Convertir `mockData.ts` → fuente API.
+* Convertir mockData.ts → fuente API (cuando backend esté disponible).
 * Mejorar validación de formularios (instalar Zod/Vuelidate).
+* Agregar interceptors para auth tokens (cuando se implemente autenticación).
 * Definir envs completos:
 
   * ✅ `VITE_CHATWOOT_TOKEN` (configurado)
