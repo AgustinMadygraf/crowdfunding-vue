@@ -331,13 +331,13 @@ No incluye (en esta versión):
 * ✅ Meta tags dinámicos por ruta (title, description).
 * ✅ Navigation guard preparado para autenticación.
 * ✅ Formulario de pre-registro creado en SubscribeView (FR-020 a FR-022) - validación básica implementada.
+* ✅ Captura UTM implementada en `main.ts` (NFR-MKT-001) - almacenamiento en sessionStorage + integración en SubscribeView.
 
 ### ⏳ Pendientes
 
 * Introducir `src/infrastructure/api.ts` (fetch/axios) + DTOs.
 * Convertir `mockData.ts` → fuente API.
 * Mejorar validación de formularios (instalar Zod/Vuelidate).
-* Implementar captura UTM en `main.ts`.
 * Definir envs completos:
 
   * ✅ `VITE_CHATWOOT_TOKEN` (configurado)
