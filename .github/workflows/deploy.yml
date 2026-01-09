@@ -31,7 +31,6 @@ jobs:
         env:
           FTP_SERVER: ${{ vars.FTP_SERVER }}
           FTP_SERVER_IP: ${{ vars.FTP_SERVER_IP }}
-          SITE_DOMAIN: ${{ vars.SITE_DOMAIN }}
           FTP_DIR: ${{ vars.FTP_DIR }}
           FTP_PORT: ${{ vars.FTP_PORT }}
           FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
@@ -46,8 +45,8 @@ jobs:
             fi
           done
 
-          if [ -z "${FTP_SERVER:-}" ] && [ -z "${FTP_SERVER_IP:-}" ] && [ -z "${SITE_DOMAIN:-}" ]; then
-            echo "::error::Necesitás al menos una de estas vars: FTP_SERVER o FTP_SERVER_IP o SITE_DOMAIN"
+          if [ -z "${FTP_SERVER:-}" ]; then
+            echo "::error::Falta FTP_SERVER (var). Ej: vps-5455262-x.dattaweb.com"
             exit 1
           fi
 
@@ -56,80 +55,48 @@ jobs:
             exit 1
           fi
 
-          # Default port
           echo "FTP_PORT=${FTP_PORT:-21}" >> "$GITHUB_ENV"
 
-      - name: Resolver host efectivo (DNS) + fallback IP (depuración)
+      - name: Resolver IP (forzar IPv4) y armar URL de conexión
         shell: bash
         env:
           FTP_SERVER: ${{ vars.FTP_SERVER }}
           FTP_SERVER_IP: ${{ vars.FTP_SERVER_IP }}
-          SITE_DOMAIN: ${{ vars.SITE_DOMAIN }}
         run: |
           set -euo pipefail
           sudo apt-get update -y
           sudo apt-get install -y dnsutils
 
-          # Armamos lista de candidatos
-          candidates=()
-
-          [ -n "${FTP_SERVER:-}" ] && candidates+=("$FTP_SERVER")
-
-          if [ -n "${SITE_DOMAIN:-}" ]; then
-            # candidatos típicos en hostings
-            candidates+=("ftp.${SITE_DOMAIN}")
-            candidates+=("${SITE_DOMAIN}")
-            candidates+=("www.${SITE_DOMAIN}")
-          fi
-
-          # Fallback IP al final (no requiere DNS)
-          [ -n "${FTP_SERVER_IP:-}" ] && candidates+=("$FTP_SERVER_IP")
-
-          echo "::group::Candidatos y diagnóstico DNS"
-          for h in "${candidates[@]}"; do
-            echo ""
-            echo "==> $h"
-            if [[ "$h" =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}$ ]]; then
-              echo "IP detectada (sin DNS)"
-              continue
-            fi
-            nslookup "$h" || true
-            dig +short "$h" A || true
-            dig +short "$h" AAAA || true
-          done
+          echo "::group::DNS (A/AAAA) para $FTP_SERVER"
+          echo -n "A: "; dig +short "$FTP_SERVER" A || true
+          echo -n "AAAA: "; dig +short "$FTP_SERVER" AAAA || true
           echo "::endgroup::"
 
-          chosen=""
+          # Preferimos IPv4:
+          ip4="$(dig +short "$FTP_SERVER" A | head -n 1 || true)"
 
-          for h in "${candidates[@]}"; do
-            if [[ "$h" =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}$ ]]; then
-              chosen="$h"
-              echo "::notice::Usando IP fallback: $chosen"
-              break
-            fi
+          # Si no hay A, usamos fallback explícito si existe
+          if [ -z "$ip4" ] && [ -n "${FTP_SERVER_IP:-}" ]; then
+            ip4="$FTP_SERVER_IP"
+            echo "::notice::No encontré A record; usando FTP_SERVER_IP fallback: $ip4"
+          fi
 
-            if getent hosts "$h" >/dev/null 2>&1; then
-              chosen="$h"
-              echo "::notice::DNS OK, usando host: $chosen"
-              break
-            fi
-          done
-
-          if [ -z "$chosen" ]; then
-            echo "::error::No se pudo resolver ningún host. Tomá el 'Servidor FTP' desde 'Acceso por FTP' del panel o cargá FTP_SERVER_IP."
+          if [ -z "$ip4" ]; then
+            echo "::error::No pude obtener IPv4 (A). Cargá FTP_SERVER_IP con 200.58.103.24"
             exit 1
           fi
 
-          echo "FTP_HOST_EFFECTIVE=$chosen" >> "$GITHUB_ENV"
-          echo "FTP_CONNECT_URL=ftp://${chosen}:${FTP_PORT}" >> "$GITHUB_ENV"
-          echo "::notice::FTP_CONNECT_URL=ftp://${chosen}:${FTP_PORT}"
+          echo "FTP_HOST_EFFECTIVE=$FTP_SERVER" >> "$GITHUB_ENV"
+          echo "FTP_IPv4_EFFECTIVE=$ip4" >> "$GITHUB_ENV"
+          echo "FTP_CONNECT_URL=ftp://${ip4}:${FTP_PORT}" >> "$GITHUB_ENV"
+          echo "::notice::FTP_CONNECT_URL=ftp://${ip4}:${FTP_PORT}"
 
-      - name: Preflight puerto (host:puerto)
+      - name: Preflight puerto 21 (IPv4)
         shell: bash
         run: |
           set -euo pipefail
-          echo "Probando conectividad a $FTP_HOST_EFFECTIVE:$FTP_PORT"
-          nc -zv "$FTP_HOST_EFFECTIVE" "$FTP_PORT"
+          echo "Probando conectividad IPv4 a $FTP_IPv4_EFFECTIVE:$FTP_PORT"
+          nc -zv "$FTP_IPv4_EFFECTIVE" "$FTP_PORT"
 
       - name: Instalar dependencias
         run: npm ci
@@ -154,7 +121,7 @@ jobs:
           EOF
           fi
 
-      - name: Deploy con lftp mirror (dist -> FTP_DIR)
+      - name: Deploy con lftp mirror (dist -> FTP_DIR) [IPv4]
         shell: bash
         env:
           FTP_DIR: ${{ vars.FTP_DIR }}
@@ -170,6 +137,7 @@ jobs:
           set net:timeout 30
           set net:max-retries 2
           set ftp:passive-mode on
+          set ftp:ssl-allow no
 
           mkdir -p "$FTP_DIR"
           mirror -R --delete --only-newer --verbose --no-perms --parallel=2 dist/ "$FTP_DIR/"
