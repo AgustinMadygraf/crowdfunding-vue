@@ -3,11 +3,13 @@ import { ref, onMounted } from 'vue'
 import { useContributionLevels } from '@/application/useContributionLevels'
 import { getUTMFromSessionStorage, hasUTMParams, type UTMParams } from '@/utils/utm'
 import { useFormValidation } from '@/application/composables/useFormValidation'
+import { useChatwoot } from '@/application/composables/useChatwoot'
 import { subscriptionFormSchema, type SubscriptionFormData } from '@/application/schemas/subscriptionSchema'
 import { subscriptionsService } from '@/infrastructure/services/subscriptionsService'
 import type { CreateSubscriptionRequest } from '@/infrastructure/dto'
 
 const { levels, selectedLevel, selectLevel, benefitAmount } = useContributionLevels()
+const { setUser, setCustomAttributes } = useChatwoot()
 
 // Form state
 const formData = ref({
@@ -101,6 +103,41 @@ const handleSubmit = async () => {
     }
 
     const response = await subscriptionsService.create(subscriptionPayload)
+
+    // Sincronizar con Chatwoot si está disponible
+    if (response?.subscription_id) {
+      // Preparar datos para Chatwoot (resumen aplanado)
+      const chatwootAttributes = {
+        subscription_id: response.subscription_id,
+        status: response.status || 'pre_registered',
+        level_id: selectedLevel.value?.name || '',
+        amount_range: formData.value.rango_monto || '',
+        type: formData.value.tipo_interesado || '',
+        province: formData.value.provincia || '',
+        utm_source: utmParams.value?.utm_source || '',
+        utm_medium: utmParams.value?.utm_medium || '',
+        utm_campaign: utmParams.value?.utm_campaign || '',
+        utm_term: utmParams.value?.utm_term || '',
+        utm_content: utmParams.value?.utm_content || '',
+        campaign_id: utmParams.value?.campaign_id || '',
+        referrer: utmParams.value?.referrer || '',
+        consent_version: '1.0',
+        consent_accepted_at: new Date().toISOString()
+      }
+
+      // Llamar setUser (identificación)
+      const userIdentity = {
+        name: formData.value.nombre,
+        email: formData.value.email,
+        identifier_hash: response.chatwoot_identifier_hash
+      }
+      await setUser(response.subscription_id, userIdentity)
+
+      // Llamar setCustomAttributes (atributos personalizados)
+      await setCustomAttributes(chatwootAttributes)
+
+      console.log('Lead sincronizado con Chatwoot:', response.subscription_id)
+    }
 
     if (response?.redirect_url) {
       window.location.href = response.redirect_url

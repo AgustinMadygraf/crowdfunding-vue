@@ -338,6 +338,8 @@ No incluye (en esta versión):
 * ✅ useMilestones actualizado con soporte API (useApi parameter + fallback a mocks).
 * ✅ Validación de formularios con Zod (subscriptionFormSchema + useFormValidation).
 * ✅ SubscribeView actualizado con validación en tiempo real y mensajes de error específicos.
+* ✅ Composable `useChatwoot` para integración con widget (setUser, setCustomAttributes, waitForReady).
+* ✅ SubscribeView integrado con Chatwoot: sincroniza lead post-registro (nombre, email, subscription_id, UTM, consent).
 
 ### ⏳ Pendientes
 

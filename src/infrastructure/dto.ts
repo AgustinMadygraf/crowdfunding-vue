@@ -119,6 +119,8 @@ export interface CreateSubscriptionResponse {
   subscription_id: string
   redirect_url: string
   status: SubscriptionStatus
+  chatwoot_identifier?: string
+  chatwoot_identifier_hash?: string
 }
 
 export interface GetSubscriptionResponse {

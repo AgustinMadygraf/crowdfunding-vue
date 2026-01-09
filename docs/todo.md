@@ -137,13 +137,16 @@
 - [ ] Listar documentos públicos por categoría
 - [ ] Integrar con GET /api/documents
 
-### 9. Integración Chatwoot (FR-050 a FR-052)
-- [ ] Agregar snippet Chatwoot en index.html
-- [ ] Variables de entorno: `VITE_CHATWOOT_*`
-- [ ] Implementar `setUser()` post pre-registro
-- [ ] Implementar `setCustomAttributes()` con:
-  - status, subscription_id, level_id, utm
-- [ ] Registrar evento en `startContribution()`
+### 9. Integración Chatwoot (FR-050 a FR-052) ✅ (Frontend)
+- [x] Agregar snippet Chatwoot en index.html
+- [x] Variables de entorno: `VITE_CHATWOOT_*`
+- [x] Crear composable `useChatwoot` (setUser, setCustomAttributes, waitForReady)
+- [x] Implementar en SubscribeView:
+  - [x] Post respuesta de API: `setUser(subscription_id, { name, email, identifier_hash })`
+  - [x] Post respuesta de API: `setCustomAttributes({ status, level_id, utm_*, consent_* })`
+- [ ] Backend: `POST /public/api/v1/inboxes/.../contacts` (crear/actualizar contacto en Chatwoot)
+- [ ] Backend: Calcular `identifier_hash = HMAC SHA256(identifier, CHATWOOT_HMAC_TOKEN)`
+- [ ] Backend: Devolver en response `{ chatwoot_identifier_hash }`
 
 ### 10. Variables de Entorno
 - [ ] Crear `.env.example` con:
@@ -373,14 +376,14 @@ Sí
 | **Pre-registro** | FR-020 a FR-022 | Formulario + validación Zod | 90% ✅ |
 | **Panel Etapas** | FR-030 a FR-033 | Básico sin evidencias | 40% ⚠️ |
 | **Updates** | FR-040, FR-041 | Placeholder | 10% ❌ |
-| **Chatwoot** | FR-050 a FR-052 | Snippet instalado | 60% ⚠️ |
+| **Chatwoot** | FR-050 a FR-052 | Widget + composable + SubscribeView integrado | 85% ✅ |
 | **Backoffice** | FR-060 a FR-065 | No | 0% ❌ |
 | **API Client** | Todo Cap. 4 | Estructura completa + servicios | 85% ✅ |
 | **Seguridad** | NFR-SEC-001 a 005 | .env + validación Zod | 40% ⚠️ |
 | **SEO** | NFR-SEO-001 a 003 | No | 0% ❌ |
 | **UTM Capture** | NFR-MKT-001 | Implementado | 100% ✅ |
 
-**TOTAL GENERAL:** ~42% de completitud del SRS v1.0 ⚠️
+**TOTAL GENERAL:** ~50% de completitud del SRS v1.0 ⚠️
 
 ### Lo que funciona ✅
 - Estructura base Vue 3 + TypeScript
