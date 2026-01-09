@@ -80,6 +80,7 @@ export interface SubscriptionDTO {
   lead_name: string
   lead_email: string
   lead_phone?: string
+  lead_whatsapp?: string
   lead_province?: string
   lead_type?: string
   level_id: string
@@ -100,6 +101,7 @@ export interface CreateSubscriptionRequest {
     name: string
     email: string
     phone?: string
+    whatsapp?: string
     province?: string
     type?: string
     amount_range?: string

@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useContributionLevels } from '@/application/useContributionLevels'
 import { getUTMFromSessionStorage, hasUTMParams, type UTMParams } from '@/utils/utm'
 import { useFormValidation } from '@/application/composables/useFormValidation'
 import { subscriptionFormSchema, type SubscriptionFormData } from '@/application/schemas/subscriptionSchema'
+import { subscriptionsService } from '@/infrastructure/services/subscriptionsService'
+import type { CreateSubscriptionRequest } from '@/infrastructure/dto'
 
 const { levels, selectedLevel, selectLevel, benefitAmount } = useContributionLevels()
 
@@ -30,6 +32,7 @@ const {
 } = useFormValidation(subscriptionFormSchema)
 
 const isSubmitting = ref(false)
+const submitError = ref<string | null>(null)
 const utmParams = ref<UTMParams | null>(null)
 
 // Cargar UTM params al montar el componente
@@ -56,45 +59,61 @@ const handleSubmit = async () => {
     return
   }
 
+  if (!selectedLevel.value) {
+    submitError.value = 'Seleccioná un nivel de contribución para continuar'
+    return
+  }
+
+  submitError.value = null
   isSubmitting.value = true
 
   // Preparar payload para POST /api/subscriptions
-  const subscriptionPayload = {
+  const subscriptionPayload: CreateSubscriptionRequest = {
     lead: {
       name: formData.value.nombre,
       email: formData.value.email,
       phone: formData.value.telefono || undefined,
       whatsapp: formData.value.whatsapp || undefined,
       province: formData.value.provincia || undefined,
-      interested_type: formData.value.tipo_interesado || undefined,
+      type: formData.value.tipo_interesado || undefined,
       amount_range: formData.value.rango_monto || undefined
     },
-    level_id: selectedLevel.value?.amount || 0,
+    level_id: selectedLevel.value?.name || '',
     consent: {
-      text_version: '1.0', // TODO: Get from config
+      accepted: true,
+      version: '1.0', // TODO: Get from config
       accepted_at: new Date().toISOString()
     },
     utm: utmParams.value || {}
   }
 
-  console.log('Pre-registro con UTM:', subscriptionPayload)
+  try {
+    // Si no hay backend configurado, simular respuesta
+    if (!import.meta.env.VITE_API_BASE_URL) {
+      console.warn('VITE_API_BASE_URL no configurada. Simulando respuesta de suscripción.')
+      setTimeout(() => {
+        alert(
+          `Pre-registro simulado.\n\nNivel: ${selectedLevel.value?.name}\nEmail: ${formData.value.email}\nUTM: ${utmParams.value?.utm_source || 'N/A'}`
+        )
+        isSubmitting.value = false
+      }, 1000)
+      return
+    }
 
-  // TODO: Implement actual API call
-  // const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/subscriptions`, {
-  //   method: 'POST',
-  //   headers: { 'Content-Type': 'application/json' },
-  //   body: JSON.stringify(subscriptionPayload)
-  // })
-  // const data = await response.json()
-  // window.location.href = data.redirect_url
+    const response = await subscriptionsService.create(subscriptionPayload)
 
-  // Simulated API call
-  setTimeout(() => {
-    alert(
-      `¡Pre-registro completado!\n\nDatos capturados:\n- Nombre: ${formData.value.nombre}\n- Email: ${formData.value.email}\n- Nivel: ${selectedLevel.value?.name}\n- UTM Source: ${utmParams.value?.utm_source || 'N/A'}\n- Campaign: ${utmParams.value?.utm_campaign || 'N/A'}\n\nEn producción serás redirigido al proveedor externo.`
-    )
+    if (response?.redirect_url) {
+      window.location.href = response.redirect_url
+      return
+    }
+
+    submitError.value = 'No se recibió la URL de redirección. Intenta nuevamente.'
+  } catch (error) {
+    console.error('Error al iniciar suscripción:', error)
+    submitError.value = 'No pudimos iniciar la suscripción. Intenta más tarde.'
+  } finally {
     isSubmitting.value = false
-  }, 1500)
+  }
 }
 </script>
 
@@ -232,6 +251,10 @@ const handleSubmit = async () => {
 
             <div v-if="formError" class="form-error-banner">
               {{ formError }}
+            </div>
+
+            <div v-if="submitError" class="form-error-banner">
+              {{ submitError }}
             </div>
 
             <button

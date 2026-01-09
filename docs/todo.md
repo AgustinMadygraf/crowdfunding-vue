@@ -59,6 +59,9 @@
 - [x] ✅ Crear `docs/DESIGN_SYSTEM.md` con guía de componentes CSS
 
 ### 2. Integración API (FR-010 a FR-014, todos los API 4.*) ✅
+- [x] Crear `src/infrastructure/api.ts` (cliente HTTP con fetch)
+- [x] Definir DTOs/interfaces para API (dto.ts)
+- [x] Implementar servicios:
   - `milestonesService.ts` → GET /api/milestones, GET /api/milestones/:id
   - `subscriptionsService.ts` → POST/GET subscriptions
   - `updatesService.ts` → GET /api/updates
@@ -366,7 +369,7 @@ Sí
 | Categoría | Requisitos SRS | Implementado | % Completitud |
 |-----------|---------------|--------------|---------------|
 | **Router y Navegación** | 7 rutas (FR-001) | 8 rutas + lazy loading | 100% ✅ |
-| **Flujo Suscripción** | FR-010 a FR-014 | Botón mock | 5% ❌ |
+| **Flujo Suscripción** | FR-010 a FR-014 | Form conectado a subscriptionsService (redirect pendiente backend) | 20% ⚠️ |
 | **Pre-registro** | FR-020 a FR-022 | Formulario + validación Zod | 90% ✅ |
 | **Panel Etapas** | FR-030 a FR-033 | Básico sin evidencias | 40% ⚠️ |
 | **Updates** | FR-040, FR-041 | Placeholder | 10% ❌ |
@@ -387,13 +390,11 @@ Sí
 - Integración Chatwoot (parcial)
 
 ### Lo que falta (crítico) ❌
-- Vue Router (0%)
-- Backend/API (0%)
-- Flujo completo de suscripción (0%)
-- Formulario de pre-registro (0%)
-- Integración con proveedor externo (0%)
-- Backoffice admin (0%)
-- Sistema de evidencias (0%)
+- Backend/API operativos (endpoints aún no disponibles)
+- Integrar `startContribution()` con backend real (redirect + estados)
+- Integración con proveedor externo (Donweb) y webhook
+- Backoffice admin (auth + CRUD + auditoría)
+- Sistema de evidencias y updates publicados
 
 ---
 

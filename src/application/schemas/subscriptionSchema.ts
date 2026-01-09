@@ -83,7 +83,7 @@ export const createSubscriptionRequestSchema = z.object({
     phone: z.string().max(30).optional(),
     whatsapp: z.string().max(30).optional(),
     province: z.string().max(100).optional(),
-    interested_type: z.enum(['persona', 'empresa', 'cooperativa', 'otro']).optional(),
+    type: z.enum(['persona', 'empresa', 'cooperativa', 'otro']).optional(),
     amount_range: z.enum([
       'hasta_5000',
       '5000_10000',
@@ -94,10 +94,11 @@ export const createSubscriptionRequestSchema = z.object({
     ]).optional()
   }),
   
-  level_id: z.number().int().positive('Debe seleccionar un nivel de contribución'),
+  level_id: z.string().min(1, 'Debe seleccionar un nivel de contribución'),
   
   consent: z.object({
-    text_version: z.string().min(1),
+    accepted: z.literal(true),
+    version: z.string().min(1),
     accepted_at: z.string().datetime() // ISO 8601
   }),
   
