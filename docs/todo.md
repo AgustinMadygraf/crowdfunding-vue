@@ -83,12 +83,14 @@
 - [ ] Crear página/componente estado de suscripción
 - [ ] Estados: interesado → iniciado → verificacion → confirmado/rechazado/expirado
 
-### 4. Captura UTM y Marketing (NFR-MKT-001)
-- [ ] Implementar captura UTM en `main.ts`:
-  - Leer querystring en carga inicial
-  - Almacenar en sessionStorage
+### 4. Captura UTM y Marketing (NFR-MKT-001) ✅
+- [x] Implementar captura UTM en `main.ts`:
+  - Leer querystring en carga inicial (utm_source, utm_medium, utm_campaign, utm_term, utm_content, campaign_id, referrer)
+  - Almacenar en sessionStorage con timestamp
   - Recuperar al iniciar suscripción
-- [ ] Enviar UTM en POST /api/subscriptions
+- [x] Crear utilidad `src/utils/utm.ts` con funciones helper
+- [x] Integrar en SubscribeView para envío en POST /api/subscriptions
+- [x] Payload preparado con estructura: lead + level_id + consent + utm
 
 ### 5. Modelo de Dominio Extendido
 - [ ] Extender interfaz `Milestone`:
@@ -360,9 +362,9 @@ Sí
 | **API Client** | Todo Cap. 4 | No | 0% ❌ |
 | **Seguridad** | NFR-SEC-001 a 005 | Parcial (.env) | 20% ❌ |
 | **SEO** | NFR-SEO-001 a 003 | No | 0% ❌ |
-| **UTM Capture** | NFR-MKT-001 | No | 0% ❌ |
+| **UTM Capture** | NFR-MKT-001 | Implementado | 100% ✅ |
 
-**TOTAL GENERAL:** ~22% de completitud del SRS v1.0 ⚠️
+**TOTAL GENERAL:** ~27% de completitud del SRS v1.0 ⚠️
 
 ### Lo que funciona ✅
 - Estructura base Vue 3 + TypeScript
@@ -396,7 +398,7 @@ Sí
 ### Fase 1: Fundación (Sprint 1-2)
 1. ✅ Instalar y configurar vue-router
 2. Crear estructura de API client (sin backend aún, usar mocks)
-3. Implementar captura UTM
+3. ✅ Implementar captura UTM
 4. Instalar librería de validación (Zod)
 5. Decidir e instalar sistema de componentes UI (opcional, CSS custom funciona)
 

@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useContributionLevels } from '@/application/useContributionLevels'
+import { getUTMFromSessionStorage, hasUTMParams, type UTMParams } from '@/utils/utm'
 
 const { levels, selectedLevel, selectLevel, benefitAmount } = useContributionLevels()
 
@@ -22,6 +23,15 @@ const formErrors = ref({
 })
 
 const isSubmitting = ref(false)
+const utmParams = ref<UTMParams | null>(null)
+
+// Cargar UTM params al montar el componente
+onMounted(() => {
+  utmParams.value = getUTMFromSessionStorage()
+  if (utmParams.value) {
+    console.log('UTM params loaded for subscription:', utmParams.value)
+  }
+})
 
 const validateForm = () => {
   let isValid = true
@@ -53,19 +63,41 @@ const handleSubmit = async () => {
 
   isSubmitting.value = true
 
-  // TODO: Implement API call to POST /api/subscriptions
-  // TODO: Capture UTM parameters from sessionStorage
-  // TODO: Redirect to provider URL from response
-  
-  console.log('Pre-registro:', {
-    ...formData.value,
-    levelId: selectedLevel.value?.name,
-    // utm: getUTMFromSessionStorage()
-  })
+  // Preparar payload para POST /api/subscriptions
+  const subscriptionPayload = {
+    lead: {
+      name: formData.value.nombre,
+      email: formData.value.email,
+      phone: formData.value.telefono || undefined,
+      province: formData.value.provincia || undefined,
+      type: formData.value.tipoInteresado || undefined,
+      amount_range: formData.value.rangoMonto || undefined
+    },
+    level_id: selectedLevel.value?.name || '',
+    consent: {
+      accepted: true,
+      version: '1.0', // TODO: Get from config
+      accepted_at: new Date().toISOString()
+    },
+    utm: utmParams.value || {}
+  }
+
+  console.log('Pre-registro con UTM:', subscriptionPayload)
+
+  // TODO: Implement actual API call
+  // const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/subscriptions`, {
+  //   method: 'POST',
+  //   headers: { 'Content-Type': 'application/json' },
+  //   body: JSON.stringify(subscriptionPayload)
+  // })
+  // const data = await response.json()
+  // window.location.href = data.redirect_url
 
   // Simulated API call
   setTimeout(() => {
-    alert('¡Pre-registro completado! En producción serás redirigido al proveedor externo.')
+    alert(
+      `¡Pre-registro completado!\n\nDatos capturados:\n- Nombre: ${formData.value.nombre}\n- Email: ${formData.value.email}\n- Nivel: ${selectedLevel.value?.name}\n- UTM Source: ${utmParams.value?.utm_source || 'N/A'}\n- Campaign: ${utmParams.value?.utm_campaign || 'N/A'}\n\nEn producción serás redirigido al proveedor externo.`
+    )
     isSubmitting.value = false
   }, 1500)
 }
