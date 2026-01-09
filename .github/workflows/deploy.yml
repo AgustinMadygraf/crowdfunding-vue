@@ -67,26 +67,17 @@ jobs:
           sudo apt-get update -y
           sudo apt-get install -y dnsutils
 
-          echo "::group::DNS (A/AAAA) para $FTP_SERVER"
-          echo -n "A: "; dig +short "$FTP_SERVER" A || true
-          echo -n "AAAA: "; dig +short "$FTP_SERVER" AAAA || true
-          echo "::endgroup::"
-
-          # Preferimos IPv4:
           ip4="$(dig +short "$FTP_SERVER" A | head -n 1 || true)"
-
-          # Si no hay A, usamos fallback explícito si existe
           if [ -z "$ip4" ] && [ -n "${FTP_SERVER_IP:-}" ]; then
             ip4="$FTP_SERVER_IP"
             echo "::notice::No encontré A record; usando FTP_SERVER_IP fallback: $ip4"
           fi
 
           if [ -z "$ip4" ]; then
-            echo "::error::No pude obtener IPv4 (A). Cargá FTP_SERVER_IP con 200.58.103.24"
+            echo "::error::No pude obtener IPv4 (A). Cargá FTP_SERVER_IP (ej: 200.58.103.24)."
             exit 1
           fi
 
-          echo "FTP_HOST_EFFECTIVE=$FTP_SERVER" >> "$GITHUB_ENV"
           echo "FTP_IPv4_EFFECTIVE=$ip4" >> "$GITHUB_ENV"
           echo "FTP_CONNECT_URL=ftp://${ip4}:${FTP_PORT}" >> "$GITHUB_ENV"
           echo "::notice::FTP_CONNECT_URL=ftp://${ip4}:${FTP_PORT}"
@@ -95,7 +86,6 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          echo "Probando conectividad IPv4 a $FTP_IPv4_EFFECTIVE:$FTP_PORT"
           nc -zv "$FTP_IPv4_EFFECTIVE" "$FTP_PORT"
 
       - name: Instalar dependencias
@@ -121,7 +111,7 @@ jobs:
           EOF
           fi
 
-      - name: Deploy con lftp mirror (dist -> FTP_DIR) [IPv4]
+      - name: Deploy con lftp mirror (dist -> FTP_DIR) [IPv4 + excludes]
         shell: bash
         env:
           FTP_DIR: ${{ vars.FTP_DIR }}
@@ -140,6 +130,13 @@ jobs:
           set ftp:ssl-allow no
 
           mkdir -p "$FTP_DIR"
-          mirror -R --delete --only-newer --verbose --no-perms --parallel=2 dist/ "$FTP_DIR/"
+
+          # Sync completo, PERO sin intentar borrar paths protegidos por Ferozo
+          mirror -R --delete --only-newer --verbose --no-perms --parallel=2 \
+            --exclude-glob .ht_leame \
+            --exclude-glob cgi-bin/ \
+            --exclude-glob cgi-bin/** \
+            dist/ "$FTP_DIR/"
+
           bye
           EOF
