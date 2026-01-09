@@ -1,29 +1,74 @@
-import { computed, ref } from 'vue';
-import type { Milestone } from '@/domain/milestone';
-import { mockMilestones } from '@/infrastructure/mockData';
+import { computed, ref, onMounted } from 'vue'
+import type { Milestone } from '@/domain/milestone'
+import { mockMilestones } from '@/infrastructure/mockData'
+import { milestonesService } from '@/infrastructure/services'
+import type { MilestoneDTO } from '@/infrastructure/dto'
 
-export function useMilestones() {
-  const milestones = ref<Milestone[]>([...mockMilestones]);
+/**
+ * Transforma MilestoneDTO del API a modelo de dominio Milestone
+ */
+const transformMilestone = (dto: MilestoneDTO): Milestone => ({
+  id: dto.id,
+  name: dto.title,
+  targetAmount: dto.target_amount,
+  raisedAmount: dto.raised_amount,
+  targetDate: dto.target_date,
+  status: dto.status
+})
+
+export function useMilestones(useApi = false) {
+  const milestones = ref<Milestone[]>([...mockMilestones])
+  const isLoading = ref(false)
+  const error = ref<string | null>(null)
+
+  const loadMilestones = async () => {
+    if (!useApi) return // Usar mocks si no se especifica usar API
+
+    isLoading.value = true
+    error.value = null
+
+    try {
+      const data = await milestonesService.getAll()
+      milestones.value = data.map(transformMilestone)
+    } catch (err) {
+      console.error('Error loading milestones:', err)
+      error.value = 'Error al cargar las etapas'
+      // Fallback a datos mock en caso de error
+      milestones.value = [...mockMilestones]
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  // Auto-cargar si se usa API
+  onMounted(() => {
+    if (useApi) {
+      loadMilestones()
+    }
+  })
 
   const totalTargetAmount = computed(() =>
     milestones.value.reduce((total, milestone) => total + milestone.targetAmount, 0)
-  );
+  )
 
   const totalRaisedAmount = computed(() =>
     milestones.value.reduce((total, milestone) => total + milestone.raisedAmount, 0)
-  );
+  )
 
   const progressPercentage = computed(() => {
     if (totalTargetAmount.value === 0) {
-      return 0;
+      return 0
     }
-    return Math.min(Math.round((totalRaisedAmount.value / totalTargetAmount.value) * 100), 100);
-  });
+    return Math.min(Math.round((totalRaisedAmount.value / totalTargetAmount.value) * 100), 100)
+  })
 
   return {
     milestones,
     totalTargetAmount,
     totalRaisedAmount,
     progressPercentage,
-  };
+    isLoading,
+    error,
+    reload: loadMilestones
+  }
 }

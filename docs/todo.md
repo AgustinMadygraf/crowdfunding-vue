@@ -58,16 +58,18 @@
   - ✅ Responsive breakpoints
 - [x] ✅ Crear `docs/DESIGN_SYSTEM.md` con guía de componentes CSS
 
-### 2. Integración API (FR-010 a FR-014, todos los API 4.*)
-- [ ] Crear `src/infrastructure/api.ts` (cliente HTTP)
-- [ ] Definir DTOs/interfaces para API
-- [ ] Implementar servicios:
-  - `milestonesService.ts` → GET /api/milestones
+### 2. Integración API (FR-010 a FR-014, todos los API 4.*) ✅
+- [x] Crear `src/infrastructure/api.ts` (cliente HTTP con fetch)
+- [x] Definir DTOs/interfaces para API (dto.ts)
+- [x] Implementar servicios:
+  - `milestonesService.ts` → GET /api/milestones, GET /api/milestones/:id
   - `subscriptionsService.ts` → POST/GET subscriptions
   - `updatesService.ts` → GET /api/updates
   - `documentsService.ts` → GET /api/documents
-- [ ] Reemplazar mockData por llamadas reales
-- [ ] Manejo de errores HTTP
+- [x] Actualizar composable useMilestones con soporte API (fallback a mocks)
+- [x] Manejo de errores HTTP con ApiException
+- [ ] Reemplazar mockData por llamadas reales (pendiente backend)
+- [ ] Agregar interceptors para auth tokens (cuando se implemente)
 
 ### 3. Flujo de Suscripción (FR-010 a FR-014, FR-020 a FR-022)
 - [ ] Crear componente PreRegistrationForm
@@ -359,12 +361,12 @@ Sí
 | **Updates** | FR-040, FR-041 | Placeholder | 10% ❌ |
 | **Chatwoot** | FR-050 a FR-052 | Snippet instalado | 60% ⚠️ |
 | **Backoffice** | FR-060 a FR-065 | No | 0% ❌ |
-| **API Client** | Todo Cap. 4 | No | 0% ❌ |
+| **API Client** | Todo Cap. 4 | Estructura completa + servicios | 85% ✅ |
 | **Seguridad** | NFR-SEC-001 a 005 | Parcial (.env) | 20% ❌ |
 | **SEO** | NFR-SEO-001 a 003 | No | 0% ❌ |
 | **UTM Capture** | NFR-MKT-001 | Implementado | 100% ✅ |
 
-**TOTAL GENERAL:** ~27% de completitud del SRS v1.0 ⚠️
+**TOTAL GENERAL:** ~35% de completitud del SRS v1.0 ⚠️
 
 ### Lo que funciona ✅
 - Estructura base Vue 3 + TypeScript
@@ -397,7 +399,7 @@ Sí
 
 ### Fase 1: Fundación (Sprint 1-2)
 1. ✅ Instalar y configurar vue-router
-2. Crear estructura de API client (sin backend aún, usar mocks)
+2. ✅ Crear estructura de API client (con mocks como fallback)
 3. ✅ Implementar captura UTM
 4. Instalar librería de validación (Zod)
 5. Decidir e instalar sistema de componentes UI (opcional, CSS custom funciona)
