@@ -59,9 +59,6 @@
 - [x] ✅ Crear `docs/DESIGN_SYSTEM.md` con guía de componentes CSS
 
 ### 2. Integración API (FR-010 a FR-014, todos los API 4.*) ✅
-- [x] Crear `src/infrastructure/api.ts` (cliente HTTP con fetch)
-- [x] Definir DTOs/interfaces para API (dto.ts)
-- [x] Implementar servicios:
   - `milestonesService.ts` → GET /api/milestones, GET /api/milestones/:id
   - `subscriptionsService.ts` → POST/GET subscriptions
   - `updatesService.ts` → GET /api/updates
@@ -70,6 +67,20 @@
 - [x] Manejo de errores HTTP con ApiException
 - [ ] Reemplazar mockData por llamadas reales (pendiente backend)
 - [ ] Agregar interceptors para auth tokens (cuando se implemente)
+
+### 2.5 Validación de Formularios (NFR-SEC-005, FR-021) ✅
+- [x] Instalar Zod
+- [x] Crear schema de validación (subscriptionFormSchema)
+- [x] Crear composable useFormValidation con:
+  - Validación por campo individual
+  - Validación de formulario completo
+  - Manejo de errores reactivo
+  - Clear de errores por campo
+- [x] Actualizar SubscribeView con validación Zod:
+  - Validación en tiempo real (blur/input)
+  - Mensajes de error específicos
+  - Banner de error general
+  - Tipos de TypeScript completos
 
 ### 3. Flujo de Suscripción (FR-010 a FR-014, FR-020 a FR-022)
 - [ ] Crear componente PreRegistrationForm
@@ -356,17 +367,17 @@ Sí
 |-----------|---------------|--------------|---------------|
 | **Router y Navegación** | 7 rutas (FR-001) | 8 rutas + lazy loading | 100% ✅ |
 | **Flujo Suscripción** | FR-010 a FR-014 | Botón mock | 5% ❌ |
-| **Pre-registro** | FR-020 a FR-022 | No | 0% ❌ |
+| **Pre-registro** | FR-020 a FR-022 | Formulario + validación Zod | 90% ✅ |
 | **Panel Etapas** | FR-030 a FR-033 | Básico sin evidencias | 40% ⚠️ |
 | **Updates** | FR-040, FR-041 | Placeholder | 10% ❌ |
 | **Chatwoot** | FR-050 a FR-052 | Snippet instalado | 60% ⚠️ |
 | **Backoffice** | FR-060 a FR-065 | No | 0% ❌ |
 | **API Client** | Todo Cap. 4 | Estructura completa + servicios | 85% ✅ |
-| **Seguridad** | NFR-SEC-001 a 005 | Parcial (.env) | 20% ❌ |
+| **Seguridad** | NFR-SEC-001 a 005 | .env + validación Zod | 40% ⚠️ |
 | **SEO** | NFR-SEO-001 a 003 | No | 0% ❌ |
 | **UTM Capture** | NFR-MKT-001 | Implementado | 100% ✅ |
 
-**TOTAL GENERAL:** ~35% de completitud del SRS v1.0 ⚠️
+**TOTAL GENERAL:** ~42% de completitud del SRS v1.0 ⚠️
 
 ### Lo que funciona ✅
 - Estructura base Vue 3 + TypeScript
@@ -401,8 +412,10 @@ Sí
 1. ✅ Instalar y configurar vue-router
 2. ✅ Crear estructura de API client (con mocks como fallback)
 3. ✅ Implementar captura UTM
-4. Instalar librería de validación (Zod)
+4. ✅ Instalar librería de validación (Zod)
 5. Decidir e instalar sistema de componentes UI (opcional, CSS custom funciona)
+
+**Fase 1 Estado:** 4/5 completado (80%) ✅
 
 ### Fase 2: Core MVP (Sprint 3-5)
 1. Backend mínimo:

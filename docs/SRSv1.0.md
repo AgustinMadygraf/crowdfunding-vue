@@ -336,12 +336,14 @@ No incluye (en esta versión):
 * ✅ DTOs completos en `src/infrastructure/dto.ts` (basados en SRS Sección 5).
 * ✅ Servicios API: milestonesService, subscriptionsService, updatesService, documentsService.
 * ✅ useMilestones actualizado con soporte API (useApi parameter + fallback a mocks).
+* ✅ Validación de formularios con Zod (subscriptionFormSchema + useFormValidation).
+* ✅ SubscribeView actualizado con validación en tiempo real y mensajes de error específicos.
 
 ### ⏳ Pendientes
 
 * Convertir mockData.ts → fuente API (cuando backend esté disponible).
-* Mejorar validación de formularios (instalar Zod/Vuelidate).
 * Agregar interceptors para auth tokens (cuando se implemente autenticación).
+* Integración completa con API de subscriptionsService (POST /api/subscriptions).
 * Definir envs completos:
 
   * ✅ `VITE_CHATWOOT_TOKEN` (configurado)

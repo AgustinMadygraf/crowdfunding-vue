@@ -1,7 +1,9 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useContributionLevels } from '@/application/useContributionLevels'
 import { getUTMFromSessionStorage, hasUTMParams, type UTMParams } from '@/utils/utm'
+import { useFormValidation } from '@/application/composables/useFormValidation'
+import { subscriptionFormSchema, type SubscriptionFormData } from '@/application/schemas/subscriptionSchema'
 
 const { levels, selectedLevel, selectLevel, benefitAmount } = useContributionLevels()
 
@@ -10,17 +12,22 @@ const formData = ref({
   nombre: '',
   email: '',
   telefono: '',
+  whatsapp: '',
   provincia: '',
-  tipoInteresado: '',
-  rangoMonto: '',
+  tipo_interesado: '',
+  rango_monto: '',
   consentimiento: false
 })
 
-const formErrors = ref({
-  nombre: '',
-  email: '',
-  consentimiento: ''
-})
+// Validación con Zod
+const { 
+  errors,
+  formError,
+  isValid,
+  validateField,
+  validateForm,
+  clearFieldError
+} = useFormValidation(subscriptionFormSchema)
 
 const isSubmitting = ref(false)
 const utmParams = ref<UTMParams | null>(null)
@@ -33,33 +40,21 @@ onMounted(() => {
   }
 })
 
-const validateForm = () => {
-  let isValid = true
-  formErrors.value = { nombre: '', email: '', consentimiento: '' }
+// Validar campo individual al perder foco
+const handleBlur = (fieldName: keyof SubscriptionFormData) => {
+  validateField(fieldName, formData.value[fieldName])
+}
 
-  if (!formData.value.nombre.trim()) {
-    formErrors.value.nombre = 'El nombre es obligatorio'
-    isValid = false
-  }
-
-  if (!formData.value.email.trim()) {
-    formErrors.value.email = 'El email es obligatorio'
-    isValid = false
-  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.value.email)) {
-    formErrors.value.email = 'Email inválido'
-    isValid = false
-  }
-
-  if (!formData.value.consentimiento) {
-    formErrors.value.consentimiento = 'Debes aceptar el consentimiento'
-    isValid = false
-  }
-
-  return isValid
+// Limpiar error al empezar a escribir
+const handleInput = (fieldName: keyof SubscriptionFormData) => {
+  clearFieldError(fieldName)
 }
 
 const handleSubmit = async () => {
-  if (!validateForm()) return
+  // Validar formulario completo antes de enviar
+  if (!validateForm(formData.value)) {
+    return
+  }
 
   isSubmitting.value = true
 
@@ -69,14 +64,14 @@ const handleSubmit = async () => {
       name: formData.value.nombre,
       email: formData.value.email,
       phone: formData.value.telefono || undefined,
+      whatsapp: formData.value.whatsapp || undefined,
       province: formData.value.provincia || undefined,
-      type: formData.value.tipoInteresado || undefined,
-      amount_range: formData.value.rangoMonto || undefined
+      interested_type: formData.value.tipo_interesado || undefined,
+      amount_range: formData.value.rango_monto || undefined
     },
-    level_id: selectedLevel.value?.name || '',
+    level_id: selectedLevel.value?.amount || 0,
     consent: {
-      accepted: true,
-      version: '1.0', // TODO: Get from config
+      text_version: '1.0', // TODO: Get from config
       accepted_at: new Date().toISOString()
     },
     utm: utmParams.value || {}
@@ -148,11 +143,13 @@ const handleSubmit = async () => {
                 id="nombre"
                 v-model="formData.nombre"
                 type="text"
-                :class="{ error: formErrors.nombre }"
+                :class="{ error: errors.nombre }"
+                @blur="handleBlur('nombre')"
+                @input="handleInput('nombre')"
                 required
               />
-              <span v-if="formErrors.nombre" class="error-message">{{
-                formErrors.nombre
+              <span v-if="errors.nombre" class="error-message">{{
+                errors.nombre
               }}</span>
             </div>
 
@@ -162,31 +159,56 @@ const handleSubmit = async () => {
                 id="email"
                 v-model="formData.email"
                 type="email"
-                :class="{ error: formErrors.email }"
+                :class="{ error: errors.email }"
+                @blur="handleBlur('email')"
+                @input="handleInput('email')"
                 required
               />
-              <span v-if="formErrors.email" class="error-message">{{ formErrors.email }}</span>
+              <span v-if="errors.email" class="error-message">{{ errors.email }}</span>
             </div>
 
             <div class="form-group">
               <label for="telefono">Teléfono / WhatsApp</label>
-              <input id="telefono" v-model="formData.telefono" type="tel" />
+              <input 
+                id="telefono" 
+                v-model="formData.telefono" 
+                type="tel"
+                :class="{ error: errors.telefono }"
+                @blur="handleBlur('telefono')"
+                @input="handleInput('telefono')"
+              />
+              <span v-if="errors.telefono" class="error-message">{{ errors.telefono }}</span>
             </div>
 
             <div class="form-group">
               <label for="provincia">Provincia</label>
-              <input id="provincia" v-model="formData.provincia" type="text" />
+              <input 
+                id="provincia" 
+                v-model="formData.provincia" 
+                type="text"
+                :class="{ error: errors.provincia }"
+                @blur="handleBlur('provincia')"
+                @input="handleInput('provincia')"
+              />
+              <span v-if="errors.provincia" class="error-message">{{ errors.provincia }}</span>
             </div>
 
             <div class="form-group">
               <label for="tipoInteresado">Tipo de interesado</label>
-              <select id="tipoInteresado" v-model="formData.tipoInteresado">
+              <select 
+                id="tipoInteresado" 
+                v-model="formData.tipo_interesado"
+                :class="{ error: errors.tipo_interesado }"
+                @blur="handleBlur('tipo_interesado')"
+                @change="handleInput('tipo_interesado')"
+              >
                 <option value="">Seleccionar...</option>
-                <option value="individual">Individual</option>
+                <option value="persona">Persona</option>
                 <option value="empresa">Empresa</option>
                 <option value="cooperativa">Cooperativa</option>
                 <option value="otro">Otro</option>
               </select>
+              <span v-if="errors.tipo_interesado" class="error-message">{{ errors.tipo_interesado }}</span>
             </div>
 
             <div class="form-group checkbox-group">
@@ -194,7 +216,8 @@ const handleSubmit = async () => {
                 <input
                   v-model="formData.consentimiento"
                   type="checkbox"
-                  :class="{ error: formErrors.consentimiento }"
+                  :class="{ error: errors.consentimiento }"
+                  @change="handleBlur('consentimiento')"
                   required
                 />
                 <span>
@@ -202,9 +225,13 @@ const handleSubmit = async () => {
                   suscripción *
                 </span>
               </label>
-              <span v-if="formErrors.consentimiento" class="error-message">{{
-                formErrors.consentimiento
+              <span v-if="errors.consentimiento" class="error-message">{{
+                errors.consentimiento
               }}</span>
+            </div>
+
+            <div v-if="formError" class="form-error-banner">
+              {{ formError }}
             </div>
 
             <button
@@ -370,6 +397,16 @@ const handleSubmit = async () => {
   color: #e74c3c;
   font-size: 0.875rem;
   margin-top: 0.25rem;
+}
+
+.form-error-banner {
+  background: #fee;
+  border: 1px solid #e74c3c;
+  border-radius: 4px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  color: #c0392b;
+  text-align: center;
 }
 
 .checkbox-group {
