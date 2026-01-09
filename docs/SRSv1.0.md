@@ -42,10 +42,17 @@ No incluye (en esta versión):
 
 ### 2.2 Restricciones técnicas
 
-* Frontend: Vue + TypeScript + Bootstrap.
+* Frontend: Vue 3 + TypeScript + Vite.
+* Diseño: CSS vanilla con Variables CSS (ver [docs/DESIGN_SYSTEM.md](DESIGN_SYSTEM.md) para paleta, tipografía y componentes).
 * Hosting: HTTPS obligatorio.
 * Integración Chatwoot embebida (snippet en `index.html` o equivalente).
 * Configuración por variables `VITE_*`.
+
+**Nota (decisión v1.0):** Se eligió CSS custom en lugar de Bootstrap 5 para:
+  - Mantener bundle ligero (~83 líneas vs ~30KB)
+  - Facilitar personalización de Madygraf
+  - Acelerar MVP (evitar 2+ semanas de refactor)
+  - Mejor mantenibilidad y flexibilidad a largo plazo
 
 ### 2.3 Supuestos
 

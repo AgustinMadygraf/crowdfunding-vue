@@ -44,15 +44,15 @@
 - [ ] Convertir App.vue de single-page a router-based
 - [ ] Implementar lazy loading para `/admin`
 
-### 1.5 Sistema de Diseño y SRS (DECISIÓN TOMADA)
-- [ ] **Actualizar SRS Sección 2.2:**
-  - Cambiar: `"Frontend: Vue + TypeScript + Bootstrap"`
-  - Hacia: `"Frontend: Vue + TypeScript + CSS vanilla con Variables CSS"`
-- [ ] Documentar sistema de diseño en SRS:
-  - Paleta de colores (base.css)
-  - Tipografía: Inter, system fonts
-  - Responsive breakpoints
-- [ ] Crear `docs/DESIGN_SYSTEM.md` con guía de componentes CSS
+### 1.5 Sistema de Diseño y SRS (DECISIÓN TOMADA) ✅
+- [x] **Actualizar SRS Sección 2.2:**
+  - ✅ Cambió: `"Frontend: Vue + TypeScript + Bootstrap"`
+  - ✅ Hacia: `"Frontend: Vue + TypeScript + Vite + CSS vanilla con Variables CSS"`
+- [x] Documentar sistema de diseño en SRS:
+  - ✅ Paleta de colores (base.css)
+  - ✅ Tipografía: Inter, system fonts
+  - ✅ Responsive breakpoints
+- [x] ✅ Crear `docs/DESIGN_SYSTEM.md` con guía de componentes CSS
 
 ### 2. Integración API (FR-010 a FR-014, todos los API 4.*)
 - [ ] Crear `src/infrastructure/api.ts` (cliente HTTP)
@@ -179,13 +179,15 @@
   - Variables en `.env` configuradas
   - **Pendiente:** Implementar `setUser()` y `setCustomAttributes()` después del pre-registro
 
-#### Bootstrap y Diseño - ⚠️ **NO SE USA BOOTSTRAP**
-- **14. ¿Qué versión de Bootstrap?** → **NO hay Bootstrap instalado** ⚠️
-  - El SRS especifica Bootstrap pero el proyecto usa **CSS vanilla + Variables CSS**
+#### Bootstrap y Diseño - ✅ **DECISIÓN COMPLETADA**
+- **14. ¿Qué versión de Bootstrap?** → **DECISIÓN: CSS vanilla con Variables CSS** ✅
+  - ~~Instalar Bootstrap~~ - Rechazado por: +2 semanas, +30KB, menor flexibilidad
+  - ✅ Mantener CSS custom (83 líneas limpias, más rápido a MVP)
   - Paleta de colores: Basada en Vue.js theme (base.css)
   - Tipografía: Inter, system fonts
   - Sistema de diseño: Custom CSS con variables CSS (`:root`)
-  - **DECISIÓN REQUERIDA:** ¿Instalar Bootstrap 5.x o continuar con CSS custom?
+  - Documentado en: [docs/DESIGN_SYSTEM.md](DESIGN_SYSTEM.md)
+  - **SRS actualizado:** Sección 2.2 ya refleja esta decisión ✅
 
 #### Contenido - ✅ **PARCIALMENTE DISPONIBLE**
 - **17. ¿Contenido FAQ/Updates disponible?** → **SÍ (básico)** ✅
@@ -257,38 +259,25 @@ Sí
   - ✅ `.env.example` actualizado con placeholders únicamente
 - **Estado:** SEGURO ✅
 
-### 2. ✅ **DECISIÓN: Bootstrap - RECOMENDACIÓN**
-**Status:** ANALIZADO Y RECOMENDADO ✅
-- **SRS dice:** "Frontend: Vue + TypeScript + Bootstrap" (Sección 2.2)
-- **Realidad:** Proyecto usa CSS vanilla + Variables CSS (73 líneas base.css + 10 líneas main.css)
-- **Estado de dependencias:** Sin Bootstrap, sin otra librería de componentes
+### 2. ✅ **DECISIÓN: CSS Custom - COMPLETADO**
+**Status:** IMPLEMENTADO Y DOCUMENTADO ✅
+- **Decisión tomada:** Mantener CSS custom, actualizar SRS
+- **Fecha de decisión:** 2026-01-09
+- **Implementación:**
+  - ✅ SRS Sección 2.2 actualizada (Bootstrap → CSS vanilla)
+  - ✅ [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md) creado (329 líneas, guía completa)
+  - ✅ Componentes Vue ya listos (no requieren refactor)
+  - ✅ Sistema de diseño documentado (paleta, tipografía, spacing)
+  
+**Por qué esta decisión:**
+| Factor | Impacto |
+|--------|--------|
+| Tiempo a MVP | **-2 semanas vs Bootstrap** ✅ |
+| Bundle size | **-30KB vs Bootstrap** ✅ |
+| Flexibilidad | **Ilimitada vs limitada** ✅ |
+| Código limpio | **83 líneas vs cientos** ✅ |
+| Mantenimiento | **Expertise del equipo** ✅ |
 
-**ANÁLISIS COMPARATIVO:**
-
-| Aspecto | Opción A: Bootstrap 5 | Opción B: Actualizar SRS | Opción C: PrimeVue/Vuetify |
-|---------|--------|---------|---------|
-| **Cumplimiento SRS** | ✅ 100% | ⚠️ Requiere actualizar docs | ❌ Desvío mayor |
-| **Esfuerzo implementación** | ⚠️ ALTO (migrar componentes) | ✅ BAJO (solo documentar) | ⚠️ ALTO (nueva librería) |
-| **Peso final del app** | ⚠️ ~30KB (minified) | ✅ Sin cambios (~83 líneas) | ❌ ~100KB+ (Vuetify) |
-| **Disponibilidad de componentes** | ✅ Amplia (gratis) | ✅ Construir propios | ✅ Muy amplia (premium) |
-| **Flexibilidad personalización** | ⚠️ Limitada | ✅ Ilimitada | ⚠️ Limitada |
-| **Tiempo a MVP** | ⚠️ +2 semanas | ✅ Inmediato | ❌ +3 semanas |
-| **Mantenimiento a largo plazo** | ✅ Bien documentado | ⚠️ Requiere expertise | ✅ Bien documentado |
-
-**RECOMENDACIÓN: Opción B - Actualizar SRS ✅**
-
-**Justificación:**
-1. **Estado actual funcional:** CSS custom ya implementado y funcionando (83 líneas de código limpio)
-2. **Componentes ya creados:** HeroSection, MilestonesSection, ContributionSection, etc. están completos
-3. **Consistencia visual:** Paleta Vue.js theme bien definida (base.css con variables CSS)
-4. **Tiempo crítico:** Introducir Bootstrap ahora añadiría 2+ semanas de refactor
-5. **Mantenimiento:** CSS custom es más ligero y se adapta mejor a diseño específico de Madygraf
-6. **SRS es documento vivo:** Es más práctico actualizar SRS que refactorizar código funcional
-
-**PLAN DE ACCIÓN:**
-- [ ] Actualizar SRS Sección 2.2: cambiar de "Bootstrap" a "CSS vanilla con Variables CSS"
-- [ ] Documentar sistema de diseño (paleta de colores, tipografía)
-- [ ] Continuar con desarrollo usando CSS custom (costo menor, entrega más rápida)
 
 ### 3. ⚠️ **DISCREPANCIA: 4 vs 6 Milestones**
 **Riesgo:** BAJO - Inconsistencia en número de etapas
@@ -377,7 +366,7 @@ Sí
 
 ### Fase 0: Urgente (Antes de continuar)
 1. ✅ **Credenciales verificadas - NO expuestas**
-2. ✅ **Bootstrap: Decisión tomada → Mantener CSS custom, actualizar SRS**
+2. ✅ **Bootstrap: Decisión completada → CSS custom, SRS actualizado**
 3. **Responder preguntas críticas restantes:**
    - ¿Documentación/especificación de Donweb (API, parámetros, webhook)?
    - ¿Documentación de backend Flask en Pythonanywhere?
@@ -421,14 +410,14 @@ Sí
 
 ### 🔴 URGENTE (Hoy/Esta Semana)
 1. ✅ **[SEGURIDAD]** Credenciales verificadas - NO expuestas en historial
-2. ✅ **[DISEÑO]** Bootstrap: Decisión tomada → Mantener CSS custom, actualizar SRS
+2. ✅ **[DISEÑO]** CSS custom: Decisión completada, SRS actualizado, DESIGN_SYSTEM.md creado
 3. **[BLOQUEANTE]** Responder preguntas críticas restantes:
    - ¿Documentación/especificación de Donweb (API, parámetros, webhook)?
    - ¿Documentación de backend Flask en Pythonanywhere?
    - Fecha límite v1.0
-4. **[DECISIÓN]** Confirmar número de milestones (4 o 6)
-   - [ ] Actualizar SRS Sección 2.2 (Bootstrap → CSS custom)
-   - [ ] Crear DESIGN_SYSTEM.md con guía de componentes
+4. **[PRÓXIMO]** Confirmar número de milestones (4 o 6)
+   - Si 4: Sin cambios (mockData actualizado)
+   - Si 6: Agregar 2 nuevas etapas a mockData
 
 ### 🟡 ESTA SEMANA
 1. Configurar entorno de desarrollo completo
