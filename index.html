@@ -19,12 +19,6 @@
           console.warn("[Chatwoot] No configurado - Las variables de entorno VITE_CHATWOOT_BASE_URL y VITE_CHATWOOT_TOKEN no están definidas en el archivo .env");
           return;
         }
-        
-        console.log("[Chatwoot] Credenciales cargadas correctamente", {
-          baseUrl: BASE_URL,
-          tokenPresente: true
-        });
-        
         var g=d.createElement(t),s=d.getElementsByTagName(t)[0];
         g.src=BASE_URL+"/packs/js/sdk.js";
         g.async = true;
