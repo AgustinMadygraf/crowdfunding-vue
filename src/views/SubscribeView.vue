@@ -1,0 +1,399 @@
+<script setup lang="ts">
+import { ref } from 'vue'
+import { useContributionLevels } from '@/application/useContributionLevels'
+
+const { levels, selectedLevel, selectLevel, benefitAmount } = useContributionLevels()
+
+// Form state
+const formData = ref({
+  nombre: '',
+  email: '',
+  telefono: '',
+  provincia: '',
+  tipoInteresado: '',
+  rangoMonto: '',
+  consentimiento: false
+})
+
+const formErrors = ref({
+  nombre: '',
+  email: '',
+  consentimiento: ''
+})
+
+const isSubmitting = ref(false)
+
+const validateForm = () => {
+  let isValid = true
+  formErrors.value = { nombre: '', email: '', consentimiento: '' }
+
+  if (!formData.value.nombre.trim()) {
+    formErrors.value.nombre = 'El nombre es obligatorio'
+    isValid = false
+  }
+
+  if (!formData.value.email.trim()) {
+    formErrors.value.email = 'El email es obligatorio'
+    isValid = false
+  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.value.email)) {
+    formErrors.value.email = 'Email inválido'
+    isValid = false
+  }
+
+  if (!formData.value.consentimiento) {
+    formErrors.value.consentimiento = 'Debes aceptar el consentimiento'
+    isValid = false
+  }
+
+  return isValid
+}
+
+const handleSubmit = async () => {
+  if (!validateForm()) return
+
+  isSubmitting.value = true
+
+  // TODO: Implement API call to POST /api/subscriptions
+  // TODO: Capture UTM parameters from sessionStorage
+  // TODO: Redirect to provider URL from response
+  
+  console.log('Pre-registro:', {
+    ...formData.value,
+    levelId: selectedLevel.value?.name,
+    // utm: getUTMFromSessionStorage()
+  })
+
+  // Simulated API call
+  setTimeout(() => {
+    alert('¡Pre-registro completado! En producción serás redirigido al proveedor externo.')
+    isSubmitting.value = false
+  }, 1500)
+}
+</script>
+
+<template>
+  <div class="subscribe-view">
+    <section class="hero-section">
+      <div class="container">
+        <h1>Iniciar Suscripción</h1>
+        <p class="subtitle">Completá tus datos para continuar con el proceso</p>
+      </div>
+    </section>
+
+    <section class="form-section">
+      <div class="container">
+        <div class="form-container">
+          <div class="level-summary" v-if="selectedLevel">
+            <h2>Nivel seleccionado</h2>
+            <div class="level-info">
+              <h3>{{ selectedLevel.name }}</h3>
+              <p class="amount">${{ selectedLevel.amount.toLocaleString() }}</p>
+              <p class="benefit">Beneficio: {{ benefitAmount }}</p>
+            </div>
+          </div>
+
+          <div class="level-selector" v-else>
+            <h2>Seleccioná un nivel de aporte</h2>
+            <div class="levels-grid">
+              <button
+                v-for="level in levels"
+                :key="level.name"
+                class="level-card"
+                @click="selectLevel(level)"
+              >
+                <h3>{{ level.name }}</h3>
+                <p class="amount">${{ level.amount.toLocaleString() }}</p>
+              </button>
+            </div>
+          </div>
+
+          <form @submit.prevent="handleSubmit" class="pre-registration-form">
+            <h2>Pre-registro</h2>
+
+            <div class="form-group">
+              <label for="nombre">Nombre completo *</label>
+              <input
+                id="nombre"
+                v-model="formData.nombre"
+                type="text"
+                :class="{ error: formErrors.nombre }"
+                required
+              />
+              <span v-if="formErrors.nombre" class="error-message">{{
+                formErrors.nombre
+              }}</span>
+            </div>
+
+            <div class="form-group">
+              <label for="email">Email *</label>
+              <input
+                id="email"
+                v-model="formData.email"
+                type="email"
+                :class="{ error: formErrors.email }"
+                required
+              />
+              <span v-if="formErrors.email" class="error-message">{{ formErrors.email }}</span>
+            </div>
+
+            <div class="form-group">
+              <label for="telefono">Teléfono / WhatsApp</label>
+              <input id="telefono" v-model="formData.telefono" type="tel" />
+            </div>
+
+            <div class="form-group">
+              <label for="provincia">Provincia</label>
+              <input id="provincia" v-model="formData.provincia" type="text" />
+            </div>
+
+            <div class="form-group">
+              <label for="tipoInteresado">Tipo de interesado</label>
+              <select id="tipoInteresado" v-model="formData.tipoInteresado">
+                <option value="">Seleccionar...</option>
+                <option value="individual">Individual</option>
+                <option value="empresa">Empresa</option>
+                <option value="cooperativa">Cooperativa</option>
+                <option value="otro">Otro</option>
+              </select>
+            </div>
+
+            <div class="form-group checkbox-group">
+              <label class="checkbox-label">
+                <input
+                  v-model="formData.consentimiento"
+                  type="checkbox"
+                  :class="{ error: formErrors.consentimiento }"
+                  required
+                />
+                <span>
+                  Acepto el tratamiento de mis datos personales y las condiciones de la
+                  suscripción *
+                </span>
+              </label>
+              <span v-if="formErrors.consentimiento" class="error-message">{{
+                formErrors.consentimiento
+              }}</span>
+            </div>
+
+            <button
+              type="submit"
+              class="submit-button"
+              :disabled="isSubmitting || !selectedLevel"
+            >
+              {{ isSubmitting ? 'Procesando...' : 'Continuar a proveedor externo' }}
+            </button>
+
+            <p class="note">
+              * Campos obligatorios<br />
+              Serás redirigido a nuestro proveedor externo para completar la suscripción
+            </p>
+          </form>
+        </div>
+      </div>
+    </section>
+  </div>
+</template>
+
+<style scoped>
+.subscribe-view {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.hero-section {
+  padding: 80px 20px 40px;
+  background: linear-gradient(135deg, #42b983 0%, #2c3e50 100%);
+  color: white;
+  text-align: center;
+}
+
+.container {
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.hero-section h1 {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+}
+
+.subtitle {
+  font-size: 1.2rem;
+  opacity: 0.9;
+}
+
+.form-section {
+  padding: 80px 20px;
+  background-color: #f5f5f5;
+}
+
+.form-container {
+  background: white;
+  border-radius: 8px;
+  padding: 3rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.level-summary,
+.level-selector {
+  margin-bottom: 3rem;
+  padding-bottom: 2rem;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.level-summary h2,
+.level-selector h2 {
+  font-size: 1.5rem;
+  color: #2c3e50;
+  margin-bottom: 1rem;
+}
+
+.level-info {
+  background: #f5f5f5;
+  padding: 1.5rem;
+  border-radius: 8px;
+}
+
+.level-info h3 {
+  color: #42b983;
+  font-size: 1.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.amount {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #2c3e50;
+  margin: 0.5rem 0;
+}
+
+.benefit {
+  color: #666;
+}
+
+.levels-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+}
+
+.level-card {
+  background: #f5f5f5;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 1.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.level-card:hover {
+  border-color: #42b983;
+  transform: translateY(-2px);
+}
+
+.level-card h3 {
+  font-size: 1rem;
+  color: #2c3e50;
+  margin-bottom: 0.5rem;
+}
+
+.level-card .amount {
+  font-size: 1.25rem;
+}
+
+.pre-registration-form h2 {
+  font-size: 1.5rem;
+  color: #2c3e50;
+  margin-bottom: 2rem;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: #2c3e50;
+  font-weight: 500;
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.form-group input.error,
+.form-group input[type='checkbox'].error {
+  border-color: #e74c3c;
+}
+
+.error-message {
+  display: block;
+  color: #e74c3c;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+
+.checkbox-group {
+  margin: 2rem 0;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  cursor: pointer;
+}
+
+.checkbox-label input[type='checkbox'] {
+  width: auto;
+  margin-top: 0.25rem;
+  flex-shrink: 0;
+}
+
+.submit-button {
+  width: 100%;
+  padding: 1rem;
+  background: #42b983;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.submit-button:hover:not(:disabled) {
+  background: #359268;
+}
+
+.submit-button:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.note {
+  margin-top: 1.5rem;
+  text-align: center;
+  color: #666;
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+
+@media (max-width: 768px) {
+  .form-container {
+    padding: 2rem 1.5rem;
+  }
+
+  .levels-grid {
+    grid-template-columns: 1fr;
+  }
+}
+</style>

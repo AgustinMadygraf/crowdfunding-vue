@@ -1,24 +1,31 @@
 <script setup lang="ts">
 interface NavigationLink {
-  label: string;
-  href: string;
+  label: string
+  href: string
 }
 
 const props = defineProps<{
-  links: NavigationLink[];
-}>();
+  links: NavigationLink[]
+}>()
+
+const isExternalOrHash = (href: string) => {
+  return href.startsWith('#') || href.startsWith('http')
+}
 </script>
 
 <template>
   <header class="app-header">
     <div class="container">
       <div class="logo-container">
-        <img alt="Madygraf logo" class="logo" src="@/assets/logo.svg" width="125" />
+        <router-link to="/">
+          <img alt="Madygraf logo" class="logo" src="@/assets/logo.svg" width="125" />
+        </router-link>
       </div>
       <nav class="main-nav" aria-label="Principal">
         <ul>
           <li v-for="link in props.links" :key="link.href">
-            <a :href="link.href">{{ link.label }}</a>
+            <a v-if="isExternalOrHash(link.href)" :href="link.href">{{ link.label }}</a>
+            <router-link v-else :to="link.href">{{ link.label }}</router-link>
           </li>
         </ul>
       </nav>

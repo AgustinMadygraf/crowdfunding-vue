@@ -31,18 +31,22 @@
 
 ## 🚧 TAREAS PENDIENTES (Críticas)
 
-### 1. Router y Navegación (FR-001, FR-002)
-- [ ] Instalar `vue-router`
-- [ ] Configurar rutas:
-  - `/` - Landing
-  - `/etapas` - Panel completo de etapas
-  - `/actualizaciones` - Updates
-  - `/documentos` - Repositorio público
-  - `/suscribir` - Flujo de suscripción
-  - `/suscribir/estado/:id` - Estado de suscripción
-  - `/admin` - Backoffice (protegido)
-- [ ] Convertir App.vue de single-page a router-based
-- [ ] Implementar lazy loading para `/admin`
+### 1. Router y Navegación (FR-001, FR-002) ✅
+- [x] Instalar `vue-router`
+- [x] Configurar rutas:
+  - `/` - Landing (HomeView)
+  - `/etapas` - Panel completo de etapas (MilestonesView)
+  - `/actualizaciones` - Updates (UpdatesView)
+  - `/documentos` - Repositorio público (DocumentsView)
+  - `/suscribir` - Flujo de suscripción (SubscribeView)
+  - `/suscribir/estado/:id` - Estado de suscripción (SubscriptionStatusView)
+  - `/admin` - Backoffice (AdminView)
+  - `404` - Not Found (NotFoundView)
+- [x] Convertir App.vue de single-page a router-based
+- [x] Implementar lazy loading para todas las rutas
+- [x] Meta tags dinámicos por ruta (title, description)
+- [x] ScrollBehavior con soporte para hash anchors
+- [x] Navigation guard preparado para auth en /admin
 
 ### 1.5 Sistema de Diseño y SRS (DECISIÓN TOMADA) ✅
 - [x] **Actualizar SRS Sección 2.2:**
@@ -346,7 +350,7 @@ Sí
 
 | Categoría | Requisitos SRS | Implementado | % Completitud |
 |-----------|---------------|--------------|---------------|
-| **Router y Navegación** | 7 rutas (FR-001) | 0 rutas | 0% ❌ |
+| **Router y Navegación** | 7 rutas (FR-001) | 8 rutas + lazy loading | 100% ✅ |
 | **Flujo Suscripción** | FR-010 a FR-014 | Botón mock | 5% ❌ |
 | **Pre-registro** | FR-020 a FR-022 | No | 0% ❌ |
 | **Panel Etapas** | FR-030 a FR-033 | Básico sin evidencias | 40% ⚠️ |
@@ -358,7 +362,7 @@ Sí
 | **SEO** | NFR-SEO-001 a 003 | No | 0% ❌ |
 | **UTM Capture** | NFR-MKT-001 | No | 0% ❌ |
 
-**TOTAL GENERAL:** ~15% de completitud del SRS v1.0 ⚠️
+**TOTAL GENERAL:** ~22% de completitud del SRS v1.0 ⚠️
 
 ### Lo que funciona ✅
 - Estructura base Vue 3 + TypeScript
@@ -390,11 +394,11 @@ Sí
    - Fecha límite v1.0
 
 ### Fase 1: Fundación (Sprint 1-2)
-1. Instalar y configurar vue-router
+1. ✅ Instalar y configurar vue-router
 2. Crear estructura de API client (sin backend aún, usar mocks)
 3. Implementar captura UTM
 4. Instalar librería de validación (Zod)
-5. Decidir e instalar sistema de componentes UI
+5. Decidir e instalar sistema de componentes UI (opcional, CSS custom funciona)
 
 ### Fase 2: Core MVP (Sprint 3-5)
 1. Backend mínimo:
