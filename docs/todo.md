@@ -18,7 +18,7 @@
   - ContributionSection
   - UpdatesSection
   - FaqSection
-- ✅ Sistema de diseño: Bootstrap (según SRS)
+- ✅ **Sistema de diseño: CSS custom con Variables CSS** (83 líneas limpias)
 - ✅ Datos mock implementados (mockData.ts)
 
 ### Funcionalidad Parcial
