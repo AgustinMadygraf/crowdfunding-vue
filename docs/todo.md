@@ -197,15 +197,17 @@
   - **Pendiente:** Contenido completo para sección de documentos
 - **18. ¿Texto de consentimiento?** → **NO encontrado** ❌
 
-#### Datos y Evidencias
-- **21. ¿Milestones finales?** → **4 etapas implementadas en mockData** ✅
+#### Datos y Evidencias - ✅ **DECISIÓN: 4 ETAPAS CONFIRMADO**
+- **21. ¿Milestones finales?** → **4 etapas es la cantidad correcta para RKHA190** ✅
   1. Anticipo ($100k)
   2. Saldo embarque ($200k)
   3. Flete y Aduana ($60k)
   4. Montaje/PPM ($18k)
   - Total: $378,000
-  - **NOTA:** SRS menciona 6 etapas, pero mockData tiene 4
-  - **ACLARACIÓN REQUERIDA:** ¿Son 4 o 6 etapas finales?
+  - **Análisis:** SRS dice "(1 a 6)" como rango máximo, no como cantidad fija
+  - **Estado:** mockData está correcto con 4 etapas para este proyecto
+  - **Razón:** Estas 4 son los hitos reales de la RKHA190
+  - **SRS:** Se podría mejorar claridad, pero es flexible para proyectos de diferentes tamaños
 
 #### Variables de Entorno - ✅ **ESTRUCTURA LISTA**
 - `.env.example` existe ✅
@@ -279,15 +281,29 @@ Sí
 | Mantenimiento | **Expertise del equipo** ✅ |
 
 
-### 3. ⚠️ **DISCREPANCIA: 4 vs 6 Milestones**
-**Riesgo:** BAJO - Inconsistencia en número de etapas
-- **SRS menciona:** 6 etapas del proyecto
-- **mockData tiene:** 4 etapas implementadas
-- **Impacto:** Modelos de datos y UI pueden necesitar ajustes
-- **Acción:**
-  - [ ] Confirmar número final de milestones
-  - [ ] Actualizar mockData si es necesario
-  - [ ] Sincronizar SRS con realidad del proyecto
+### 3. ✅ **DECISIÓN: 4 Milestones CONFIRMADO**
+**Status:** RESUELTO ✅
+- **SRS dice:** "Milestone / Etapa: hito del proyecto **(1 a 6)**" (rango flexible)
+- **Realidad proyecto:** 4 etapas = hitos reales de RKHA190
+- **mockData:** Está correcto ✅
+
+**Análisis:**
+
+| Etapa | Nombre | Monto | Estado |
+|-------|--------|-------|--------|
+| 1 | Anticipo | $100k | Activo |
+| 2 | Saldo embarque | $200k | Pendiente |
+| 3 | Flete y Aduana | $60k | Pendiente |
+| 4 | Montaje/PPM | $18k | Pendiente |
+| **TOTAL** | - | **$378k** | - |
+
+**Por qué 4 es correcto:**
+- Coinciden con hitos naturales del proyecto
+- SRS especifica rango "1 a 6" para ser flexible
+- Otros proyectos pueden tener 6, Madygraf tiene 4
+- mockData refleja realidad del proyecto ✅
+
+**Sin cambios requeridos:** mockData está correcto
 
 ### 4. 🚫 **BLOQUEANTE: Backend NO implementado**
 **Riesgo:** CRÍTICO - Sin backend no hay MVP funcional
@@ -367,11 +383,11 @@ Sí
 ### Fase 0: Urgente (Antes de continuar)
 1. ✅ **Credenciales verificadas - NO expuestas**
 2. ✅ **Bootstrap: Decisión completada → CSS custom, SRS actualizado**
-3. **Responder preguntas críticas restantes:**
+3. ✅ **Milestones: 4 etapas confirmadas como correctas**
+4. **Responder preguntas críticas restantes:**
    - ¿Documentación/especificación de Donweb (API, parámetros, webhook)?
    - ¿Documentación de backend Flask en Pythonanywhere?
    - Fecha límite v1.0
-4. **[DECISIÓN]** Confirmar número de milestones (4 o 6)
 
 ### Fase 1: Fundación (Sprint 1-2)
 1. Instalar y configurar vue-router
@@ -411,13 +427,13 @@ Sí
 ### 🔴 URGENTE (Hoy/Esta Semana)
 1. ✅ **[SEGURIDAD]** Credenciales verificadas - NO expuestas en historial
 2. ✅ **[DISEÑO]** CSS custom: Decisión completada, SRS actualizado, DESIGN_SYSTEM.md creado
-3. **[BLOQUEANTE]** Responder preguntas críticas restantes:
+3. ✅ **[DATOS]** Milestones: 4 etapas confirmadas (correctas para RKHA190)
+4. **[BLOQUEANTE]** Responder preguntas críticas restantes:
    - ¿Documentación/especificación de Donweb (API, parámetros, webhook)?
    - ¿Documentación de backend Flask en Pythonanywhere?
    - Fecha límite v1.0
-4. **[PRÓXIMO]** Confirmar número de milestones (4 o 6)
-   - Si 4: Sin cambios (mockData actualizado)
-   - Si 6: Agregar 2 nuevas etapas a mockData
+   
+**Fase 0 estado:** 3/4 completado ✅ (solo esperando respuestas de 3ras partes)
 
 ### 🟡 ESTA SEMANA
 1. Configurar entorno de desarrollo completo
