@@ -324,14 +324,24 @@ No incluye (en esta versión):
 
 ## 9. Cambios técnicos requeridos en el frontend (desde el estado actual)
 
-* Agregar `vue-router` y dividir App.vue en páginas.
+### ✅ Completados (2026-01-09)
+
+* ✅ `vue-router@4` instalado y configurado con 8 rutas + lazy loading.
+* ✅ App.vue dividido en páginas (HomeView, MilestonesView, UpdatesView, DocumentsView, SubscribeView, SubscriptionStatusView, AdminView, NotFoundView).
+* ✅ Meta tags dinámicos por ruta (title, description).
+* ✅ Navigation guard preparado para autenticación.
+* ✅ Formulario de pre-registro creado en SubscribeView (FR-020 a FR-022) - validación básica implementada.
+
+### ⏳ Pendientes
+
 * Introducir `src/infrastructure/api.ts` (fetch/axios) + DTOs.
 * Convertir `mockData.ts` → fuente API.
-* Implementar formulario de pre-registro + validación (Zod/Vuelidate).
+* Mejorar validación de formularios (instalar Zod/Vuelidate).
 * Implementar captura UTM en `main.ts`.
-* Definir envs:
+* Definir envs completos:
 
-  * `VITE_SUBSCRIBE_URL` (si aplica como base externa; preferible que el redirect venga del backend)
-  * `VITE_API_BASE_URL`
-  * `VITE_CHATWOOT_*`
+  * ✅ `VITE_CHATWOOT_TOKEN` (configurado)
+  * ✅ `VITE_CHATWOOT_BASE_URL` (configurado)
+  * ⏳ `VITE_API_BASE_URL` (pendiente - backend en desarrollo)
+  * ⏳ `VITE_SUBSCRIBE_URL` (si aplica como base externa; preferible que el redirect venga del backend)
 
