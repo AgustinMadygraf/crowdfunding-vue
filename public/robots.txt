@@ -1,0 +1,9 @@
+# robots.txt - Madypack Portal
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://madypack.com.ar/sitemap.xml
+
+# Disallow subscription status pages (contains user-specific IDs)
+Disallow: /suscribir/estado/

@@ -177,23 +177,21 @@ No incluye (en esta versión):
 
 ---
 
-### 3.7 Backoffice (admin único) - **v2.0** ⏳
+### 3.7 Backoffice (admin único) - ❌ **DESCARTADO v1.0**
 
-**Status:** Descartado para v1.0. Implementar edición directa en `mockData.ts`.
+**Status:** NO se implementará en v1.0. Deferred a v2.0+.
 
-**FR-060** Backoffice `/admin` con autenticación. (v2.0+)
+**Alternativa v1.0:** Edición directa en `src/infrastructure/mockData.ts` + git push → GitHub Actions redeploy automático (2 min).
 
-**FR-061** Gestión de etapas (v2.0+)
+**Requisitos descartados:**
+- **FR-060** Backoffice `/admin` con autenticación → v2.0+
+- **FR-061** Gestión de etapas → v2.0+
+- **FR-062** Gestión de evidencias → v2.0+
+- **FR-063** Gestión de updates → v2.0+
+- **FR-064** Gestión de suscripciones/leads → v2.0+
+- **FR-065** Auditoría → v2.0+
 
-**FR-062** Gestión de evidencias (v2.0+)
-
-**FR-063** Gestión de updates (v2.0+)
-
-**FR-064** Gestión de suscripciones/leads (v2.0+)
-
-**FR-065** Auditoría (v2.0+)
-
-**Nota v1.0:** Para editar contenido, modificá `src/infrastructure/mockData.ts` y git push. GitHub Actions redeploy automático en 2 min.
+**Impacto:** Simplifica MVP, acelera time-to-market. Gestión de contenido manual pero funcional.
 
 ---
 
@@ -360,11 +358,27 @@ No incluye (en esta versión):
 * ✅ **UpdateCard.vue component** creado (tarjeta responsive con category badge, fecha, excerpt, hover effects).
 * ✅ **UpdatesView.vue renovado** (hero + filtros por categoría + grid responsive + modal de detalle + ordenamiento por fecha).
 * ✅ **Página /actualizaciones funcional** con 8 actualizaciones publicadas (FR-040, FR-041 completados al 95%).
+* ✅ **Optimización CSS masiva completada** (2026-01-10):
+  - ✅ Variables CSS centralizadas en base.css (--color-primary, --color-success, --category-comercial/tecnico/logistica/legal)
+  - ✅ Clases reutilizables en components.css: card-base, card-clickable, container, container-narrow, section-padding, btn-base, btn-primary, btn-secondary, badge-status, badge-category, modal-backdrop, modal-content, modal-header, modal-body, modal-footer, progress-container, progress-bar, timeline-marker, timeline-content, filter-btn, filter-count, link-text
+  - ✅ 15+ componentes refactorizados (~510 líneas CSS eliminadas): MilestoneCard, UpdateCard, UpdatesView, MilestoneDetailModal, MilestoneDetailView, HeroSection, ContributionSection, FaqSection, MilestonesSection, UpdatesSection, AppHeader, AppFooter, DocumentsView, SubscribeView, base.css
+  - ✅ Layout utilities responsive (container max-width 1200px, container-narrow 960px, section-padding 80px/60px)
+  - ✅ Código DRY sin duplicación, mantenible y escalable
+  - ✅ Arquitectura CSS profesional lista para producción
+* ✅ **SEO completo implementado** (2026-01-09):
+  - ✅ Meta tags dinámicos en todas las rutas (router guard)
+  - ✅ OpenGraph tags (Facebook): og:title, og:description, og:url, og:image, og:locale
+  - ✅ Twitter cards: twitter:card, twitter:title, twitter:description, twitter:image
+  - ✅ Canonical URLs dinámicos por ruta
+  - ✅ Sitemap.xml con 5 URLs principales (changefreq, priority)
+  - ✅ Robots.txt (indexación permitida, sitemap incluido)
+  - ✅ Lang="es" en HTML
+  - ✅ Keywords y author meta tags
 
 ### ⏳ Pendientes
 
 * Integración con proveedor externo (Donweb) - si aplica en Fase 2.
 * **Backoffice admin (FR-060 a FR-065) - Deferred a v2.0** (usar mockData.ts editing para v1.0).
-* SEO (meta tags, sitemap, robots.txt) - Fase 2.
 * Testing E2E completo - Fase 2.
+* Imagen OpenGraph (og-image.jpg 1200x630px) - opcional.
 

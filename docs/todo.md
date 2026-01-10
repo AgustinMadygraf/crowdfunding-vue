@@ -18,7 +18,12 @@
   - ContributionSection
   - UpdatesSection
   - FaqSection
-- ✅ **Sistema de diseño: CSS custom con Variables CSS** (83 líneas limpias)
+- ✅ **Sistema de diseño: CSS custom con Variables CSS** (optimizado profesionalmente)
+  - ✅ Variables CSS centralizadas en base.css (colores de marca, categorías)
+  - ✅ Clases reutilizables en components.css (card-base, container, section-padding, btn-primary, badge-status, modal-*, timeline-*, filter-btn)
+  - ✅ 15+ archivos refactorizados (~510 líneas CSS eliminadas)
+  - ✅ Layout utilities (container, container-narrow, section-padding)
+  - ✅ Código DRY y mantenible
 - ✅ Datos mock implementados (mockData.ts)
 
 ### Funcionalidad Parcial
@@ -167,11 +172,13 @@
 - [ ] Verificar que `.env` esté en `.gitignore`
 - [ ] Documentar en README.md
 
-### 11. SEO y Meta Tags (NFR-SEO-001 a NFR-SEO-003)
-- [ ] Meta tags dinámicos por ruta (vue-meta o vue-router)
-- [ ] OpenGraph tags para `/` y `/etapas`
-- [ ] Crear `public/sitemap.xml`
-- [ ] Crear `public/robots.txt`
+### 11. SEO y Meta Tags (NFR-SEO-001 a NFR-SEO-003) ✅
+- [x] Meta tags dinámicos por ruta (implementado en router)
+- [x] OpenGraph tags para todas las rutas (index.html + router guard)
+- [x] Crear `public/sitemap.xml` (5 URLs principales)
+- [x] Crear `public/robots.txt` (permite indexación, sitemap incluido)
+- [x] Twitter cards implementados
+- [x] Canonical URLs dinámicos por ruta
 
 ### 12. Backoffice Admin (FR-060 a FR-065) - **Fase 2**
 - [ ] Autenticación admin (magic-link o equivalente)
@@ -448,19 +455,19 @@ Sí
 
 **Fase 2 Estado:** 4/5 completado (80%) ✅ - v1.0 MVP CASI LISTO
 
-### Fase 3: Integración (Sprint 6-7)
-1. Integrar proveedor de suscripción
-2. Implementar webhook handler
-3. Estados de suscripción completos
-4. Backoffice admin funcional
-5. Sistema de auditoría
+### Fase 3: Integración (Sprint 6-7) - **PARCIALMENTE DESCARTADO**
+1. ⏳ Integrar proveedor de suscripción (Donweb) - si aplica para flujo real
+2. ⏸️ Implementar webhook handler - v2.0
+3. ⏸️ Estados de suscripción completos - v2.0
+4. ❌ Backoffice admin funcional - **DESCARTADO v1.0** (usar mockData.ts)
+5. ⏸️ Sistema de auditoría - v2.0
 
-### Fase 4: Producción (Sprint 8)
-1. SEO (meta tags, sitemap, robots)
-2. Performance (lazy loading, compresión)
-3. Testing E2E
-4. Deploy y CI/CD
-5. Monitoreo y analytics
+### Fase 4: Producción (Sprint 8) - **EN PROGRESO**
+1. ✅ SEO (meta tags dinámicos, OpenGraph, Twitter cards, sitemap.xml, robots.txt, canonical URLs)
+2. ✅ Performance (lazy loading implementado, compresión por configurar en servidor)
+3. ⏳ Testing E2E (validar flujo pre-registro → Chatwoot en producción)
+4. ⏳ Deploy y CI/CD (GitHub Actions listo, pendiente: ejecutar deploy)
+5. ⏳ Monitoreo y analytics (Chatwoot listo, pendiente: analytics tracking)
 
 ---
 
@@ -469,13 +476,19 @@ Sí
 ### Fase 0: Completado ✅ (Listo para Fase 1)
 1. ✅ **[SEGURIDAD]** Credenciales verificadas - NO expuestas en historial
 2. ✅ **[DISEÑO]** CSS custom: Decisión completada, SRS actualizado, DESIGN_SYSTEM.md creado
-3. ✅ **[DATOS]** Milestones: 4 etapas confirmadas (correctas para RKHA190)
-4. ✅ **[FORMULARIO]** Validación Zod + Chatwoot integration 100% funcional
-5. ✅ **[LOGGING]** Mejorado con niveles e info detallada para debugging
-6. ✅ **[DEPLOY]** GitHub Actions configurado con todas las variables Chatwoot
-7. ✅ **[VITE]** Ngrok permitido para desarrollo en red local
+3. ✅ **[OPTIMIZACIÓN CSS]** Arquitectura profesional completada:
+   - ✅ Variables CSS centralizadas (--color-primary, --color-success, --category-*)
+   - ✅ Clases reutilizables (card-base, container, section-padding, btn-*, badge-*, modal-*)
+   - ✅ 15+ componentes refactorizados (~510 líneas CSS eliminadas)
+   - ✅ Layout utilities (container, container-narrow, section-padding con responsive)
+   - ✅ Código DRY y mantenible sin duplicación
+4. ✅ **[DATOS]** Milestones: 6 etapas confirmadas (correctas para RKHA190)
+5. ✅ **[FORMULARIO]** Validación Zod + Chatwoot integration 100% funcional
+6. ✅ **[LOGGING]** Mejorado con niveles e info detallada para debugging
+7. ✅ **[DEPLOY]** GitHub Actions configurado con todas las variables Chatwoot
+8. ✅ **[VITE]** Ngrok permitido para desarrollo en red local
    
-**Fase 0 estado:** 7/7 completado ✅ - **LISTO PARA PRODUCCIÓN (MVP)**
+**Fase 0 estado:** 8/8 completado ✅ - **LISTO PARA PRODUCCIÓN (MVP)**
 
 ### � PRÓXIMO PASO RECOMENDADO
 Elegir una de las 2 opciones que se detallan abajo. Ver sección "Opciones de próximos pasos" más adelante.
@@ -493,9 +506,9 @@ Elegir una de las 2 opciones que se detallan abajo. Ver sección "Opciones de pr
 
 ---
 
-## 🎯 OPCIONES DE PRÓXIMOS PASOS (Post-MVP)
+## 🎯 TAREAS PENDIENTES POST-OPTIMIZACIÓN
 
-### OPCIÓN A: DESPLIEGUE A PRODUCCIÓN (Recomendado)
+### 1. DESPLIEGUE A PRODUCCIÓN (CRÍTICO)
 **Descripción:** Subir MVP actual a producción en Ferozo con GitHub Actions.
 
 **Tareas:**
@@ -523,80 +536,69 @@ Elegir una de las 2 opciones que se detallan abajo. Ver sección "Opciones de pr
 - Puede medir conversión real de landing →
 - Feedback temprano de usuarios
 
+**Ventajas:**
+- ✅ MVP funcional en producción INMEDIATAMENTE
+- ✅ Usuarios pueden comenzar a registrarse
+- ✅ Testing en vivo vs staging
+- ✅ Datos reales en Chatwoot
+- ✅ Tiempo: ~2-3 horas (setup FTP + validación)
+
+**Nota:** Backoffice admin descartado para v1.0. Para editar contenido: modificar `mockData.ts` + git push (auto-deploy en 2 min).
+
 ---
 
-### OPCIÓN B: COMPLETAR BACKOFFICE ADMIN (Más trabajo, más valor)
-**Descripción:** Implementar backoffice `/admin` para que puedas publicar contenido.
+### 2. SEO BÁSICO ✅ **COMPLETADO**
+**Descripción:** Optimización SEO básica finalizada.
+
+**Implementado:**
+- ✅ `public/sitemap.xml` con 5 rutas principales
+- ✅ `public/robots.txt` (indexación permitida, sitemap incluido)
+- ✅ Meta tags dinámicos en todas las rutas (router guard)
+- ✅ OpenGraph tags para Facebook (og:title, og:description, og:url, og:image)
+- ✅ Twitter cards (twitter:card, twitter:title, twitter:description)
+- ✅ Canonical URLs dinámicos por ruta
+- ✅ Lang="es" en HTML
+
+**Nota:** Falta agregar imagen `public/og-image.jpg` (1200x630px) para redes sociales.
+
+---
+
+### 3. INTEGRACIÓN PROVEEDOR EXTERNO (OPCIONAL)
+**Descripción:** Si Donweb requiere integración específica para pagos.
+
+**Preguntas críticas:**
+- ¿Donweb requiere redirect desde tu sitio?
+- ¿O los usuarios simplemente usan link externo?
+- ¿Hay webhook/callback para actualizar estados?
+
+**Status:** Por definir según necesidades reales del negocio.
+
+---
+
+### 4. TESTING E2E (RECOMENDADO)
+**Descripción:** Validar flujo completo en producción.
 
 **Tareas:**
-1. Crear `/admin` con autenticación mínima (magic-link o mock)
-2. CRUD para Milestones (crear, editar, publicar, estados)
-3. CRUD para Evidences (subir, versionar, publicar)
-4. CRUD para Updates (crear, publicar)
-5. Dashboard: resumen de contactos/suscripciones
-6. Editar y publicar las 4 etapas + evidencias reales
-7. Deploy a producción
+- [ ] Usuario completa formulario → verifica contacto en Chatwoot
+- [ ] UTM tracking funciona correctamente
+- [ ] Navegación entre páginas sin errores
+- [ ] Responsive en móvil real
+- [ ] Performance (Lighthouse score)
 
-**Tareas (subtareas en detalle):**
-- Backend mínimo: autenticación admin + endpoints CRUD
-  - Magic-link o JWT simple
-  - Base de datos (SQLite en Pythonanywhere o similar)
-  - Validación de permisos
-- Frontend: vistas admin
-  - Form para crear etapa
-  - Form para subir evidencia con versión
-  - Previsualizador de public pages
-  - Dashboard con métricas
-- Contenido: editar 4 etapas del RKHA190
-  - Editorializar títulos, descripciones
-  - Subir evidencias (documentos, fotos)
-  - Publicar
-
-**Ventajas:**
-- ✅ MVP COMPLETO (landing + panel etapas + evidencias públicas + pre-registro + admin)
-- ✅ Control total sobre contenido (sin depender de devs para cambios)
-- ✅ Dashboard para ver métricas de conversión
-- ✅ Escalable: preparado para multi-admin en v2
-- ✅ Mayor ROI: sitio "terminado" en v1
-
-**Desventajas:**
-- ❌ +1-2 semanas de desarrollo (backend + frontend + admin)
-- ❌ Más complejidad (auth, CRUD, base de datos)
-- ❌ Requiere backend operativo (Pythonanywhere o similar)
-- ❌ Testing más exhaustivo antes de deploy
-
-**Impacto MVP:**
-- Sitio "profesional" con todas las secciones públicas →
-- Usuarios ven panel de etapas + evidencias →
-- Conversión potencialmente más alta (confianza)
+**Tiempo estimado:** 2-3 horas
+**Impacto:** Confianza en calidad antes de lanzamiento oficial
 
 ---
 
-### RECOMENDACIÓN FINAL: **OPCIÓN A → OPCIÓN B**
+### RECOMENDACIÓN: Orden de ejecución
 
-**Estrategia en dos fases:**
-
-**Fase 1 (Esta semana - 2-3 horas):** OPCIÓN A
-- Deploy MVP actual a producción
-- Medir conversión real
-- Recopilar feedback de usuarios
-- Validar que flujo funciona en vivo
-
-**Fase 2 (Próximas 1-2 semanas):** OPCIÓN B
-- Implementar backoffice admin
-- Editar etapas + evidencias reales
-- Deploy v1.0 "completo"
-- Lanzamiento oficial con contenido publicado
-
-**Por qué esta estrategia:**
-1. **Riesgo mínimo:** MVP valida mercado inmediatamente
-2. **Feedback real:** usuarios en vivo dan datos antes de invertir en backoffice
-3. **Iteración rápida:** si el flujo no convierte, cambias antes de hacer admin
-4. **Valor incremental:** cada fase agrega valor (conversión + contenido)
-5. **Deuda técnica:** backoffice se hace con aprendizajes de Fase 1
+1. **Deploy ahora** (2-3 horas) → sitio en vivo
+2. **Testing E2E** (2-3 horas) → validar calidad
+3. **SEO básico** (1-2 horas) → mejora indexación
+4. **Proveedor externo** (solo si es necesario)
 
 ---
 
 **Última actualización:** 2026-01-10  
-**Versión documento:** 1.3 (decisión final: v1.0 sin backoffice)  
-**Status v1.0:** ✅ **LISTO PARA USAR EN PRODUCCIÓN** - Edita mockData.ts para cambios de contenido
+**Versión documento:** 1.4 (optimización CSS profesional completada)  
+**Status v1.0:** ✅ **LISTO PARA USAR EN PRODUCCIÓN** - Arquitectura CSS optimizada + mockData.ts editable
