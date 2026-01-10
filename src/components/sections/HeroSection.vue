@@ -12,7 +12,7 @@ const emit = defineEmits<{ (event: 'start'): void }>();
 
 <template>
   <section class="hero" id="about">
-    <div class="container">
+    <div class="container-narrow">
       <h1>{{ props.title }}</h1>
       <p class="hero-subtitle">{{ props.subtitle }}</p>
       <div class="cta-buttons">
@@ -30,10 +30,7 @@ const emit = defineEmits<{ (event: 'start'): void }>();
   padding: 100px 20px;
 }
 
-.container {
-  max-width: 960px;
-  margin: 0 auto;
-}
+/* container-narrow en components.css */
 
 h1 {
   font-size: 2.75rem;
@@ -52,24 +49,13 @@ h1 {
   gap: 16px;
 }
 
-.btn {
-  display: inline-block;
-  padding: 12px 24px;
-  border-radius: 4px;
-  font-weight: bold;
-  text-decoration: none;
-  transition: all 0.3s ease;
-  cursor: pointer;
-  border: none;
-}
-
+/* btn-primary y btn-secondary en components.css */
 .btn-primary {
-  background-color: #4caf50;
-  color: #fff;
+  background-color: var(--color-success);
 }
 
 .btn-primary:hover {
-  background-color: #45a049;
+  background-color: var(--color-success-dark);
 }
 
 .btn-secondary {

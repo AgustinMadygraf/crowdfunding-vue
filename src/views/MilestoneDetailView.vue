@@ -46,7 +46,7 @@ const handleGoBack = () => {
   <div v-if="milestone" class="milestone-detail-page">
     <!-- Header -->
     <header class="header">
-      <div class="container">
+      <div class="container-narrow">
         <button class="btn-back" @click="handleGoBack" aria-label="Volver">
           ← Volver
         </button>
@@ -56,17 +56,17 @@ const handleGoBack = () => {
     </header>
 
     <!-- Main Content -->
-    <main class="container">
+    <main class="container-narrow">
       <!-- Detalles -->
       <section class="section">
         <h2>Información general</h2>
         <div class="content-grid">
-          <div v-if="milestone.details" class="card">
+          <div v-if="milestone.details" class="card-base">
             <h3>Descripción detallada</h3>
             <p>{{ milestone.details }}</p>
           </div>
 
-          <div class="card">
+          <div class="card-base">
             <h3>Estado del proyecto</h3>
             <dl class="stats">
               <div>
@@ -208,15 +208,12 @@ const handleGoBack = () => {
   margin-bottom: 40px;
 }
 
-.header .container {
-  max-width: 900px;
-  margin: 0 auto;
-}
+/* container-narrow en components.css */
 
 .btn-back {
   background: none;
   border: none;
-  color: #2196f3;
+  color: var(--color-primary);
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
@@ -241,11 +238,7 @@ const handleGoBack = () => {
   line-height: 1.6;
 }
 
-.container {
-  max-width: 900px;
-  margin: 0 auto;
-  padding: 0 20px;
-}
+/* container-narrow en components.css */
 
 .section {
   margin-bottom: 48px;
@@ -255,7 +248,7 @@ const handleGoBack = () => {
   margin-bottom: 24px;
   font-size: 24px;
   color: #111;
-  border-bottom: 2px solid #2196f3;
+  border-bottom: 2px solid var(--color-primary);
   padding-bottom: 12px;
 }
 
@@ -265,21 +258,15 @@ const handleGoBack = () => {
   gap: 24px;
 }
 
-.card {
-  background-color: #fff;
-  border-radius: 12px;
-  padding: 24px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-}
-
-.card h3 {
+/* card-base en components.css */
+.card-base h3 {
   margin: 0 0 16px 0;
   font-size: 16px;
   font-weight: 600;
   color: #333;
 }
 
-.card p {
+.card-base p {
   margin: 0;
   color: #666;
   line-height: 1.6;
@@ -349,15 +336,15 @@ const handleGoBack = () => {
 }
 
 .timeline-item:has(.status-completed) .timeline-content {
-  border-left-color: #4caf50;
+  border-left-color: var(--color-success);
 }
 
 .timeline-item:has(.status-in-progress) .timeline-content {
-  border-left-color: #2196f3;
+  border-left-color: var(--color-primary);
 }
 
 .timeline-item:has(.status-pending) .timeline-content {
-  border-left-color: #ffc107;
+  border-left-color: var(--color-warning-light);
 }
 
 .timeline-date {
@@ -399,7 +386,7 @@ const handleGoBack = () => {
 }
 
 .evidence-card:hover {
-  border-color: #2196f3;
+  border-color: var(--color-primary);
   box-shadow: 0 4px 12px rgba(33, 150, 243, 0.2);
   transform: translateY(-2px);
 }
@@ -446,10 +433,10 @@ const handleGoBack = () => {
   padding: 12px 16px;
   background-color: #fff;
   border-radius: 8px;
-  color: #2196f3;
+  color: var(--color-primary);
   text-decoration: none;
   transition: all 0.2s;
-  border-left: 4px solid #2196f3;
+  border-left: 4px solid var(--color-primary);
 }
 
 .milestone-link a:hover {
@@ -467,7 +454,7 @@ const handleGoBack = () => {
 }
 
 .cta-card {
-  background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
   border-radius: 12px;
   padding: 40px;
   text-align: center;
@@ -503,7 +490,7 @@ const handleGoBack = () => {
 
 .cta-card .btn-primary {
   background-color: white;
-  color: #2196f3;
+  color: var(--color-primary);
 }
 
 .cta-card .btn-primary:hover {

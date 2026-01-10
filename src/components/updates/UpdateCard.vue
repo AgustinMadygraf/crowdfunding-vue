@@ -6,10 +6,10 @@ const props = defineProps<{
 }>();
 
 const categoryColors: Record<string, string> = {
-  comercial: '#2196f3',
-  tecnico: '#ff9800',
-  logistica: '#9c27b0',
-  legal: '#4caf50',
+  comercial: 'var(--category-comercial)',
+  tecnico: 'var(--category-tecnico)',
+  logistica: 'var(--category-logistica)',
+  legal: 'var(--category-legal)',
 };
 
 const categoryLabels: Record<string, string> = {
@@ -58,7 +58,7 @@ const formattedDate = new Date(props.update.publishedAt).toLocaleDateString('es-
 }
 
 .update-card:hover {
-  border-left-color: var(--color-primary, #2196f3);
+  border-left-color: var(--color-primary);
 }
 
 .update-header {

@@ -136,15 +136,12 @@ const handleCloseModal = () => {
 
 .hero-section {
   padding: 60px 20px 40px;
-  background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
   color: white;
   text-align: center;
 }
 
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-}
+/* container en components.css */
 
 .hero-section h1 {
   font-size: 36px;
@@ -205,19 +202,19 @@ const handleCloseModal = () => {
 
 /* Colores específicos para badges de categoría */
 .badge-category.category-comercial {
-  background-color: #2196f3;
+  background-color: var(--category-comercial);
 }
 
 .badge-category.category-tecnico {
-  background-color: #ff9800;
+  background-color: var(--category-tecnico);
 }
 
 .badge-category.category-logistica {
-  background-color: #9c27b0;
+  background-color: var(--category-logistica);
 }
 
 .badge-category.category-legal {
-  background-color: #4caf50;
+  background-color: var(--category-legal);
 }
 
 .modal-header .date {

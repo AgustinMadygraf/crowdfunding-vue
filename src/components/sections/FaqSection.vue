@@ -1,6 +1,6 @@
 <template>
-  <section class="faq" id="faq">
-    <div class="container">
+  <section class="faq section-padding" id="faq">
+    <div class="container-narrow">
       <h2>Preguntas frecuentes</h2>
       <div class="faq-item">
         <h3>¿Qué es un bono con beneficio en especie?</h3>
@@ -22,14 +22,10 @@
 </template>
 
 <style scoped>
-.faq {
-  padding: 80px 20px 100px;
-  background-color: #f9fafb;
-}
+/* section-padding y container-narrow en components.css */
 
-.container {
-  max-width: 960px;
-  margin: 0 auto;
+.faq {
+  background-color: #f9fafb;
 }
 
 .faq-item {

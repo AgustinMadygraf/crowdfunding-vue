@@ -154,14 +154,14 @@ const handleSubmit = async () => {
 <template>
   <div class="subscribe-view">
     <section class="hero-section">
-      <div class="container">
+      <div class="container-narrow">
         <h1>Iniciar Suscripción</h1>
         <p class="subtitle">Completá tus datos para continuar con el proceso</p>
       </div>
     </section>
 
-    <section class="form-section">
-      <div class="container">
+    <section class="form-section section-padding section-padding">
+      <div class="container-narrow">
         <div class="form-container">
           <div class="level-summary" v-if="selectedLevel">
             <h2>Nivel seleccionado</h2>
@@ -339,8 +339,8 @@ const handleSubmit = async () => {
   opacity: 0.9;
 }
 
+/* section-padding en components.css */
 .form-section {
-  padding: 80px 20px;
   background-color: #f5f5f5;
 }
 

@@ -34,6 +34,21 @@
   --color-text: var(--vt-c-text-light-1);
 
   --section-gap: 160px;
+
+  /* Brand colors */
+  --color-primary: #2196f3;
+  --color-primary-dark: #1976d2;
+  --color-success: #4caf50;
+  --color-success-dark: #45a049;
+  --color-warning: #ff9800;
+  --color-info: #9c27b0;
+  --color-warning-light: #ffc107;
+
+  /* Category colors */
+  --category-comercial: #2196f3;
+  --category-tecnico: #ff9800;
+  --category-logistica: #9c27b0;
+  --category-legal: #4caf50;
 }
 
 @media (prefers-color-scheme: dark) {

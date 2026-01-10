@@ -37,11 +37,7 @@
   padding: 60px 0 20px;
 }
 
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 20px;
-}
+/* container en components.css */
 
 .footer-info {
   display: grid;

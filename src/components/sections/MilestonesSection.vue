@@ -26,14 +26,14 @@ const handleCloseModal = () => {
 </script>
 
 <template>
-  <section class="milestones" id="milestones">
+  <section class="milestones section-padding" id="milestones">
     <div class="container">
       <header class="section-header">
         <div>
           <h2>Avance por hitos</h2>
           <p>Seguimiento transparente del proyecto en tiempo real.</p>
         </div>
-        <div class="summary" aria-live="polite">
+        <div class="card-base summary" aria-live="polite">
           <p><strong>Progreso total:</strong> {{ props.progressPercentage }}%</p>
           <p><strong>Recaudado:</strong> ARS {{ props.totalRaisedAmount.toLocaleString() }}</p>
           <p><strong>Meta total:</strong> ARS {{ props.totalTargetAmount.toLocaleString() }}</p>
@@ -61,14 +61,10 @@ const handleCloseModal = () => {
 </template>
 
 <style scoped>
-.milestones {
-  padding: 80px 20px;
-  background: #f9fafb;
-}
+/* section-padding y container en components.css */
 
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
+.milestones {
+  background: #f9fafb;
 }
 
 .section-header {
@@ -82,11 +78,8 @@ const handleCloseModal = () => {
   margin-bottom: 12px;
 }
 
+/* card-base en components.css */
 .summary {
-  background-color: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
-  padding: 20px 24px;
   display: grid;
   gap: 8px;
   min-width: 260px;

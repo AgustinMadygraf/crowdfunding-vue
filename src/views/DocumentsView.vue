@@ -31,19 +31,19 @@ const documentCategories = [
 <template>
   <div class="documents-view">
     <section class="hero-section">
-      <div class="container">
+      <div class="container-narrow">
         <h1>Repositorio de Documentos</h1>
         <p class="subtitle">Acceso público a toda la documentación del proyecto</p>
       </div>
     </section>
 
-    <section class="documents-section">
-      <div class="container">
+    <section class="documents-section section-padding">
+      <div class="container-narrow">
         <div class="categories-grid">
           <div
             v-for="category in documentCategories"
             :key="category.id"
-            class="category-card"
+            class="card-base category-card"
           >
             <h3>{{ category.name }}</h3>
             <p>{{ category.description }}</p>
@@ -82,10 +82,7 @@ const documentCategories = [
   text-align: center;
 }
 
-.container {
-  max-width: 960px;
-  margin: 0 auto;
-}
+/* container-narrow y section-padding en components.css */
 
 .hero-section h1 {
   font-size: 2.5rem;
@@ -97,10 +94,7 @@ const documentCategories = [
   opacity: 0.9;
 }
 
-.documents-section {
-  padding: 80px 20px;
-  background-color: #ffffff;
-}
+/* section-padding en components.css */
 
 .categories-grid {
   display: grid;
@@ -109,12 +103,9 @@ const documentCategories = [
   margin-bottom: 4rem;
 }
 
+/* card-base en components.css */
 .category-card {
-  background: white;
   border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  padding: 2rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 

@@ -1,6 +1,6 @@
 <template>
-  <section class="updates" id="updates">
-    <div class="container">
+  <section class="updates section-padding" id="updates">
+    <div class="container-narrow">
       <h2>Actualizaciones quincenales</h2>
       <p>Próxima actualización: 21 de septiembre de 2025</p>
       <div class="updates-placeholder">
@@ -11,14 +11,7 @@
 </template>
 
 <style scoped>
-.updates {
-  padding: 80px 20px;
-}
-
-.container {
-  max-width: 960px;
-  margin: 0 auto;
-}
+/* section-padding y container-narrow en components.css */
 
 .updates-placeholder {
   margin-top: 24px;

@@ -43,13 +43,11 @@ const isExternalOrHash = (href: string) => {
   padding: 15px 0;
 }
 
+/* container en components.css */
 .container {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 20px;
 }
 
 .main-nav ul {

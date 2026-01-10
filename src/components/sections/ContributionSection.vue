@@ -16,7 +16,7 @@ const formatCurrency = (value: number) => `ARS ${value.toLocaleString()}`;
 </script>
 
 <template>
-  <section class="contribute" id="contribute">
+  <section class="contribute section-padding" id="contribute">
     <div class="container">
       <h2>Seleccioná tu nivel de aporte</h2>
       <p>Bono fijo con beneficio en especie, transferible y con validez de 12 meses.</p>
@@ -25,8 +25,10 @@ const formatCurrency = (value: number) => `ARS ${value.toLocaleString()}`;
         <article
           v-for="level in props.levels"
           :key="level.amount"
-          :class="['level-card', { selected: level.amount === props.selectedLevel.amount }]"
+          :class="['card-base', 'card-clickable', 'level-card', { selected: level.amount === props.selectedLevel.amount }]"
           @click="emit('select', level)"
+          role="button"
+          tabindex="0"
         >
           <h3>{{ level.name }}</h3>
           <p class="amount">{{ formatCurrency(level.amount) }}</p>
@@ -54,14 +56,7 @@ const formatCurrency = (value: number) => `ARS ${value.toLocaleString()}`;
 </template>
 
 <style scoped>
-.contribute {
-  padding: 80px 20px;
-}
-
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-}
+/* section-padding y container en components.css */
 
 .contribution-levels {
   display: grid;
@@ -70,23 +65,18 @@ const formatCurrency = (value: number) => `ARS ${value.toLocaleString()}`;
   margin: 40px 0;
 }
 
+/* card-base y card-clickable en components.css */
 .level-card {
-  background-color: #fff;
-  border: 2px solid #e0e0e0;
-  border-radius: 8px;
-  padding: 24px;
   text-align: center;
-  cursor: pointer;
-  transition: all 0.3s ease;
+  border: 2px solid #e0e0e0;
 }
 
 .level-card:hover {
-  border-color: #4caf50;
-  transform: translateY(-4px);
+  border-color: var(--color-success);
 }
 
 .level-card.selected {
-  border-color: #4caf50;
+  border-color: var(--color-success);
   background-color: rgba(76, 175, 80, 0.1);
 }
 
@@ -97,7 +87,7 @@ const formatCurrency = (value: number) => `ARS ${value.toLocaleString()}`;
 }
 
 .benefit {
-  color: #4caf50;
+  color: var(--color-success);
   font-weight: 600;
 }
 
@@ -109,24 +99,13 @@ const formatCurrency = (value: number) => `ARS ${value.toLocaleString()}`;
   text-align: center;
 }
 
-.btn {
-  display: inline-block;
-  padding: 12px 24px;
-  border-radius: 4px;
-  font-weight: bold;
-  text-decoration: none;
-  transition: all 0.3s ease;
-  cursor: pointer;
-  border: none;
-}
-
+/* btn-primary en components.css */
 .btn-primary {
-  background-color: #4caf50;
-  color: white;
+  background-color: var(--color-success);
 }
 
 .btn-primary:hover {
-  background-color: #45a049;
+  background-color: var(--color-success-dark);
 }
 
 .btn-lg {
