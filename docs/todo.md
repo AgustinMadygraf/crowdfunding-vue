@@ -585,4 +585,5 @@ Elegir una de las 2 opciones que se detallan abajo. Ver sección "Opciones de pr
 ---
 
 **Última actualización:** 2026-01-10  
-**Versión documento:** 1.2 (con opciones post-MVP y recomendación)
+**Versión documento:** 1.3 (decisión final: v1.0 sin backoffice)  
+**Status v1.0:** ✅ **LISTO PARA USAR EN PRODUCCIÓN** - Edita mockData.ts para cambios de contenido
