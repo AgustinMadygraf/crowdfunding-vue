@@ -1,0 +1,130 @@
+﻿<script setup lang="ts">
+import { ref, computed } from 'vue';
+import { mockUpdates } from '@/infrastructure/mockData';
+import UpdateCard from '@/components/updates/UpdateCard.vue';
+import type { Update, UpdateCategory } from '@/domain/update';
+
+const updates = ref<Update[]>(mockUpdates.filter(u => u.status === 'published'));
+const selectedCategory = ref<UpdateCategory | 'all'>('all');
+const selectedUpdate = ref<Update | null>(null);
+const showModal = ref(false);
+
+const filteredUpdates = computed(() => {
+  if (selectedCategory.value === 'all') {
+    return updates.value;
+  }
+  return updates.value.filter(u => u.category === selectedCategory.value);
+});
+
+const sortedUpdates = computed(() => {
+  return [...filteredUpdates.value].sort((a, b) => {
+    return new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime();
+  });
+});
+
+const categories = [
+  { value: 'all', label: 'Todas', count: updates.value.length },
+  { value: 'comercial', label: 'Comercial', count: updates.value.filter(u => u.category === 'comercial').length },
+  { value: 'tecnico', label: 'TÃ©cnico', count: updates.value.filter(u => u.category === 'tecnico').length },
+  { value: 'logistica', label: 'LogÃ­stica', count: updates.value.filter(u => u.category === 'logistica').length },
+  { value: 'legal', label: 'Legal', count: updates.value.filter(u => u.category === 'legal').length },
+];
+
+const handleCardClick = (update: Update) => {
+  selectedUpdate.value = update;
+  showModal.value = true;
+};
+
+const handleCloseModal = () => {
+  showModal.value = false;
+  selectedUpdate.value = null;
+};
+</script>
+
+<template>
+  <div class="updates-view">
+    <section class="hero-section">
+      <div class="container">
+        <h1>Actualizaciones del Proyecto</h1>
+        <p class="subtitle">Seguimiento transparente del progreso de la RKHA190</p>
+        <p class="stats">{{ sortedUpdates.length }} actualizaciones publicadas</p>
+      </div>
+    </section>
+
+    <section class="updates-section">
+      <div class="container">
+        <!-- Filtros de categorÃ­a -->
+        <div class="filters">
+          <button
+            v-for="cat in categories"
+            :key="cat.value"
+            class="filter-btn"
+            :class="{ active: selectedCategory === cat.value }"
+            @click="selectedCategory = cat.value as UpdateCategory | 'all'"
+          >
+            {{ cat.label }}
+            <span class="count">{{ cat.count }}</span>
+          </button>
+        </div>
+
+        <!-- Grid de updates -->
+        <div class="updates-grid">
+          <div
+            v-for="update in sortedUpdates"
+            :key="update.id"
+            @click="handleCardClick(update)"
+            role="button"
+            tabindex="0"
+            @keydown.enter="handleCardClick(update)"
+            @keydown.space="handleCardClick(update)"
+          >
+            <UpdateCard :update="update" />
+          </div>
+        </div>
+
+        <!-- Empty state -->
+        <div v-if="sortedUpdates.length === 0" class="empty-state">
+          <p>No hay actualizaciones en esta categorÃ­a aÃºn.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Modal de detalle -->
+    <teleport to="body">
+      <div v-if="showModal && selectedUpdate" class="modal-backdrop" @click="handleCloseModal">
+        <div class="modal-content" role="dialog" aria-modal="true" @click.stop>
+          <header class="modal-header">
+            <div>
+              <span 
+                class="category-badge" 
+                :class="`category-${selectedUpdate.category}`"
+              >
+                {{ selectedUpdate.category }}
+              </span>
+              <time class="date">
+                {{ new Date(selectedUpdate.publishedAt).toLocaleDateString('es-AR', { 
+                  year: 'numeric', 
+                  month: 'long', 
+                  day: 'numeric' 
+                }) }}
+              </time>
+            </div>
+            <button class="btn-close" @click="handleCloseModal" aria-label="Cerrar">Ã—</button>
+          </header>
+
+          <div class="modal-body">
+            <h2>{{ selectedUpdate.title }}</h2>
+            <div class="content">
+              {{ selectedUpdate.content }}
+            </div>
+          </div>
+
+          <footer class="modal-footer">
+            <button class="btn btn-primary" @click="handleCloseModal">Cerrar</button>
+          </footer>
+        </div>
+      </div>
+    </teleport>
+  </div>
+</template>
+
