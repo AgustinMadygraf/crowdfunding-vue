@@ -1,28 +1,13 @@
-# Integración Chatwoot — Formulario de pre-registro (Madygraf RKHA190)
+# DEPRECATED v1.1 — Integración Chatwoot (Formulario de pre-registro)
 
-**Documento técnico de diseño e implementación**  
-**Fecha:** 2026-01-09  
-**Status:** Design Review (Implementación pendiente de decisiones en Backend)
+Este documento fue archivado. A partir de v1.1, el flujo de suscripción usa autenticación de Google y backend propio de contribuciones. El widget de Chatwoot se mantiene únicamente para soporte.
 
----
+Ver la versión archivada en: [docs/legacy/CHATWOOT_INTEGRATION.md](legacy/CHATWOOT_INTEGRATION.md)
 
-## 1. Contexto y objetivo
-
-El portal de crowdfunding Madypack captura pre-registros mediante un formulario (Zod-validado) y **Chatwoot es el backend** para persistencia de leads.
-
-**Objetivo:** integrar el flujo de pre-registro directamente con Chatwoot para:
-- Crear contactos en el inbox (via Client API)
-- Registrar atributos personalizados (UTM, level, consent, etc.)
-- Mantener historial de interacciones para soporte
-- Validar identidad con HMAC (en producción)
-
-**Arquitectura:**
-- **Frontend (Vue 3):** formulario validado → POST directo a Chatwoot Client API
-- **Backend:** Chatwoot (SaaS) — no hay backend propio
-- **Persistencia:** Chatwoot database
-- No incluye: webhooks entrantes, resolución de conflictos complejos, multi-inbox
-
----
+Para el flujo actual, consultar:
+- [FRONTEND_IMPLEMENTATION.md](FRONTEND_IMPLEMENTATION.md)
+- [OBTAINING_CREDENTIALS.md](OBTAINING_CREDENTIALS.md)
+- [MERCADOPAGO_INTEGRATION.md](MERCADOPAGO_INTEGRATION.md)
 
 ## 2. Capacidades confirmadas (lo que sí funciona)
 

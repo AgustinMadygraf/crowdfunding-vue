@@ -5,6 +5,11 @@
 
 ---
 
+## Nota v1.1 (2026-01-10)
+- El flujo de pre-registro y la integración directa con Chatwoot Client API quedan DEPRECATED.
+- El portal usa Google Auth + backend propio de contribuciones; el widget de Chatwoot se mantiene solo para soporte.
+- Tratar cualquier referencia a "formulario de pre-registro" como histórica.
+
 ## ✅ CERTEZAS (Estado Actual)
 
 ### Arquitectura Frontend
@@ -43,8 +48,8 @@
   - `/etapas` - Panel completo de etapas (MilestonesView)
   - `/actualizaciones` - Updates (UpdatesView)
   - `/documentos` - Repositorio público (DocumentsView)
-  - `/suscribir` - Flujo de suscripción (SubscribeView)
-  - `/suscribir/estado/:id` - Estado de suscripción (SubscriptionStatusView)
+  - `/subscribe` - Flujo de suscripción (SubscribeView)
+  - `/subscribe/:token` - Página de pago individual (SubscribePaymentView)
   - `/admin` - Backoffice (AdminView)
   - `404` - Not Found (NotFoundView)
 - [x] Convertir App.vue de single-page a router-based
@@ -64,41 +69,25 @@
 - [x] ✅ Crear `docs/DESIGN_SYSTEM.md` con guía de componentes CSS
 
 ### 2. Integración API (FR-010 a FR-014, todos los API 4.*) ✅
-- [x] ~~Crear `src/infrastructure/api.ts`~~ (Estructura completa, mínima para otros endpoints)
-- [x] ~~Definir DTOs~~ (Completado en src/infrastructure/dto.ts)
-- [x] ~~Implementar subscriptionsService~~ (Ya no es necesario - Chatwoot es el backend)
-- [x] Cleanup: Chatwoot Client API es la solución final para suscripciones
+- [x] Crear `src/infrastructure/api.ts` (estructura base)
+- [x] Definir DTOs (`src/infrastructure/dto.ts`)
+- [x] Autenticación Google: `POST /api/auth/google`
+- [x] Contribuciones: `POST /api/contributions`, `GET /api/contributions/:token`, `GET /api/users/:id/contributions`
 
-**Status:** ✅ COMPLETADO - Backend = Chatwoot SaaS (no hay backend propio)
+**Status:** ✅ COMPLETADO - Backend propio expone endpoints necesarios
 
-### 2.5 Validación de Formularios (NFR-SEC-005, FR-021) ✅
-- [x] Instalar Zod
-- [x] Crear schema de validación (subscriptionFormSchema)
-- [x] Crear composable useFormValidation con:
-  - Validación por campo individual
-  - Validación de formulario completo
-  - Manejo de errores reactivo
-  - Clear de errores por campo
-- [x] Actualizar SubscribeView con validación Zod:
-  - Validación en tiempo real (blur/input)
-  - Mensajes de error específicos
-  - Banner de error general
-  - Tipos de TypeScript completos
+### 2.5 Validación de Formularios (DEPRECATED)
+- [x] Eliminado el formulario de pre-registro en `SubscribeView.vue`
+- [x] Eliminados `subscriptionFormSchema` y `useFormValidation`
+- [x] Flujo simplificado: Google Auth + selección de nivel
 
 ### 3. Flujo de Suscripción (FR-010 a FR-014, FR-020 a FR-022) ✅
-- [x] Crear componente SubscribeView (con formulario pre-registro integrado)
-  - [x] Campos: nombre, email, teléfono, provincia, tipo_interesado, rango_monto
-  - [x] Validación Zod en tiempo real
-  - [x] Checkbox de consentimiento obligatorio
-- [x] Implementar `createContact()` en Chatwoot:
-  - [x] POST directo a /public/api/v1/inboxes/{id}/contacts
-  - [x] Generación de identifier único (lead_<uuid>_<timestamp>)
-  - [x] Cálculo HMAC SHA256 (Web Crypto API)
-  - [x] Custom attributes flattened (14 campos)
-- [x] Sincronizar con widget (setUser + setCustomAttributes)
-- [x] Página de éxito con alertas
+- [x] `SubscribeView` simplificado: autenticación con Google + selección de nivel
+- [x] Crear contribución en backend y redirigir a `/subscribe/:token`
+- [x] `SubscribePaymentView`: estado de contribución + pago MercadoPago
+- [x] `UserDashboardView`: historial de contribuciones del usuario
 
-**Status:** ✅ COMPLETADO 100% - Contacto se crea en Chatwoot exitosamente
+**Status:** ✅ COMPLETADO - Flujo con backend propio, sin formulario de pre-registro
 
 ### 4. Captura UTM y Marketing (NFR-MKT-001) ✅
 - [x] Implementar captura UTM en `main.ts`:
@@ -106,7 +95,7 @@
   - Almacenar en sessionStorage con timestamp
   - Recuperar al iniciar suscripción
 - [x] Crear utilidad `src/utils/utm.ts` con funciones helper
-- [x] Integrar en SubscribeView para envío en POST /api/subscriptions
+- [x] Integrar en `SubscribeView` para envío en `POST /api/contributions`
 - [x] Payload preparado con estructura: lead + level_id + consent + utm
 
 ### 5. Modelo de Dominio Extendido ✅
@@ -145,7 +134,7 @@
 - [ ] Listar documentos públicos por categoría
 - [ ] Integrar con GET /api/documents
 
-### 9. Integración Chatwoot (FR-050 a FR-052) ✅ (100% COMPLETADO)
+### 9. Integración Chatwoot (FR-050 a FR-052) ✅ (100% COMPLETADO) — DEPRECATED v1.1 (soporte-only)
 - [x] Agregar snippet Chatwoot en index.html
 - [x] Variables de entorno: `VITE_CHATWOOT_*` configuradas en .env
 - [x] Crear composable `useChatwoot` (setUser, setCustomAttributes, waitForReady)
@@ -162,7 +151,7 @@
   - [x] Logging estructurado con prefijos [Chatwoot] [Form]
 - [x] Actualizar DTOs (adaptados a respuesta real de Chatwoot)
 
-**Status:** ✅ 100% COMPLETADO - Chatwoot es el backend final
+**Status:** ⚠️ DEPRECATED v1.1 — Chatwoot NO es backend; se mantiene solo como widget de soporte
 
 ### 10. Variables de Entorno
 - [ ] Crear `.env.example` con:

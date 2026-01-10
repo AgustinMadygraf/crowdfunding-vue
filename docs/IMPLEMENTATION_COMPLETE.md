@@ -107,9 +107,6 @@ docs/
 VITE_GOOGLE_CLIENT_ID=xxxxx-xxxxxxxxxxxxxxx.apps.googleusercontent.com
 VITE_API_BASE_URL=http://localhost:5000
 VITE_MERCADOPAGO_PUBLIC_KEY=TEST-xxxxx
-VITE_CHATWOOT_TOKEN=xxxxx
-VITE_CHATWOOT_BASE_URL=https://your-chatwoot.com
-VITE_CHATWOOT_INBOX_IDENTIFIER=xxxxx
 ```
 
 ### 2. Instalar Dependencias
@@ -131,11 +128,10 @@ npm run dev
 1. Ir a http://localhost:5173/subscribe
 2. Hacer click en "Continuar con Google"
 3. Seleccionar una cuenta Google
-4. Completar datos del formulario
-5. Hacer click "Continuar al pago"
-6. Se creará una contribución y redirigirá a /subscribe/:token
-7. En esa página hacer click "Ir a Pagar" para MercadoPago
-8. Ver historial en /account
+4. Hacer click "Continuar al pago"
+5. Se creará una contribución y redirigirá a /subscribe/:token
+6. En esa página hacer click "Ir a Pagar" para MercadoPago
+7. Ver historial en /account
 ```
 
 ---
@@ -283,7 +279,6 @@ El backend Flask necesita implementar:
 - [ ] Google Login funciona
 - [ ] Datos del usuario se cargan correctamente
 - [ ] Selección de niveles funciona
-- [ ] Formulario se valida correctamente
 - [ ] Contribución se crea en backend
 - [ ] Se genera token único
 - [ ] Página de pago individual se abre

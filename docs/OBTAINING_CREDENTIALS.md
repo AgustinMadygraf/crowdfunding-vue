@@ -175,6 +175,8 @@ Errores comunes:
 
 ## Chatwoot
 
+Nota de uso (v1.1+): El formulario de pre-registro fue eliminado del frontend. El **widget de Chatwoot** se mantiene únicamente para soporte/atención en el sitio y no se utiliza para crear contactos ni para el flujo de suscripción. Las contribuciones se gestionan con autenticación de **Google OAuth** y endpoints propios del backend.
+
 Chatwoot se utiliza para la comunicación con clientes a través de un widget de chat integrado.
 
 ### 1. Crear una Instancia de Chatwoot

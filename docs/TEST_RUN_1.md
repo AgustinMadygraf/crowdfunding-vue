@@ -40,7 +40,7 @@
    - [ ] Botón "Suscribirse" visible
    - [ ] 6 etapas visibles en grid
    - [ ] Footer con links
-   - [ ] Chatwoot widget carga (esquina inferior derecha)
+   - [ ] Widget de soporte (Chatwoot) carga sin errores
    - [ ] Console: 0 errores
 
 ### PASO 2: Navegación
@@ -48,7 +48,7 @@
    - [ ] "Etapas" → /etapas
    - [ ] "Actualizaciones" → /actualizaciones
    - [ ] "Documentos" → /documentos
-   - [ ] "Suscribirse" → /suscribir
+   - [ ] "Suscribirse" → /subscribe
 2. Click en logo → vuelve a home
 3. Botón back del navegador funciona
 
@@ -84,29 +84,17 @@
    - [ ] Click en update → abre modal con contenido completo
    - [ ] Badge de categoría tiene color correcto
 
-### PASO 6: Formulario Pre-Registro ⚠️ CRÍTICO
-1. Ir a: http://localhost:4173/suscribir
-2. Test de validación:
-   - [ ] Dejar nombre vacío → error "Nombre es requerido"
-   - [ ] Email inválido → error "Email inválido"
-   - [ ] No marcar consentimiento → error al submit
-3. Test de envío exitoso:
-   - [ ] Llenar todos los campos correctamente:
-     - Nombre: "Test E2E"
-     - Email: "test.e2e@madypack.com.ar"
-     - Teléfono: "+54 11 1234-5678"
-     - Provincia: "Buenos Aires"
-     - Tipo: "Inversor"
-     - Rango: "$10,000 - $50,000"
-   - [ ] Marcar consentimiento
-   - [ ] Click "Comenzar suscripción"
-   - [ ] Spinner de loading aparece
-   - [ ] Éxito: página de confirmación
-   - [ ] **VERIFICAR EN CHATWOOT:** https://chatwoot.madygraf.com
-     - Login
-     - Ir a "Contacts"
-     - Buscar: test.e2e@madypack.com.ar
-     - Verificar custom attributes
+### PASO 6: Autenticación y Contribución ⚠️ CRÍTICO
+1. Ir a: http://localhost:4173/subscribe
+2. Test de autenticación:
+   - [ ] Botón Google visible
+   - [ ] Login con Google funciona (popup)
+   - [ ] Usuario autenticado persiste en localStorage
+3. Test de contribución:
+   - [ ] Seleccionar nivel y click "Continuar al pago"
+   - [ ] Se crea contribución (POST `/api/contributions`)
+   - [ ] Redirige a `/subscribe/:token`
+   - [ ] Click "Pagar con MercadoPago" abre checkout
 
 ### PASO 7: SEO Tags
 1. En cada página, inspeccionar (F12 → Elements → <head>):
@@ -133,7 +121,7 @@
    - [ ] Desktop (1440px): 3 columnas, márgenes correctos
 3. Verificar componentes específicos:
    - [ ] Header responsive (colapsa en mobile)
-   - [ ] Formulario adaptable
+   - [ ] Flujo de suscripción adaptable (mobile)
    - [ ] Modal responsive (no overflow)
 
 ### PASO 10: Performance (Lighthouse)
@@ -156,7 +144,7 @@
    - [ ] 0 errores (rojo)
    - [ ] Warnings aceptables (amarillo)
    - [ ] No CORS errors
-   - [ ] Chatwoot logs esperados (info)
+   - [ ] Logs de Auth/Subscribe/Payment esperados (info)
 
 ---
 
@@ -200,5 +188,5 @@ Fix: Agregar touch event handler
 **READY FOR DEPLOY** si:
 - ✅ Todos los tests PASO 1-11 completados
 - ✅ 0 bugs críticos
-- ✅ Formulario → Chatwoot funciona 100%
+- ✅ Flujo Google Auth → Contribución → Pago funciona 100%
 - ✅ Lighthouse Performance > 85 (mínimo)

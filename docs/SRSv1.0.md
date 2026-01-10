@@ -13,7 +13,7 @@ Incluye:
 
 * Sitio público (landing + páginas) con etapas, avances y evidencias.
 * Selección de “nivel de aporte” (denominaciones) y **inicio de suscripción**.
-* **Pre-registro mínimo** + consentimiento.
+* **Pre-registro mínimo** + consentimiento. (DEPRECATED v1.1; reemplazado por Google Auth y contribuciones propias)
 * Redirect a proveedor externo y consulta de estado.
 * Backoffice (admin) para publicar etapas, evidencias, updates.
 * Auditoría y métricas.
@@ -29,7 +29,7 @@ No incluye (en esta versión):
 * **Suscripción**: inicio de un proceso formal en un proveedor externo (ALyC/mercado/plataforma autorizada).
 * **Milestone / Etapa**: hito del proyecto (1 a 6).
 * **Evidencia**: documento o link verificable asociado a una etapa (con versionado + checksum).
-* **Lead/Interesado**: usuario que completó pre-registro e inició suscripción.
+* **Lead/Interesado**: usuario autenticado con Google que inició una contribución/suscripción.
 
 ---
 
@@ -87,7 +87,7 @@ No incluye (en esta versión):
 **FR-011** Al iniciar suscripción, el sistema debe:
 
 1. Capturar UTM/campaign (si existe).
-2. Solicitar pre-registro mínimo (ver FR-020).
+2. Autenticar con Google (v1.1; reemplaza FR-020).
 3. Crear un “intento de suscripción” en backend.
 4. Redirigir al `redirect_url` devuelto por backend (proveedor externo).
 
@@ -106,7 +106,7 @@ No incluye (en esta versión):
 
 ---
 
-### 3.3 Pre-registro y consentimiento
+### 3.3 Pre-registro y consentimiento — DEPRECATED (v1.1)
 
 **FR-020** Antes de redirigir, el usuario debe completar pre-registro mínimo:
 
@@ -168,12 +168,12 @@ No incluye (en esta versión):
 
 **FR-050** Chatwoot debe estar disponible en todo el sitio.
 
-**FR-051** Después de pre-registro, el sitio debe ejecutar:
+**FR-051** (DEPRECATED v1.1) Después de pre-registro, el sitio debe ejecutar:
 
 * `window.$chatwoot.setUser(...)`
 * `setCustomAttributes({ status: 'interesado', subscription_id, level_id, utm... })`
 
-**FR-052** En el inicio de suscripción (`startContribution`) registrar evento/atributos en Chatwoot para trazabilidad.
+**FR-052** (DEPRECATED v1.1) En el inicio de suscripción (`startContribution`) registrar evento/atributos en Chatwoot para trazabilidad.
 
 ---
 
@@ -290,6 +290,7 @@ No incluye (en esta versión):
 
 **NFR-OBS-001** Log estructurado backend (errores, webhooks, auth, export).
 **NFR-OBS-002** Métricas: conversion funnel (visita → inicio → pre-registro → redirect → confirmado).
+**Nota v1.1:** Funnel actualizado (visita → login Google → contribución → pago → confirmado).
 
 ---
 
@@ -305,11 +306,12 @@ No incluye (en esta versión):
 ## 8. Criterios de aceptación (mínimos)
 
 1. Un visitante puede elegir nivel, completar pre-registro, aceptar consentimiento, y es redirigido con éxito a proveedor externo.
+  (v1.1) Un visitante puede elegir nivel, autenticarse con Google, crear contribución y completar pago.
 2. El backend guarda `subscription_id` y expone estado consultable.
 3. El webhook actualiza estado con HMAC + idempotencia.
 4. `/etapas` muestra etapas con evidencias públicas (version y checksum).
 5. Admin puede publicar etapa/evidencia/update y queda auditado.
-6. Chatwoot pre-carga usuario tras pre-registro y marca atributos.
+6. (v1.1) Chatwoot widget disponible para soporte; no se pre-cargan usuarios ni se marcan atributos desde el flujo de contribución.
 
 ---
 

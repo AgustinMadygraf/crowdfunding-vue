@@ -176,7 +176,7 @@ const handleGoBack = () => {
       <section class="section cta-section">
         <div class="cta-card">
           <h2>¿Quieres apoyar esta etapa?</h2>
-          <p>Completa el formulario de pre-registro y elige tu nivel de contribución.</p>
+          <p>Ingresá con Google y elegí tu nivel de contribución.</p>
           <router-link to="/suscribir" class="btn btn-primary">
             Comenzar a contribuir
           </router-link>

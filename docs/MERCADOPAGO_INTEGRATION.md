@@ -13,7 +13,7 @@ Integración completa de MercadoPago para procesamiento de pagos en el portal de
 
 1. **SDK instalado:** `@mercadopago/sdk-js`
 2. **Servicio creado:** `src/infrastructure/mercadopagoService.ts`
-3. **Flujo implementado:** Pre-registro → Pago → Webhook
+3. **Flujo implementado:** Google Auth → Crear contribución → Pago → Webhook
 4. **UI actualizada:** `SubscribeView.vue` con botón de pago
 5. **Variables configuradas:** `.env.example` actualizado
 
@@ -25,7 +25,6 @@ Integración completa de MercadoPago para procesamiento de pagos en el portal de
    - `POST /api/webhooks/mercadopago` - Recibir notificaciones
 3. **Servicios:**
    - `services/mercadopago.py` - Cliente MercadoPago
-   - `services/chatwoot.py` - Actualizar contactos
 4. **Documentación:** `backend/README.md`
 
 ---
@@ -33,24 +32,24 @@ Integración completa de MercadoPago para procesamiento de pagos en el portal de
 ## 🔧 Flujo Completo
 
 ```
-Usuario → Formulario → Chatwoot Contact Created
-    ↓
-Botón "Pagar con MercadoPago"
-    ↓
+Usuario autenticado (Google)
+  ↓
+Selecciona nivel y crea contribución (backend)
+  ↓
 Frontend → POST /api/payments/create
-    ↓
+  ↓
 Backend → MercadoPago API (create preference)
-    ↓
+  ↓
 Frontend recibe preference_id
-    ↓
+  ↓
 Abre Checkout Pro (modal o redirect)
-    ↓
+  ↓
 Usuario paga
-    ↓
+  ↓
 MercadoPago → Webhook → Backend
-    ↓
-Backend → Chatwoot (actualizar status)
-    ↓
+  ↓
+Backend actualiza estado de contribución
+  ↓
 Usuario → Página de éxito
 ```
 
@@ -82,11 +81,6 @@ Crear `backend/.env`:
 MERCADOPAGO_ACCESS_TOKEN=TEST-your-access-token
 MERCADOPAGO_PUBLIC_KEY=TEST-your-public-key
 MERCADOPAGO_WEBHOOK_SECRET=your-webhook-secret
-
-CHATWOOT_API_URL=https://chatwoot.madygraf.com
-CHATWOOT_ACCOUNT_ID=1
-CHATWOOT_INBOX_ID=1
-CHATWOOT_API_ACCESS_TOKEN=your-chatwoot-token
 
 FLASK_ENV=development
 SECRET_KEY=dev-secret-key-123
@@ -126,9 +120,9 @@ npm run dev
 
 ### Test Frontend (local)
 
-1. Ir a http://localhost:5173/suscribir
-2. Completar formulario
-3. Click "Completar pre-registro" → Éxito
+1. Ir a http://localhost:5173/subscribe
+2. Autenticar con Google
+3. Seleccionar nivel y crear contribución
 4. Click "💳 Pagar con MercadoPago"
 5. Debe abrir modal/redirect de MercadoPago
 

@@ -3,10 +3,6 @@ import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useContributionLevels } from '@/application/useContributionLevels'
 import { getUTMFromSessionStorage, type UTMParams } from '@/utils/utm'
-import { useFormValidation } from '@/application/composables/useFormValidation'
-import { useChatwoot } from '@/application/composables/useChatwoot'
-import { subscriptionFormSchema, type SubscriptionFormData } from '@/application/schemas/subscriptionSchema'
-import { chatwootClientService } from '@/infrastructure/services/chatwootClientService'
 import { initMercadoPago } from '@/infrastructure/mercadopagoService'
 import { authService } from '@/infrastructure/services/authService'
 import GoogleAuthButton from '@/components/auth/GoogleAuthButton.vue'
@@ -14,33 +10,15 @@ import type { User } from '@/domain/user'
 
 const router = useRouter()
 const { levels, selectedLevel, selectLevel, benefitAmount } = useContributionLevels()
-const { setUser, setCustomAttributes } = useChatwoot()
+// Chatwoot form and contact syncing removed; relying on Google Auth only
 
 // Auth state
 const user = ref<User | null>(null)
 const isAuthenticationModalOpen = ref(false)
 
-// Form state
-const formData = ref({
-  nombre: '',
-  email: '',
-  telefono: '',
-  whatsapp: '',
-  provincia: '',
-  tipo_interesado: '',
-  rango_monto: '',
-  consentimiento: false
-})
+// Form data removed; user info comes from Google Auth
 
-// Validación con Zod
-const { 
-  errors,
-  formError,
-  isValid,
-  validateField,
-  validateForm,
-  clearFieldError
-} = useFormValidation(subscriptionFormSchema)
+// Form validation removed
 
 const isSubmitting = ref(false)
 const submitError = ref<string | null>(null)
@@ -68,23 +46,13 @@ onMounted(async () => {
   }
 })
 
-// Validar campo individual al perder foco
-const handleBlur = (fieldName: keyof SubscriptionFormData) => {
-  validateField(fieldName, formData.value[fieldName])
-}
-
-// Limpiar error al empezar a escribir
-const handleInput = (fieldName: keyof SubscriptionFormData) => {
-  clearFieldError(fieldName)
-}
+// Form field handlers removed
 
 /**
  * Maneja el éxito de autenticación con Google
  */
 const handleAuthSuccess = (authenticatedUser: User) => {
   user.value = authenticatedUser
-  formData.value.nombre = authenticatedUser.nombre
-  formData.value.email = authenticatedUser.email
   isAuthenticationModalOpen.value = false
 }
 
@@ -107,9 +75,6 @@ const createContribution = async (): Promise<{ token: string; preference_id: str
       monto: selectedLevel.value.amount,
       nivel_id: selectedLevel.value.name,
       nivel_nombre: selectedLevel.value.name,
-      provincia: formData.value.provincia,
-      tipo_interesado: formData.value.tipo_interesado,
-      rango_monto: formData.value.rango_monto,
       utm_params: utmParams.value || {}
     })
   })
@@ -122,11 +87,6 @@ const createContribution = async (): Promise<{ token: string; preference_id: str
 }
 
 const handleSubmit = async () => {
-  // Validar formulario completo
-  if (!validateForm(formData.value)) {
-    return
-  }
-
   if (!selectedLevel.value) {
     submitError.value = 'Seleccioná un nivel de contribución para continuar'
     console.warn('[Subscribe] Submission blocked: no contribution level selected')
@@ -148,54 +108,6 @@ const handleSubmit = async () => {
   isSubmitting.value = true
 
   try {
-    // Crear contacto en Chatwoot (mantener compatibilidad)
-    const response = await chatwootClientService.createContact(
-      {
-        name: user.value!.nombre,
-        email: user.value!.email,
-        phone: formData.value.telefono || undefined,
-        whatsapp: formData.value.whatsapp || undefined,
-        province: formData.value.provincia || undefined,
-        type: formData.value.tipo_interesado || undefined,
-        amount_range: formData.value.rango_monto || undefined
-      },
-      selectedLevel.value.name || '',
-      utmParams.value || {},
-      {
-        version: '1.0',
-        accepted_at: new Date().toISOString()
-      }
-    )
-
-    console.info('[Subscribe] Contact created in Chatwoot:', response.contact.source_id)
-
-    // Sincronizar con widget de Chatwoot
-    await setUser(response.contact.source_id, {
-      name: user.value!.nombre,
-      email: user.value!.email
-    })
-
-    const chatwootAttributes = {
-      source_id: response.contact.source_id,
-      form_source: 'web_widget',
-      level_id: selectedLevel.value.name || '',
-      amount_range: formData.value.rango_monto || '',
-      type: formData.value.tipo_interesado || '',
-      province: formData.value.provincia || '',
-      utm_source: utmParams.value?.utm_source || '',
-      utm_medium: utmParams.value?.utm_medium || '',
-      utm_campaign: utmParams.value?.utm_campaign || '',
-      utm_term: utmParams.value?.utm_term || '',
-      utm_content: utmParams.value?.utm_content || '',
-      campaign_id: utmParams.value?.campaign_id || '',
-      referrer: utmParams.value?.referrer || '',
-      consent_version: '1.0',
-      consent_accepted_at: new Date().toISOString()
-    }
-
-    await setCustomAttributes(chatwootAttributes)
-    console.info('[Subscribe] Chatwoot synchronized')
-
     // Crear contribución en el backend
     const contribution = await createContribution()
     console.info('[Subscribe] Contribution created:', contribution.token)
@@ -301,99 +213,8 @@ const handlePayment = async () => {
             </div>
           </div>
 
-          <form v-if="selectedLevel && !contributionCreated" @submit.prevent="handleSubmit" class="contribution-form">
-            <h2>Completá tus datos</h2>
-
-            <div class="form-group">
-              <label for="nombre">Nombre completo *</label>
-              <input
-                id="nombre"
-                v-model="formData.nombre"
-                type="text"
-                :class="{ error: errors.nombre }"
-                @blur="handleBlur('nombre')"
-                @input="handleInput('nombre')"
-                :disabled="isAuthenticated"
-                required
-              />
-              <span v-if="errors.nombre" class="error-message">{{ errors.nombre }}</span>
-            </div>
-
-            <div class="form-group">
-              <label for="email">Email *</label>
-              <input
-                id="email"
-                v-model="formData.email"
-                type="email"
-                :class="{ error: errors.email }"
-                @blur="handleBlur('email')"
-                @input="handleInput('email')"
-                :disabled="isAuthenticated"
-                required
-              />
-              <span v-if="errors.email" class="error-message">{{ errors.email }}</span>
-            </div>
-
-            <div class="form-group">
-              <label for="telefono">Teléfono / WhatsApp</label>
-              <input 
-                id="telefono" 
-                v-model="formData.telefono" 
-                type="tel"
-                :class="{ error: errors.telefono }"
-                @blur="handleBlur('telefono')"
-                @input="handleInput('telefono')"
-              />
-              <span v-if="errors.telefono" class="error-message">{{ errors.telefono }}</span>
-            </div>
-
-            <div class="form-group">
-              <label for="provincia">Provincia</label>
-              <input 
-                id="provincia" 
-                v-model="formData.provincia" 
-                type="text"
-                :class="{ error: errors.provincia }"
-                @blur="handleBlur('provincia')"
-                @input="handleInput('provincia')"
-              />
-              <span v-if="errors.provincia" class="error-message">{{ errors.provincia }}</span>
-            </div>
-
-            <div class="form-group">
-              <label for="tipoInteresado">Tipo de interesado</label>
-              <select 
-                id="tipoInteresado" 
-                v-model="formData.tipo_interesado"
-                :class="{ error: errors.tipo_interesado }"
-                @blur="handleBlur('tipo_interesado')"
-                @change="handleInput('tipo_interesado')"
-              >
-                <option value="">Seleccionar...</option>
-                <option value="persona">Persona</option>
-                <option value="empresa">Empresa</option>
-                <option value="cooperativa">Cooperativa</option>
-                <option value="otro">Otro</option>
-              </select>
-              <span v-if="errors.tipo_interesado" class="error-message">{{ errors.tipo_interesado }}</span>
-            </div>
-
-            <div class="form-group checkbox-group">
-              <label class="checkbox-label">
-                <input
-                  v-model="formData.consentimiento"
-                  type="checkbox"
-                  :class="{ error: errors.consentimiento }"
-                  @change="handleBlur('consentimiento')"
-                  required
-                />
-                <span>Acepto el tratamiento de mis datos personales y las condiciones de la contribución *</span>
-              </label>
-              <span v-if="errors.consentimiento" class="error-message">{{ errors.consentimiento }}</span>
-            </div>
-
-            <div v-if="formError" class="form-error-banner">{{ formError }}</div>
-            <div v-if="submitError" class="form-error-banner">{{ submitError }}</div>
+          <div v-if="selectedLevel && !contributionCreated" class="contribution-form">
+            <h2>Autenticación y confirmación</h2>
 
             <div v-if="!isAuthenticated" class="auth-prompt">
               <p>Necesitás autenticarte para continuar</p>
@@ -402,12 +223,13 @@ const handlePayment = async () => {
               </button>
             </div>
 
-            <button v-if="isAuthenticated" type="submit" class="submit-button" :disabled="isSubmitting">
-              {{ isSubmitting ? 'Procesando...' : 'Continuar al pago' }}
-            </button>
-
-            <p class="note">* Campos obligatorios</p>
-          </form>
+            <div v-else>
+              <div v-if="submitError" class="form-error-banner">{{ submitError }}</div>
+              <button type="button" class="submit-button" :disabled="isSubmitting" @click="handleSubmit">
+                {{ isSubmitting ? 'Procesando...' : 'Continuar al pago' }}
+              </button>
+            </div>
+          </div>
 
           <div v-if="contributionCreated && contributionToken" class="success-section">
             <div class="success-message">
@@ -676,43 +498,6 @@ const handlePayment = async () => {
   margin-bottom: 2rem;
 }
 
-.form-group {
-  margin-bottom: 1.5rem;
-}
-
-.form-group label {
-  display: block;
-  margin-bottom: 0.5rem;
-  color: #2c3e50;
-  font-weight: 500;
-}
-
-.form-group input,
-.form-group select {
-  width: 100%;
-  padding: 0.75rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 1rem;
-}
-
-.form-group input:disabled {
-  background: #f0f0f0;
-  cursor: not-allowed;
-}
-
-.form-group input.error,
-.form-group select.error {
-  border-color: #e74c3c;
-}
-
-.error-message {
-  display: block;
-  color: #e74c3c;
-  font-size: 0.875rem;
-  margin-top: 0.25rem;
-}
-
 .form-error-banner {
   background: #fee;
   border: 1px solid #e74c3c;
@@ -723,22 +508,6 @@ const handlePayment = async () => {
   text-align: center;
 }
 
-.checkbox-group {
-  margin: 2rem 0;
-}
-
-.checkbox-label {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.75rem;
-  cursor: pointer;
-}
-
-.checkbox-label input[type='checkbox'] {
-  width: auto;
-  margin-top: 0.25rem;
-  flex-shrink: 0;
-}
 
 .auth-prompt {
   background: #f0f8ff;
@@ -791,13 +560,6 @@ const handlePayment = async () => {
   cursor: not-allowed;
 }
 
-.note {
-  margin-top: 1.5rem;
-  text-align: center;
-  color: #666;
-  font-size: 0.875rem;
-  line-height: 1.6;
-}
 
 .success-section {
   margin-top: 2rem;

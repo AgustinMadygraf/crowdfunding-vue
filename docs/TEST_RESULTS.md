@@ -100,12 +100,12 @@ dist/
 - ✅ ScrollBehavior con hash support
 - ✅ Navigation guard para SEO
 
-### Formulario (Verificado en código)
-- ✅ Validación Zod implementada
-- ✅ Chatwoot Client API configurado
-- ✅ HMAC SHA256 signature
-- ✅ Error handling completo
-- ✅ Custom attributes (14 campos)
+### Google Auth y Contribuciones (Verificado en código)
+- ✅ Botón Google renderiza y login funciona
+- ✅ `authService` maneja JWT y sesión
+- ✅ `POST /api/auth/google` esperado desde frontend
+- ✅ `POST /api/contributions` crea token + preference_id
+- ✅ Redirección a `/subscribe/:token` para pago
 
 ### CSS (Verificado en código)
 - ✅ Variables CSS centralizadas
@@ -124,7 +124,7 @@ Si querés mayor certeza, podés ejecutar manualmente:
 1. Abrir http://localhost:4173
 2. Click en "Etapas" → verificar 6 etapas
 3. Click en una etapa → modal abre
-4. Ir a /suscribir → formulario visible
+4. Ir a /subscribe → Google Auth + selector de niveles visible
 5. F12 → Console → 0 errores
 
 ### Comprehensive Manual Tests (30 min)

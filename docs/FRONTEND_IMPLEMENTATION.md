@@ -48,7 +48,7 @@ Se ha refactorizado completamente el sistema de suscripción para implementar co
 - **[src/views/SubscribeView.vue](src/views/SubscribeView.vue)**
   - ✏️ Refactorizado para integrar Google OAuth
   - Modal de autenticación
-  - Flujo mejorado: Auth → Seleccionar nivel → Completar datos → Crear contribución → Pagar
+  - Flujo mejorado: Auth → Seleccionar nivel → Crear contribución → Pagar
   - Integración con authService
   - Creación de contribuciones en backend
 
@@ -162,19 +162,17 @@ GET /api/users/:user_id/contributions
 └──────────────────────────┘
 ```
 
-### 3. Completar Formulario
+### 3. Confirmar con Google y Crear Contribución
 
 ```
 ┌──────────────────────────┐
-│ Nombre: [pre-llenado]    │
-│ Email: [pre-llenado]     │
-│ Teléfono: [___________]  │
-│ Provincia: [__________]  │
-│ Tipo: [Seleccionar...]   │
-│ ☐ Acepto términos        │
+│ Usuario autenticado      │
+│ Nivel seleccionado       │
 │ [Continuar al pago]      │
 └──────────────────────────┘
 ```
+
+El usuario autenticado continúa sin completar formulario adicional. La contribución se crea con los datos del usuario (Google) y el nivel seleccionado.
 
 ### 4. Crear Contribución
 
@@ -288,13 +286,12 @@ npm run dev
 # 4. Selecciona cuenta Google
 # 5. Debe redirecionarse y mostrar datos del usuario
 # 6. Selecciona un nivel
-# 7. Completa formulario
-# 8. Hace click "Continuar al pago"
-# 9. Debe crear contribución y redirigir a /subscribe/:token
-# 10. Debe mostrar página de pago
-# 11. Hace click "Ir a Pagar" → Abre MercadoPago
-# 12. Completa pago con tarjeta de prueba
-# 13. Debe actualizar estado a "Completado"
+# 7. Hace click "Continuar al pago"
+# 8. Debe crear contribución y redirigir a /subscribe/:token
+# 9. Debe mostrar página de pago
+# 10. Hace click "Ir a Pagar" → Abre MercadoPago
+# 11. Completa pago con tarjeta de prueba
+# 12. Debe actualizar estado a "Completado"
 ```
 
 ### Verificar Datos Almacenados
