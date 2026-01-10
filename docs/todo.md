@@ -111,8 +111,8 @@
   - `id, title, type, url, description, version, publishedAt`
 - [x] Crear interfaz `TimelineItem`: ✅
   - `date, title, description, status`
-- [ ] Crear interfaz `Update`:
-  - `id, category, title, content, status, published_at`
+- [x] Crear interfaz `Update`: ✅
+  - `id, category, title, excerpt, content, status, publishedAt, imageUrl`
 - [ ] Crear interfaz `Subscription`:
   - `id, lead_name, lead_email, level_id, status, provider_reference, provider_status, utm_json, consent_text_version, consent_accepted_at, created_at`
 
@@ -125,11 +125,15 @@
 - [ ] Checksum SHA256 por evidencia - v1.1
 - [ ] Filtro: solo mostrar status=published - v1.1
 
-### 7. Página de Actualizaciones (FR-040, FR-041)
-- [ ] Crear vista `/actualizaciones`
-- [ ] Listar updates con categoría, fecha, contenido
-- [ ] Links a evidencias desde updates
-- [ ] (v1.1) Preparar hook para suscripción a notificaciones
+### 7. Página de Actualizaciones (FR-040, FR-041) ✅
+- [x] Crear vista `/actualizaciones` ✅
+- [x] Listar updates con categoría, fecha, contenido ✅
+- [x] Filtros por categoría (Comercial, Técnico, Logística, Legal) ✅
+- [x] Modal de detalle para contenido completo ✅
+- [x] UpdateCard component responsive ✅
+- [x] mockData con 8 updates reales del proyecto RKHA190 ✅
+- [ ] Links a evidencias desde updates - v1.1
+- [ ] (v1.1) Hook para suscripción a notificaciones
 
 ### 8. Página de Documentos
 - [ ] Crear vista `/documentos`
@@ -379,14 +383,14 @@ Sí
 | **Flujo Suscripción** | FR-010 a FR-014 | Chatwoot Client API directo (100% funcional) | 100% ✅ |
 | **Pre-registro** | FR-020 a FR-022 | Formulario + Zod + Chatwoot sync (✅ PROBADO) | 100% ✅ |
 | **Panel Etapas** | FR-030 a FR-033 | Modal + Página /etapas/:id + 6 etapas reales | 85% ✅ |
-| **Updates** | FR-040, FR-041 | Placeholder | 10% ❌ |
+| **Updates** | FR-040, FR-041 | Página + Filtros + Modal + 8 updates reales | 95% ✅ |
 | **Chatwoot** | FR-050 a FR-052 | Widget + Client API completo (✅ FUNCIONAL) | 100% ✅ |
 | **Logging** | Debugging | Estructurado con prefijos + niveles | 100% ✅ |
 | **Deploy** | CI/CD + FTP | GitHub Actions configurado con todas las vars | 100% ✅ |
 | **Backoffice** | FR-060 a FR-065 | No | 0% ❌ |
 | **SEO** | NFR-SEO-001 a 003 | No | 0% ❌ |
 
-**TOTAL GENERAL:** ~82% de completitud del SRS v1.0 ✅
+**TOTAL GENERAL:** ~88% de completitud del SRS v1.0 ✅
 
 ### Lo que funciona ✅
 - Estructura base Vue 3 + TypeScript
@@ -439,10 +443,10 @@ Sí
    - Endpoint suscripción (sin integración aún)
 2. ✅ Formulario pre-registro con validación
 3. ✅ Panel de etapas completo con evidencias (modal + página)
-4. Página de updates (pendiente)
+4. ✅ Página de updates con 8 actualizaciones reales + filtros + modal
 5. ✅ Integración Chatwoot completa (setUser/setAttributes)
 
-**Fase 2 Estado:** 3/5 completado (60%) ✅ - v1.0 MVP LISTO
+**Fase 2 Estado:** 4/5 completado (80%) ✅ - v1.0 MVP CASI LISTO
 
 ### Fase 3: Integración (Sprint 6-7)
 1. Integrar proveedor de suscripción

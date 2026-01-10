@@ -355,6 +355,11 @@ No incluye (en esta versión):
 * ✅ **Router actualizado** con ruta /etapas/:id (props: true).
 * ✅ **MilestoneCard clickeable** (emit show-details + routing).
 * ✅ **MilestonesSection integrado** con modal (gestión de estado + eventos).
+* ✅ **Update interface creado** (src/domain/update.ts: category, title, excerpt, content, status, publishedAt).
+* ✅ **mockData.ts expandido con 8 updates reales** del proyecto RKHA190 (categorías: comercial, técnico, logística, legal).
+* ✅ **UpdateCard.vue component** creado (tarjeta responsive con category badge, fecha, excerpt, hover effects).
+* ✅ **UpdatesView.vue renovado** (hero + filtros por categoría + grid responsive + modal de detalle + ordenamiento por fecha).
+* ✅ **Página /actualizaciones funcional** con 8 actualizaciones publicadas (FR-040, FR-041 completados al 95%).
 
 ### ⏳ Pendientes
 
