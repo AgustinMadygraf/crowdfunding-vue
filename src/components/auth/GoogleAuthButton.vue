@@ -127,18 +127,20 @@ const handleLogout = () => {
 onMounted(() => {
   try {
     console.log('[GoogleAuthButton] Montando componente de autenticación')
+    console.log(`[GoogleAuthButton] 🌐 Origen actual: ${window.location.origin}`)
+    console.log(`[GoogleAuthButton] 📍 URL completa: ${window.location.href}`)
     
     // Cargar usuario actual si ya está autenticado
     try {
       user.value = authService.getCurrentUser()
       if (user.value) {
-        console.log('[GoogleAuthButton] Usuario autenticado encontrado:', user.value.email)
+        console.log('[GoogleAuthButton] ✓ Usuario autenticado encontrado:', user.value.email)
       } else {
-        console.log('[GoogleAuthButton] No hay usuario autenticado previamente')
+        console.log('[GoogleAuthButton] ⚠️ No hay usuario autenticado previamente')
       }
     } catch (getUserError) {
-      console.error('[GoogleAuthButton] Error al obtener usuario actual:', getUserError)
-      console.warn('[GoogleAuthButton] Continuando sin usuario previo')
+      console.error('[GoogleAuthButton] ❌ Error al obtener usuario actual:', getUserError)
+      console.warn('[GoogleAuthButton] ⚠️ Continuando sin usuario previo')
     }
 
     // Verificar configuración de Google
@@ -146,8 +148,11 @@ onMounted(() => {
     try {
       configInfo = authService.getConfigInfo()
       console.log('[GoogleAuthButton] Configuración de Google:', configInfo)
+      console.warn(`[GoogleAuthButton] ⚠️⚠️⚠️ ACCIÓN REQUERIDA: Agrega este origen a Google Cloud Console:`)
+      console.warn(`[GoogleAuthButton] 👉 ${window.location.origin}`)
     } catch (configError) {
-      console.error('[GoogleAuthButton] Error al obtener configuración:', configError)
+      console.error('[GoogleAuthButton] ❌ Error al obtener configuración:', configError)
+      console.error('[GoogleAuthButton] Stack trace:', configError instanceof Error ? configError.stack : 'No disponible')
       error.value = 'Error al verificar configuración de Google OAuth'
       return
     }
@@ -155,44 +160,67 @@ onMounted(() => {
     if (!configInfo.configured) {
       const errorMsg = 'Google OAuth no está configurado'
       error.value = `${errorMsg}. Por favor, configura VITE_GOOGLE_CLIENT_ID en el archivo .env`
-      console.error(`[GoogleAuthButton] ${errorMsg}`)
-      console.warn('[GoogleAuthButton] Verifica que la variable VITE_GOOGLE_CLIENT_ID esté en .env')
+      console.error(`[GoogleAuthButton] ❌ ${errorMsg}`)
+      console.error(`[GoogleAuthButton] Verifica que la variable VITE_GOOGLE_CLIENT_ID esté correctamente en .env`)
+      console.error(`[GoogleAuthButton] Valor esperado: VITE_GOOGLE_CLIENT_ID=<client_id>.apps.googleusercontent.com`)
       return
     }
 
     let attempts = 0
     const maxAttempts = 100 // 10 segundos
 
-    console.log('[GoogleAuthButton] Esperando que Google Identity Services esté listo...')
+    console.log('[GoogleAuthButton] ⏳ Esperando que Google Identity Services esté listo...')
+    console.log('[GoogleAuthButton] window.google disponible:', !!window.google)
+    console.log('[GoogleAuthButton] window.google.accounts disponible:', !!window.google?.accounts)
 
     // Esperar a que Google Identity Services esté listo
     const checkGoogleReady = setInterval(() => {
       attempts++
 
-      if (window.google?.accounts?.id) {
-        clearInterval(checkGoogleReady)
-        console.log('[GoogleAuthButton] Google SDK listo en intento', attempts)
-        console.log('[GoogleAuthButton] Inicializando Google Sign-In...')
-        
-        try {
-          authService.initGoogleSignIn(
-            props.buttonContainerId,
-            handleGoogleCallback
-          )
-          console.log('[GoogleAuthButton] Google Sign-In inicializado correctamente')
-        } catch (initError) {
-          console.error('[GoogleAuthButton] Error al inicializar Google Sign-In:', initError)
-          console.error('[GoogleAuthButton] Detalles:', initError instanceof Error ? initError.message : 'Error desconocido')
-          console.warn('[GoogleAuthButton] Posibles causas: origen no autorizado, Client ID incorrecto, CORS')
-          error.value = 'Error al inicializar Google Sign-In. Verifica la consola para más detalles.'
+      try {
+        if (window.google?.accounts?.id) {
+          clearInterval(checkGoogleReady)
+          console.log(`[GoogleAuthButton] ✅ Google SDK listo en intento ${attempts}`)
+          console.log('[GoogleAuthButton] Inicializando Google Sign-In...')
+          
+          try {
+            authService.initGoogleSignIn(
+              props.buttonContainerId,
+              handleGoogleCallback
+            )
+            console.log('[GoogleAuthButton] ✅ Google Sign-In inicializado correctamente')
+          } catch (initError) {
+            console.error('[GoogleAuthButton] ❌ Error al inicializar Google Sign-In:', initError)
+            console.error('[GoogleAuthButton] Mensaje:', initError instanceof Error ? initError.message : 'Error desconocido')
+            console.error('[GoogleAuthButton] Stack:', initError instanceof Error ? initError.stack : 'No disponible')
+            console.error(`[GoogleAuthButton] 🌐 Origen actual: ${window.location.origin}`)
+            console.warn('[GoogleAuthButton] Posibles causas: ')
+            console.warn('  1️⃣ Origen NO autorizado en Google Cloud Console')
+            console.warn('  2️⃣ Client ID incorrecto o expirado')
+            console.warn('  3️⃣ Problemas de CORS')
+            console.warn('  4️⃣ Restricciones de dominio en Google Cloud')
+            console.warn(`[GoogleAuthButton] 💡 SOLUCIÓN: Ve a https://console.cloud.google.com/`)
+            console.warn(`[GoogleAuthButton] 💡 Authorized JavaScript origins: Agrega ${window.location.origin}`)
+            error.value = 'Error al inicializar Google Sign-In. Ver consola para detalles.'
+          }
+        } else if (attempts >= maxAttempts) {
+          clearInterval(checkGoogleReady)
+          const timeoutMsg = 'Timeout: Google Identity Services no se cargó en 10 segundos'
+          console.error(`[GoogleAuthButton] ⏱️ ${timeoutMsg}`)
+          console.error('[GoogleAuthButton] window.google:', window.google)
+          console.error('[GoogleAuthButton] window.google.accounts:', window.google?.accounts)
+          console.warn('[GoogleAuthButton] Soluciones: ')
+          console.warn('  1️⃣ Verifica tu conexión a internet')
+          console.warn('  2️⃣ Verifica que accounts.google.com sea accesible')
+          console.warn('  3️⃣ Intenta recargar la página')
+          console.warn('  4️⃣ Comprueba la consola del navegador (F12) para otros errores')
+          error.value = 'No se pudo cargar Google Sign-In. Verifica tu conexión a internet.'
         }
-      } else if (attempts >= maxAttempts) {
+      } catch (intervalError) {
         clearInterval(checkGoogleReady)
-        const timeoutMsg = 'Timeout: Google Identity Services no se cargó en 10 segundos'
-        console.error(`[GoogleAuthButton] ${timeoutMsg}`)
-        console.warn('[GoogleAuthButton] Verifica tu conexión a internet')
-        console.warn('[GoogleAuthButton] Verifica que accounts.google.com sea accesible')
-        error.value = 'No se pudo cargar Google Sign-In. Verifica tu conexión a internet.'
+        console.error('[GoogleAuthButton] ❌ Error inesperado en checkGoogleReady:', intervalError)
+        console.error('[GoogleAuthButton] Stack:', intervalError instanceof Error ? intervalError.stack : 'No disponible')
+        error.value = 'Error inesperado al inicializar Google Sign-In'
       }
     }, 100)
   } catch (err) {
