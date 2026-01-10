@@ -31,18 +31,39 @@ const isAuthenticated = computed(() => authService.isAuthenticated())
 
 // Cargar usuario actual y UTM params al montar
 onMounted(async () => {
-  user.value = authService.getCurrentUser()
-  utmParams.value = getUTMFromSessionStorage()
-  if (utmParams.value) {
-    console.log('[Subscribe] UTM params loaded:', utmParams.value)
+  console.log('[Subscribe] 📋 Montando SubscribeView...')
+  
+  try {
+    user.value = authService.getCurrentUser()
+    if (user.value) {
+      console.log('[Subscribe] 👤 Usuario actual:', user.value.email)
+    } else {
+      console.log('[Subscribe] ⚠️ Sin usuario autenticado')
+    }
+  } catch (userError) {
+    console.error('[Subscribe] ❌ Error al obtener usuario:', userError)
+  }
+
+  try {
+    utmParams.value = getUTMFromSessionStorage()
+    if (utmParams.value) {
+      console.log('[Subscribe] 📊 UTM params cargados:', utmParams.value)
+    }
+  } catch (utmError) {
+    console.warn('[Subscribe] ⚠️ Error al cargar UTM params:', utmError)
   }
   
   // Inicializar MercadoPago SDK
+  console.log('[Subscribe] 💳 Inicializando MercadoPago...')
   try {
     await initMercadoPago()
-    console.log('[Subscribe] MercadoPago initialized')
+    console.log('[Subscribe] ✅ MercadoPago inicializado')
   } catch (error) {
-    console.warn('[Subscribe] MercadoPago initialization failed:', error)
+    console.error('[Subscribe] ❌ Error en inicialización de MercadoPago:', error)
+    console.error('[Subscribe] Tipo:', typeof error)
+    console.error('[Subscribe] Detalles:', error instanceof Error ? error.message : 'Error desconocido')
+    console.warn('[Subscribe] ⚠️ Los pagos pueden no funcionar correctamente')
+    submitError.value = 'Error al cargar Mercado Pago. Por favor, recarga la página.'
   }
 })
 
@@ -60,63 +81,118 @@ const handleAuthSuccess = (authenticatedUser: User) => {
  * Crea una contribución en el backend
  */
 const createContribution = async (): Promise<{ token: string; preference_id: string }> => {
-  if (!user.value || !selectedLevel.value) {
-    throw new Error('Usuario o nivel no disponible')
+  console.log('[Subscribe] 📝 Creando contribución...')
+  
+  if (!user.value) {
+    const errorMsg = 'Usuario no disponible'
+    console.error('[Subscribe] ❌ ' + errorMsg)
+    throw new Error(errorMsg)
   }
+
+  if (!selectedLevel.value) {
+    const errorMsg = 'Nivel de contribución no seleccionado'
+    console.error('[Subscribe] ❌ ' + errorMsg)
+    throw new Error(errorMsg)
+  }
+
+  console.log('[Subscribe] 👤 Usuario:', user.value.email)
+  console.log('[Subscribe] 💰 Nivel:', selectedLevel.value.name, `($${selectedLevel.value.amount})`)
 
   const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'
   const headers = authService.getAuthHeaders()
 
-  const response = await fetch(`${apiBaseUrl}/api/contributions`, {
-    method: 'POST',
-    headers,
-    body: JSON.stringify({
-      user_id: user.value.id,
-      monto: selectedLevel.value.amount,
-      nivel_id: selectedLevel.value.name,
-      nivel_nombre: selectedLevel.value.name,
-      utm_params: utmParams.value || {}
+  console.log(`[Subscribe] 📤 Enviando a: ${apiBaseUrl}/api/contributions`)
+
+  try {
+    const response = await fetch(`${apiBaseUrl}/api/contributions`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        user_id: user.value.id,
+        monto: selectedLevel.value.amount,
+        nivel_id: selectedLevel.value.name,
+        nivel_nombre: selectedLevel.value.name,
+        utm_params: utmParams.value || {}
+      })
+    }).catch((fetchError) => {
+      console.error('[Subscribe] ❌ Error de conexión:', fetchError)
+      console.error('[Subscribe] 🌐 URL:', apiBaseUrl)
+      throw new Error(`No se pudo conectar: ${fetchError instanceof Error ? fetchError.message : 'Error desconocido'}`)
     })
-  })
 
-  if (!response.ok) {
-    throw new Error('No se pudo crear la contribución')
+    if (!response.ok) {
+      console.error(`[Subscribe] ❌ Respuesta del servidor: HTTP ${response.status}`)
+      
+      let errorData: any = {}
+      try {
+        errorData = await response.json()
+        console.error('[Subscribe] Respuesta:', errorData)
+      } catch (parseErr) {
+        const text = await response.text()
+        console.error('[Subscribe] Contenido:', text)
+      }
+
+      const errorMsg = errorData.message || `HTTP ${response.status}`
+      throw new Error(errorMsg)
+    }
+
+    let result: any
+    try {
+      result = await response.json()
+      console.log('[Subscribe] ✅ Contribución creada')
+      console.log('[Subscribe] 🎫 Token:', result.token?.substring(0, 20) + '...')
+      console.log('[Subscribe] 🛒 Preference ID:', result.preference_id)
+      return result
+    } catch (parseError) {
+      console.error('[Subscribe] ❌ Error al parsear respuesta:', parseError)
+      throw new Error('Respuesta inválida del servidor')
+    }
+  } catch (error) {
+    console.error('[Subscribe] ❌ Error al crear contribución:', error)
+    console.error('[Subscribe] Mensaje:', error instanceof Error ? error.message : 'Error desconocido')
+    throw error
   }
-
-  return await response.json()
 }
 
 const handleSubmit = async () => {
+  console.log('[Subscribe] 🔄 handleSubmit iniciado')
+  
   if (!selectedLevel.value) {
     submitError.value = 'Seleccioná un nivel de contribución para continuar'
-    console.warn('[Subscribe] Submission blocked: no contribution level selected')
+    console.warn('[Subscribe] ⚠️ Envío bloqueado: sin nivel seleccionado')
     return
   }
 
   // Si no está autenticado, abrir modal de Google Auth
   if (!isAuthenticated.value) {
+    console.log('[Subscribe] ℹ️ Usuario no autenticado, abriendo modal de auth')
     isAuthenticationModalOpen.value = true
     return
   }
 
-  console.info('[Subscribe] Creating contribution...', {
-    email: user.value?.email,
-    level: selectedLevel.value.name
-  })
+  console.log('[Subscribe] 📝 Creando contribución...')
+  console.log('[Subscribe] 👤 Email:', user.value?.email)
+  console.log('[Subscribe] 💰 Nivel:', selectedLevel.value.name, `($${selectedLevel.value.amount})`)
 
   submitError.value = null
   isSubmitting.value = true
 
   try {
     // Crear contribución en el backend
+    console.log('[Subscribe] 1️⃣ Creando contribución en backend...')
     const contribution = await createContribution()
-    console.info('[Subscribe] Contribution created:', contribution.token)
+    console.log('[Subscribe] ✅ Contribución creada')
 
     contributionToken.value = contribution.token
     contributionCreated.value = true
+    
+    console.log('[Subscribe] 2️⃣ Preparado para pago')
 
   } catch (error) {
-    console.error('[Subscribe] Error:', error)
+    console.error('[Subscribe] ❌ Error en handleSubmit:', error)
+    console.error('[Subscribe] Tipo:', typeof error)
+    console.error('[Subscribe] Detalles:', error instanceof Error ? error.message : 'Error desconocido')
+    console.error('[Subscribe] Stack:', error instanceof Error ? error.stack : 'No disponible')
     submitError.value = error instanceof Error ? error.message : 'Error al procesar solicitud'
   } finally {
     isSubmitting.value = false
@@ -124,24 +200,40 @@ const handleSubmit = async () => {
 }
 
 const handlePayment = async () => {
-  if (!contributionToken.value || !selectedLevel.value) {
-    submitError.value = 'Error: Token de contribución no disponible'
+  console.log('[Subscribe] 🛒 handlePayment iniciado')
+  
+  if (!contributionToken.value) {
+    const errorMsg = 'Token de contribución no disponible'
+    console.error('[Subscribe] ❌ ' + errorMsg)
+    submitError.value = `Error: ${errorMsg}`
     return
   }
 
-  console.info('[Subscribe] Initiating payment...', {
-    token: contributionToken.value,
-    level: selectedLevel.value.name
-  })
+  if (!selectedLevel.value) {
+    const errorMsg = 'Nivel no disponible'
+    console.error('[Subscribe] ❌ ' + errorMsg)
+    submitError.value = `Error: ${errorMsg}`
+    return
+  }
+
+  console.log('[Subscribe] 💳 Iniciando proceso de pago...')
+  console.log('[Subscribe] 🎫 Token:', contributionToken.value.substring(0, 20) + '...')
+  console.log('[Subscribe] 💰 Nivel:', selectedLevel.value.name)
 
   isProcessingPayment.value = true
   submitError.value = null
 
   try {
+    console.log('[Subscribe] 📍 Redirigiendo a página de pago...')
     // Redirigir a la página de pago
-    router.push(`/subscribe/${contributionToken.value}`)
+    const paymentUrl = `/subscribe/${contributionToken.value}`
+    console.log('[Subscribe] 🔗 URL:', paymentUrl)
+    router.push(paymentUrl)
+    console.log('[Subscribe] ✅ Redirección iniciada')
   } catch (error) {
-    console.error('[Subscribe] Error:', error)
+    console.error('[Subscribe] ❌ Error al redirigir:', error)
+    console.error('[Subscribe] Tipo:', typeof error)
+    console.error('[Subscribe] Detalles:', error instanceof Error ? error.message : 'Error desconocido')
     submitError.value = 'No se pudo iniciar el proceso de pago'
     isProcessingPayment.value = false
   }
