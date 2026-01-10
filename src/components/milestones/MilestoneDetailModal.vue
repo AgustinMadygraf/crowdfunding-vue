@@ -51,7 +51,7 @@ const handleBackdropClick = (e: MouseEvent) => {
           <!-- Progress -->
           <div class="progress-section">
             <h3>Progreso de recaudación</h3>
-            <div class="progress-bar-container">
+            <div class="progress-container">
               <div class="progress-bar" :style="{ width: `${progress}%` }"></div>
             </div>
             <dl class="stats">
@@ -70,7 +70,7 @@ const handleBackdropClick = (e: MouseEvent) => {
               <div>
                 <dt>Estado</dt>
                 <dd>
-                  <span class="badge" :class="`badge-${milestone.status}`">
+                  <span class="badge-status" :class="`status-${milestone.status}`">
                     {{ milestone.status === 'active' ? 'En progreso' : milestone.status === 'pending' ? 'Pendiente' : 'Completada' }}
                   </span>
                 </dd>
@@ -134,69 +134,12 @@ const handleBackdropClick = (e: MouseEvent) => {
 </template>
 
 <style scoped>
-.modal-backdrop {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  padding: 20px;
-}
-
-.modal-content {
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-  max-width: 600px;
-  width: 100%;
-  max-height: 90vh;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-}
-
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 24px;
-  border-bottom: 1px solid #e0e0e0;
-  gap: 16px;
-}
+/* modal-backdrop, modal-content, modal-header, modal-body, modal-footer en components.css */
 
 .modal-header h2 {
   margin: 0;
   font-size: 24px;
   color: #111;
-}
-
-.btn-close {
-  background: none;
-  border: none;
-  font-size: 32px;
-  cursor: pointer;
-  color: #666;
-  padding: 0;
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.btn-close:hover {
-  color: #111;
-}
-
-.modal-body {
-  padding: 24px;
-  flex: 1;
-  overflow-y: auto;
 }
 
 .description {
@@ -232,19 +175,9 @@ const handleBackdropClick = (e: MouseEvent) => {
   color: #666;
 }
 
+/* progress-container y progress-bar en components.css */
 .progress-bar-container {
-  width: 100%;
-  height: 8px;
-  background-color: #e0e0e0;
-  border-radius: 4px;
-  overflow: hidden;
   margin-bottom: 16px;
-}
-
-.progress-bar {
-  height: 100%;
-  background-color: #4caf50;
-  transition: width 0.3s ease;
 }
 
 .stats {
@@ -274,29 +207,7 @@ const handleBackdropClick = (e: MouseEvent) => {
   font-weight: 500;
 }
 
-.badge {
-  display: inline-block;
-  padding: 4px 12px;
-  border-radius: 12px;
-  font-size: 12px;
-  font-weight: 600;
-  text-transform: uppercase;
-}
-
-.badge-active {
-  background-color: #c8e6c9;
-  color: #2e7d32;
-}
-
-.badge-pending {
-  background-color: #fff9c4;
-  color: #f57f17;
-}
-
-.badge-completed {
-  background-color: #c8e6c9;
-  color: #2e7d32;
-}
+/* badge-status en components.css */
 
 /* Timeline */
 .timeline-section {
@@ -317,6 +228,8 @@ const handleBackdropClick = (e: MouseEvent) => {
   margin: 0;
 }
 
+/* timeline-marker, timeline-content en components.css */
+
 .timeline-item {
   display: flex;
   gap: 16px;
@@ -325,28 +238,7 @@ const handleBackdropClick = (e: MouseEvent) => {
 }
 
 .timeline-marker {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background-color: #e0e0e0;
-  flex-shrink: 0;
   margin-top: 4px;
-}
-
-.timeline-marker.status-completed {
-  background-color: #4caf50;
-}
-
-.timeline-marker.status-in-progress {
-  background-color: #2196f3;
-}
-
-.timeline-marker.status-pending {
-  background-color: #ffc107;
-}
-
-.timeline-content {
-  flex: 1;
 }
 
 .timeline-date {
@@ -467,51 +359,13 @@ const handleBackdropClick = (e: MouseEvent) => {
   justify-content: flex-end;
 }
 
-.btn {
-  padding: 8px 16px;
-  border-radius: 6px;
-  font-weight: 500;
-  font-size: 14px;
-  cursor: pointer;
-  border: none;
-  text-decoration: none;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  transition: all 0.2s;
-}
-
-.btn-primary {
-  background-color: #2196f3;
-  color: white;
-}
-
-.btn-primary:hover {
-  background-color: #1976d2;
-}
-
-.btn-secondary {
-  background-color: #e0e0e0;
-  color: #333;
-}
-
-.btn-secondary:hover {
-  background-color: #d0d0d0;
-}
+/* btn-primary, btn-secondary en components.css */
 
 @media (max-width: 600px) {
   .modal-content {
     max-width: 100%;
     max-height: 100vh;
     border-radius: 0;
-  }
-
-  .modal-header {
-    padding: 16px;
-  }
-
-  .modal-body {
-    padding: 16px;
   }
 
   .stats {

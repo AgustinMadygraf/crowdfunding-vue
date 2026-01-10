@@ -93,7 +93,7 @@ const handleGoBack = () => {
               <div>
                 <dt>Estado actual</dt>
                 <dd>
-                  <span class="badge" :class="`badge-${milestone.status}`">
+                  <span class="badge-status" :class="`status-${milestone.status}`">
                     {{ milestone.status === 'active' ? 'En progreso' : milestone.status === 'pending' ? 'Pendiente' : 'Completada' }}
                   </span>
                 </dd>
@@ -312,19 +312,9 @@ const handleGoBack = () => {
   text-align: right;
 }
 
+/* progress-container, progress-bar en components.css */
 .progress-container {
-  width: 100%;
-  height: 8px;
-  background-color: #e0e0e0;
-  border-radius: 4px;
-  overflow: hidden;
   margin: 8px 0;
-}
-
-.progress-bar {
-  height: 100%;
-  background-color: #4caf50;
-  transition: width 0.3s ease;
 }
 
 .progress-text {
@@ -332,31 +322,9 @@ const handleGoBack = () => {
   color: #999;
 }
 
-.badge {
-  display: inline-block;
-  padding: 4px 12px;
-  border-radius: 12px;
-  font-size: 12px;
-  font-weight: 600;
-  text-transform: uppercase;
-}
+/* badge-status en components.css */
 
-.badge-active {
-  background-color: #c8e6c9;
-  color: #2e7d32;
-}
-
-.badge-pending {
-  background-color: #fff9c4;
-  color: #f57f17;
-}
-
-.badge-completed {
-  background-color: #c8e6c9;
-  color: #2e7d32;
-}
-
-/* Timeline */
+/* Timeline - usa timeline-marker y timeline-content de components.css */
 .timeline {
   display: flex;
   flex-direction: column;
@@ -370,28 +338,10 @@ const handleGoBack = () => {
 }
 
 .timeline-marker {
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background-color: #e0e0e0;
-  flex-shrink: 0;
   margin-top: 2px;
 }
 
-.timeline-marker.status-completed {
-  background-color: #4caf50;
-}
-
-.timeline-marker.status-in-progress {
-  background-color: #2196f3;
-}
-
-.timeline-marker.status-pending {
-  background-color: #ffc107;
-}
-
 .timeline-content {
-  flex: 1;
   background-color: #fff;
   border-radius: 8px;
   padding: 16px;
@@ -538,7 +488,7 @@ const handleGoBack = () => {
   line-height: 1.6;
 }
 
-/* Buttons */
+/* btn-primary en components.css */
 .btn {
   display: inline-flex;
   padding: 12px 24px;
@@ -549,15 +499,6 @@ const handleGoBack = () => {
   cursor: pointer;
   border: none;
   transition: all 0.2s;
-}
-
-.btn-primary {
-  background-color: #2196f3;
-  color: white;
-}
-
-.btn-primary:hover {
-  background-color: #1976d2;
 }
 
 .cta-card .btn-primary {

@@ -27,7 +27,7 @@ const handleCardClick = () => {
 </script>
 
 <template>
-  <article class="milestone-card" @click="handleCardClick" role="button" tabindex="0" @keydown.enter="handleCardClick" @keydown.space="handleCardClick">
+  <article class="card-base card-clickable milestone-card" @click="handleCardClick" role="button" tabindex="0" @keydown.enter="handleCardClick" @keydown.space="handleCardClick">
     <h3>{{ props.milestone.name }}</h3>
     <p v-if="props.milestone.description" class="description">{{ props.milestone.description }}</p>
     <div class="progress-container" role="progressbar" :aria-valuenow="progress" aria-valuemin="0" aria-valuemax="100">
@@ -55,24 +55,9 @@ const handleCardClick = () => {
 
 <style scoped>
 .milestone-card {
-  background-color: #fff;
-  border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  padding: 24px;
-  transition: all 0.3s ease;
-  cursor: pointer;
+  /* Usa estilos base de components.css */
   display: flex;
   flex-direction: column;
-}
-
-.milestone-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 12px rgba(0, 0, 0, 0.15);
-}
-
-.milestone-card:focus-visible {
-  outline: 2px solid #2196f3;
-  outline-offset: 2px;
 }
 
 h3 {
@@ -88,25 +73,12 @@ h3 {
   line-height: 1.4;
 }
 
-.progress-container {
-  width: 100%;
-  height: 10px;
-  background-color: #e0e0e0;
-  border-radius: 5px;
-  margin: 12px 0;
-  overflow: hidden;
-}
-
-.progress-bar {
-  height: 100%;
-  background-color: #4caf50;
-  transition: width 0.3s ease;
-}
+/* progress-container y progress-bar ahora en components.css */
 
 .milestone-details {
   display: grid;
   gap: 12px;
-  margin: 0;
+  margin: 12px 0 0 0;
   flex-grow: 1;
 }
 
@@ -137,14 +109,5 @@ h3 {
   justify-content: flex-end;
 }
 
-.link-text {
-  font-size: 14px;
-  color: #2196f3;
-  font-weight: 600;
-  transition: color 0.2s;
-}
-
-.milestone-card:hover .link-text {
-  color: #1976d2;
-}
+/* link-text ahora en components.css */
 </style>

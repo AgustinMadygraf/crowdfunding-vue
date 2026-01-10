@@ -63,7 +63,7 @@ const handleCloseModal = () => {
             @click="selectedCategory = cat.value as UpdateCategory | 'all'"
           >
             {{ cat.label }}
-            <span class="count">{{ cat.count }}</span>
+            <span class="filter-count">{{ cat.count }}</span>
           </button>
         </div>
 
@@ -96,7 +96,7 @@ const handleCloseModal = () => {
           <header class="modal-header">
             <div>
               <span 
-                class="category-badge" 
+                class="badge-category" 
                 :class="`category-${selectedUpdate.category}`"
               >
                 {{ selectedUpdate.category }}
@@ -120,7 +120,7 @@ const handleCloseModal = () => {
           </div>
 
           <footer class="modal-footer">
-            <button class="btn btn-primary" @click="handleCloseModal">Cerrar</button>
+            <button class="btn-primary" @click="handleCloseModal">Cerrar</button>
           </footer>
         </div>
       </div>
@@ -168,56 +168,13 @@ const handleCloseModal = () => {
   padding: 60px 20px;
 }
 
-/* Filtros */
+/* Filtros - usa filter-btn de components.css */
 .filters {
   display: flex;
   gap: 12px;
   margin-bottom: 40px;
   flex-wrap: wrap;
   justify-content: center;
-}
-
-.filter-btn {
-  padding: 10px 20px;
-  border: 2px solid #e0e0e0;
-  border-radius: 24px;
-  background-color: white;
-  color: #666;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.filter-btn:hover {
-  border-color: #2196f3;
-  color: #2196f3;
-}
-
-.filter-btn.active {
-  background-color: #2196f3;
-  border-color: #2196f3;
-  color: white;
-}
-
-.filter-btn .count {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 24px;
-  height: 24px;
-  padding: 0 8px;
-  border-radius: 12px;
-  background-color: rgba(0, 0, 0, 0.1);
-  font-size: 12px;
-  font-weight: 700;
-}
-
-.filter-btn.active .count {
-  background-color: rgba(255, 255, 255, 0.25);
 }
 
 /* Grid */
@@ -239,104 +196,33 @@ const handleCloseModal = () => {
   font-size: 16px;
 }
 
-/* Modal */
-.modal-backdrop {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.6);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  padding: 20px;
-  overflow-y: auto;
-}
-
-.modal-content {
-  background-color: white;
-  border-radius: 16px;
-  max-width: 700px;
-  width: 100%;
-  max-height: 90vh;
-  overflow-y: auto;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-}
-
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  padding: 32px 32px 24px;
-  border-bottom: 1px solid #e0e0e0;
-  gap: 16px;
-}
-
+/* Modal - usa clases base de components.css */
 .modal-header > div {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
-.category-badge {
-  display: inline-block;
-  padding: 4px 12px;
-  border-radius: 12px;
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: white;
-  width: fit-content;
-}
-
-.category-badge.category-comercial {
+/* Colores específicos para badges de categoría */
+.badge-category.category-comercial {
   background-color: #2196f3;
 }
 
-.category-badge.category-tecnico {
+.badge-category.category-tecnico {
   background-color: #ff9800;
 }
 
-.category-badge.category-logistica {
+.badge-category.category-logistica {
   background-color: #9c27b0;
 }
 
-.category-badge.category-legal {
+.badge-category.category-legal {
   background-color: #4caf50;
 }
 
 .modal-header .date {
   font-size: 13px;
   color: #999;
-}
-
-.btn-close {
-  background: none;
-  border: none;
-  font-size: 32px;
-  color: #999;
-  cursor: pointer;
-  padding: 0;
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  transition: all 0.2s;
-  flex-shrink: 0;
-}
-
-.btn-close:hover {
-  background-color: #f5f5f5;
-  color: #111;
-}
-
-.modal-body {
-  padding: 32px;
 }
 
 .modal-body h2 {
@@ -351,32 +237,6 @@ const handleCloseModal = () => {
   line-height: 1.8;
   color: #444;
   white-space: pre-line;
-}
-
-.modal-footer {
-  padding: 24px 32px;
-  border-top: 1px solid #e0e0e0;
-  display: flex;
-  justify-content: flex-end;
-}
-
-.btn {
-  padding: 12px 24px;
-  border-radius: 8px;
-  font-weight: 600;
-  font-size: 14px;
-  cursor: pointer;
-  border: none;
-  transition: all 0.2s;
-}
-
-.btn-primary {
-  background-color: #2196f3;
-  color: white;
-}
-
-.btn-primary:hover {
-  background-color: #1976d2;
 }
 
 @media (max-width: 768px) {
@@ -403,12 +263,6 @@ const handleCloseModal = () => {
   .updates-grid {
     grid-template-columns: 1fr;
     gap: 20px;
-  }
-
-  .modal-header,
-  .modal-body,
-  .modal-footer {
-    padding: 24px;
   }
 
   .modal-body h2 {
