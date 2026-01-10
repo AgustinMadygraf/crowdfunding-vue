@@ -83,20 +83,31 @@ export const chatwootClientService = {
     identifier: string,
     hmacToken?: string
   ): Promise<string | undefined> {
-    if (!hmacToken) return undefined
+    if (!hmacToken) {
+      console.warn('[Chatwoot] HMAC token not configured - identifier_hash will not be sent')
+      return undefined
+    }
 
-    // Usar crypto.subtle para HMAC SHA256 (Web Crypto API)
-    const encoder = new TextEncoder()
-    const data = encoder.encode(identifier)
-    const key = encoder.encode(hmacToken)
+    try {
+      // Usar crypto.subtle para HMAC SHA256 (Web Crypto API)
+      const encoder = new TextEncoder()
+      const data = encoder.encode(identifier)
+      const key = encoder.encode(hmacToken)
 
-    const cryptoKey = await crypto.subtle.importKey('raw', key, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign'])
-    const signature = await crypto.subtle.sign('HMAC', cryptoKey, data)
+      const cryptoKey = await crypto.subtle.importKey('raw', key, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign'])
+      const signature = await crypto.subtle.sign('HMAC', cryptoKey, data)
 
-    // Convertir a hex string
-    return Array.from(new Uint8Array(signature))
-      .map(b => b.toString(16).padStart(2, '0'))
-      .join('')
+      // Convertir a hex string
+      const hash = Array.from(new Uint8Array(signature))
+        .map(b => b.toString(16).padStart(2, '0'))
+        .join('')
+      
+      console.info('[Chatwoot] HMAC hash computed successfully')
+      return hash
+    } catch (error) {
+      console.error('[Chatwoot] Error computing HMAC hash:', error)
+      return undefined // No romper el flujo si falla HMAC
+    }
   },
 
   /**
@@ -124,43 +135,54 @@ export const chatwootClientService = {
       accepted_at: string
     }
   ): Promise<ChatwootContactResponse> {
+    console.info('[Chatwoot] Creating contact:', { email: lead.email, name: lead.name })
+    
     try {
       const baseUrl = this.getBaseUrl()
       const inboxIdentifier = this.getInboxIdentifier()
       const hmacToken = import.meta.env.VITE_CHATWOOT_HMAC_TOKEN
+
+      console.info('[Chatwoot] Config:', { baseUrl, inboxIdentifier, hasHmacToken: !!hmacToken })
 
       // Generar identifier único
       const timestamp = Date.now()
       const uuid = crypto.randomUUID()
       const identifier = `lead_${uuid}_${timestamp}`
 
+      console.info('[Chatwoot] Generated identifier:', identifier)
+
       // Calcular identifier_hash si está disponible
       const identifierHash = await this.computeIdentifierHash(identifier, hmacToken)
 
-      // Construir custom attributes (aplanados)
-      const customAttributes: Record<string, string | number | boolean> = {
-        form_source: 'web_widget',
-        level_id: levelId,
-        amount_range: lead.amount_range || '',
-        type: lead.type || '',
-        province: lead.province || '',
-        utm_source: (utm as any)?.utm_source || '',
-        utm_medium: (utm as any)?.utm_medium || '',
-        utm_campaign: (utm as any)?.utm_campaign || '',
-        utm_term: (utm as any)?.utm_term || '',
-        utm_content: (utm as any)?.utm_content || '',
-        campaign_id: (utm as any)?.campaign_id || '',
-        referrer: (utm as any)?.referrer || '',
-        consent_version: consent.version,
-        consent_accepted_at: consent.accepted_at
-      }
+      // Construir custom attributes (aplanados) - solo valores no vacíos
+      const customAttributes: Record<string, string | number | boolean> = {}
+      
+      // Agregar solo valores que existen
+      if (levelId) customAttributes.level_id = levelId
+      if (lead.amount_range) customAttributes.amount_range = lead.amount_range
+      if (lead.type) customAttributes.type = lead.type
+      if (lead.province) customAttributes.province = lead.province
+      
+      // UTM params
+      const utmData = utm as any
+      if (utmData?.utm_source) customAttributes.utm_source = utmData.utm_source
+      if (utmData?.utm_medium) customAttributes.utm_medium = utmData.utm_medium
+      if (utmData?.utm_campaign) customAttributes.utm_campaign = utmData.utm_campaign
+      if (utmData?.utm_term) customAttributes.utm_term = utmData.utm_term
+      if (utmData?.utm_content) customAttributes.utm_content = utmData.utm_content
+      if (utmData?.campaign_id) customAttributes.campaign_id = utmData.campaign_id
+      if (utmData?.referrer) customAttributes.referrer = utmData.referrer
+      
+      // Consent
+      customAttributes.consent_version = consent.version
+      customAttributes.consent_accepted_at = consent.accepted_at
+      customAttributes.form_source = 'web_widget'
 
-      // Construir request
-      const request: ChatwootCreateContactRequest = {
-        identifier,
+      // Construir request (sin identifier_hash primero para debug)
+      const request: any = {
+        source_id: identifier,
         email: lead.email,
-        name: lead.name,
-        custom_attributes: customAttributes
+        name: lead.name
       }
 
       // Agregar phone_number si está disponible
@@ -168,13 +190,17 @@ export const chatwootClientService = {
         request.phone_number = lead.phone
       }
 
-      // Agregar identifier_hash si está disponible
-      if (identifierHash) {
-        request.identifier_hash = identifierHash
+      // Agregar custom attributes solo si hay datos
+      if (Object.keys(customAttributes).length > 0) {
+        request.custom_attributes = customAttributes
       }
+
+      console.info('[Chatwoot] Request payload:', JSON.stringify(request, null, 2))
 
       // Hacer petición a Chatwoot
       const endpoint = `${baseUrl}/public/api/v1/inboxes/${inboxIdentifier}/contacts`
+      console.info('[Chatwoot] Sending POST to:', endpoint)
+      
       const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
@@ -183,28 +209,74 @@ export const chatwootClientService = {
         body: JSON.stringify(request)
       })
 
+      console.info('[Chatwoot] Response status:', response.status, response.statusText)
+
       if (!response.ok) {
-        const error = await response.json()
+        let error
+        try {
+          error = await response.json()
+        } catch (parseError) {
+          console.error('[Chatwoot] Failed to parse error response:', parseError)
+          error = { message: response.statusText }
+        }
+        console.error('[Chatwoot] API error response:', error)
         throw new ChatwootException(response.status, error, `Chatwoot API error: ${response.statusText}`)
       }
 
-      const data: ChatwootContactResponse = await response.json()
+      let data: ChatwootContactResponse
+      try {
+        data = await response.json()
+        console.info('[Chatwoot] Raw response data:', JSON.stringify(data, null, 2))
+      } catch (parseError) {
+        console.error('[Chatwoot] Failed to parse success response:', parseError)
+        throw new ChatwootException(500, {}, 'Invalid JSON response from Chatwoot')
+      }
+
+      // Verificar estructura de la respuesta
+      if (!data || typeof data !== 'object') {
+        console.error('[Chatwoot] Invalid response structure - not an object:', data)
+        throw new ChatwootException(500, {}, 'Invalid response structure from Chatwoot')
+      }
+
+      // Chatwoot puede devolver diferentes estructuras según el endpoint
+      // Intentar adaptarse a la estructura real
+      const contact = (data as any).contact || (data as any).payload || data
+      
+      if (!contact) {
+        console.error('[Chatwoot] No contact data in response:', data)
+        throw new ChatwootException(500, {}, 'No contact data in Chatwoot response')
+      }
 
       // Loguear éxito
-      console.log('Contact created in Chatwoot:', {
-        contact_id: data.contact.id,
-        source_id: data.contact.source_id,
-        identifier
+      console.info('[Chatwoot] ✅ Contact created successfully:', {
+        contact_id: contact.id,
+        source_id: contact.source_id || contact.identifier,
+        identifier,
+        full_contact: contact
       })
 
-      return data
+      // Normalizar respuesta
+      return {
+        contact: {
+          id: contact.id,
+          source_id: contact.source_id || contact.identifier,
+          name: contact.name,
+          email: contact.email,
+          phone_number: contact.phone_number,
+          custom_attributes: contact.custom_attributes || {}
+        }
+      }
     } catch (error) {
       if (error instanceof ChatwootException) {
-        console.error('Chatwoot API error:', error.status, error.errors)
+        console.error('[Chatwoot] ❌ API error:', {
+          status: error.status,
+          errors: error.errors,
+          message: error.message
+        })
         throw error
       }
 
-      console.error('Error creating contact in Chatwoot:', error)
+      console.error('[Chatwoot] ❌ Unexpected error creating contact:', error)
       throw new ChatwootException(500, {}, `Error creating contact: ${(error as Error).message}`)
     }
   },

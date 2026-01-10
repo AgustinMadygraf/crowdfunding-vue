@@ -62,8 +62,15 @@ const handleSubmit = async () => {
 
   if (!selectedLevel.value) {
     submitError.value = 'Seleccioná un nivel de contribución para continuar'
+    console.warn('[Form] Submission blocked: no contribution level selected')
     return
   }
+
+  console.info('[Form] Starting submission:', {
+    email: formData.value.email,
+    level: selectedLevel.value.name,
+    hasUtm: !!utmParams.value
+  })
 
   submitError.value = null
   isSubmitting.value = true
@@ -90,8 +97,10 @@ const handleSubmit = async () => {
 
     // Contacto creado en Chatwoot exitosamente
     const sourceId = response.contact.source_id
+    console.info('[Form] ✅ Contact created, source_id:', sourceId)
 
     // Sincronizar con widget de Chatwoot (setUser + setCustomAttributes)
+    console.info('[Form] Syncing with Chatwoot widget...')
     await setUser(sourceId, {
       name: formData.value.nombre,
       email: formData.value.email
@@ -116,8 +125,9 @@ const handleSubmit = async () => {
     }
 
     await setCustomAttributes(chatwootAttributes)
+    console.info('[Form] ✅ Widget synced successfully')
 
-    console.log('Lead registrado en Chatwoot:', sourceId)
+    console.info('[Form] ✅ Lead registered:', sourceId)
 
     // Mostrar página de éxito
     alert(
@@ -127,10 +137,16 @@ const handleSubmit = async () => {
     // Limpiar formulario (opcional)
     // formData.value = { ... }
   } catch (error) {
-    console.error('Error al registrar en Chatwoot:', error)
-    submitError.value = `No pudimos completar tu pre-registro. ${(error as Error).message}`
+    console.error('[Form] ❌ Error during submission:', error)
+    
+    if (error instanceof Error) {
+      submitError.value = `No pudimos completar tu pre-registro. ${error.message}`
+    } else {
+      submitError.value = 'Error inesperado al procesar tu solicitud. Por favor, intentá nuevamente.'
+    }
   } finally {
     isSubmitting.value = false
+    console.info('[Form] Submission completed (success or error)')
   }
 }
 </script>

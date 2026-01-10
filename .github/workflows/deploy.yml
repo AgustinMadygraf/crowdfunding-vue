@@ -37,10 +37,11 @@ jobs:
           FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
           VITE_CHATWOOT_TOKEN: ${{ secrets.VITE_CHATWOOT_TOKEN }}
           VITE_CHATWOOT_BASE_URL: ${{ secrets.VITE_CHATWOOT_BASE_URL }}
+          VITE_CHATWOOT_INBOX_IDENTIFIER: ${{ secrets.VITE_CHATWOOT_INBOX_IDENTIFIER }}
         run: |
           set -euo pipefail
 
-          for v in FTP_DIR FTP_USERNAME FTP_PASSWORD VITE_CHATWOOT_TOKEN VITE_CHATWOOT_BASE_URL; do
+          for v in FTP_DIR FTP_USERNAME FTP_PASSWORD VITE_CHATWOOT_TOKEN VITE_CHATWOOT_BASE_URL VITE_CHATWOOT_INBOX_IDENTIFIER; do
             if [ -z "${!v:-}" ]; then
               echo "::error::Falta $v"
               exit 1
@@ -97,6 +98,8 @@ jobs:
         env:
           VITE_CHATWOOT_TOKEN: ${{ secrets.VITE_CHATWOOT_TOKEN }}
           VITE_CHATWOOT_BASE_URL: ${{ secrets.VITE_CHATWOOT_BASE_URL }}
+          VITE_CHATWOOT_INBOX_IDENTIFIER: ${{ secrets.VITE_CHATWOOT_INBOX_IDENTIFIER }}
+          VITE_CHATWOOT_HMAC_TOKEN: ${{ secrets.VITE_CHATWOOT_HMAC_TOKEN }}
         run: npm run build
 
       - name: Ensure dist/assets folder exists
