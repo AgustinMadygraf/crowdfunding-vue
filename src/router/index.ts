@@ -59,6 +59,24 @@ const router = createRouter({
       }
     },
     {
+      path: '/subscribe/:token',
+      name: 'subscribe-payment',
+      component: () => import('../views/SubscribePaymentView.vue'),
+      meta: {
+        title: 'Pagar Contribución - Madypack',
+        description: 'Completa tu pago de contribución'
+      }
+    },
+    {
+      path: '/account',
+      name: 'account',
+      component: () => import('../views/UserDashboardView.vue'),
+      meta: {
+        title: 'Mi Cuenta - Madypack',
+        description: 'Panel de usuario con tu historial de contribuciones'
+      }
+    },
+    {
       path: '/suscribir/estado/:id',
       name: 'subscription-status',
       component: () => import('../views/SubscriptionStatusView.vue'),

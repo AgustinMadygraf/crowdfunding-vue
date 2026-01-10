@@ -15,6 +15,8 @@
   },
   "dependencies": {
     "@mercadopago/sdk-js": "^0.0.3",
+    "@react-oauth/google": "^0.13.4",
+    "@types/google.accounts": "^0.0.18",
     "vue": "^3.5.18",
     "vue-router": "^4.6.4",
     "zod": "^4.3.5"

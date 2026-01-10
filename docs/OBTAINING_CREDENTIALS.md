@@ -4,10 +4,172 @@ Este documento proporciona instrucciones paso a paso para obtener todas las cred
 
 ## 📋 Tabla de Contenidos
 
-1. [Chatwoot](#chatwoot)
+1. [Google OAuth (REQUERIDO)](#google-oauth)
 2. [MercadoPago](#mercadopago)
-3. [API Backend](#api-backend)
-4. [Configuración Final](#configuración-final)
+3. [Chatwoot](#chatwoot)
+4. [API Backend](#api-backend)
+5. [Configuración Final](#configuración-final)
+
+---
+
+## Google OAuth
+
+⚠️ **REQUERIDO**: Google OAuth es obligatorio para el sistema de autenticación. Los usuarios deben iniciar sesión con su cuenta de Google antes de realizar contribuciones.
+
+### ¿Por qué Google OAuth?
+
+- ✅ Autenticación segura sin gestionar contraseñas
+- ✅ Información verificada del usuario (email, nombre, foto)
+- ✅ Experiencia de usuario simplificada (un solo click)
+- ✅ Soporte para múltiples contribuciones por usuario
+
+### 1. Crear un Proyecto en Google Cloud Console
+
+1. Ve a [Google Cloud Console](https://console.cloud.google.com)
+2. Haz click en el selector de proyectos (arriba a la izquierda)
+3. Selecciona **"New Project"** (Nuevo Proyecto)
+4. Dale un nombre a tu proyecto (ej: "Crowdfunding App")
+5. Selecciona la organización (si aplica)
+6. Haz click en **"Create"** (Crear)
+
+> 💡 **Tip**: Espera unos segundos mientras Google crea el proyecto
+
+### 2. Habilitar Google Identity Services API
+
+1. Con tu proyecto seleccionado, ve al menú lateral
+2. Navega a **"APIs & Services" > "Library"**
+3. Busca **"Google Identity Services"** o **"Google+ API"**
+4. Haz click en la API y luego en **"Enable"** (Habilitar)
+
+> ℹ️ **Nota**: La API de autenticación puede aparecer como "Google+ API" o simplemente activarse automáticamente
+
+### 3. Configurar la Pantalla de Consentimiento OAuth
+
+1. Ve a **"APIs & Services" > "OAuth consent screen"**
+2. Selecciona el tipo de usuario:
+   - **External**: Para cualquier usuario con cuenta de Google (RECOMENDADO)
+   - **Internal**: Solo para usuarios de tu organización Google Workspace
+3. Haz click en **"Create"** (Crear)
+
+#### Configurar información de la app:
+
+- **App name**: Nombre de tu aplicación (ej: "Crowdfunding Madygraf")
+- **User support email**: Tu email de contacto
+- **App logo**: (Opcional) Logo de tu aplicación
+- **Application home page**: URL de tu sitio (ej: https://tudominio.com)
+- **Application privacy policy link**: (Opcional pero recomendado)
+- **Application terms of service link**: (Opcional)
+- **Authorized domains**: Agrega tu dominio (ej: tudominio.com)
+- **Developer contact information**: Tu email
+
+4. Haz click en **"Save and Continue"** (Guardar y Continuar)
+
+#### Configurar Scopes (Alcances):
+
+1. En la sección "Scopes", haz click en **"Add or Remove Scopes"**
+2. Selecciona estos scopes:
+   - ✅ `userinfo.email` - Ver dirección de email
+   - ✅ `userinfo.profile` - Ver información básica del perfil
+   - ✅ `openid` - Autenticación OpenID
+3. Haz click en **"Update"** y luego **"Save and Continue"**
+
+#### Usuarios de prueba (solo si es External):
+
+1. Si seleccionaste "External", agrega usuarios de prueba
+2. Haz click en **"Add Users"**
+3. Agrega los emails de las cuentas de Google que usarás para probar
+4. Haz click en **"Save and Continue"**
+
+> 🚨 **IMPORTANTE**: Mientras tu app esté en modo "Testing", solo los usuarios de prueba agregados podrán iniciar sesión. Para permitir cualquier usuario, debes publicar la app (ver abajo).
+
+### 4. Crear Credenciales OAuth 2.0 (Client ID)
+
+1. Ve a **"APIs & Services" > "Credentials"**
+2. Haz click en **"Create Credentials"** (arriba)
+3. Selecciona **"OAuth client ID"**
+4. En "Application type", selecciona **"Web application"**
+
+#### Configurar el Client ID:
+
+**Name**: Dale un nombre (ej: "Crowdfunding Web Client")
+
+**Authorized JavaScript origins**: Agrega las URLs desde donde se llamará la autenticación:
+- Para desarrollo:
+  ```
+  http://localhost:5173
+  http://localhost:3000
+  http://127.0.0.1:5173
+  ```
+- Para producción:
+  ```
+  https://tudominio.com
+  https://www.tudominio.com
+  ```
+
+**Authorized redirect URIs**: Agrega las URLs de redirección:
+- Para desarrollo:
+  ```
+  http://localhost:5173
+  http://localhost:5173/callback
+  ```
+- Para producción:
+  ```
+  https://tudominio.com
+  https://tudominio.com/callback
+  ```
+
+5. Haz click en **"Create"** (Crear)
+
+### 5. Copiar el Client ID
+
+1. Después de crear, aparecerá un modal con tus credenciales
+2. Copia el **"Client ID"** (formato: `xxxxx-xxxxxx.apps.googleusercontent.com`)
+3. NO necesitas el "Client Secret" para autenticación frontend
+4. Guarda el Client ID de forma segura
+
+> 📋 **Client ID típico**: `123456789012-abc123def456ghi789jkl012mno345pq.apps.googleusercontent.com`
+
+### 6. Publicar la App (Opcional - Para Producción)
+
+Si quieres que cualquier usuario con cuenta de Google pueda autenticarse (no solo usuarios de prueba):
+
+1. Ve a **"OAuth consent screen"**
+2. En la sección "Publishing status", haz click en **"Publish App"**
+3. Confirma que deseas publicar
+4. Si tu app solicita scopes sensibles, Google puede requerir verificación (esto puede tomar días)
+
+> ℹ️ Para scopes básicos (`email`, `profile`, `openid`), generalmente no se requiere verificación adicional.
+
+### Estructura de Credenciales Google OAuth
+
+```env
+# Google OAuth Client ID
+# Formato: xxxxx-xxxxxx.apps.googleusercontent.com
+VITE_GOOGLE_CLIENT_ID=123456789012-abc123def456ghi789jkl012mno345pq.apps.googleusercontent.com
+```
+
+### ✅ Verificar la Configuración
+
+Después de configurar, verifica:
+
+1. El archivo `.env` tiene el `VITE_GOOGLE_CLIENT_ID` configurado
+2. Reinicia el servidor de desarrollo (`npm run dev`)
+3. Deberías ver en la consola del navegador:
+   ```
+   [Auth] Google Client ID configurado correctamente
+   [Auth] Google Identity Services SDK cargado exitosamente
+   ```
+4. El botón de Google aparece en el modal de autenticación
+5. Al hacer click, se abre la ventana de selección de cuenta de Google
+
+### 🐛 Solución de Problemas
+
+Si ves errores, consulta: [GOOGLE_OAUTH_TROUBLESHOOTING.md](./GOOGLE_OAUTH_TROUBLESHOOTING.md)
+
+Errores comunes:
+- ❌ `Parameter client_id is not set correctly`: Client ID no configurado en `.env`
+- ❌ `The given origin is not allowed`: Falta agregar la URL en "Authorized JavaScript origins"
+- ❌ `Access blocked: This app's request is invalid`: La pantalla de consentimiento no está configurada correctamente
 
 ---
 
@@ -158,17 +320,20 @@ cp .env.example .env
 ### 2. Editar `.env` con tus credenciales
 
 ```env
-# Chatwoot
-VITE_CHATWOOT_TOKEN=tu_widget_token
-VITE_CHATWOOT_BASE_URL=https://app.chatwoot.com
-VITE_CHATWOOT_INBOX_IDENTIFIER=tu_inbox_identifier
-VITE_CHATWOOT_HMAC_TOKEN=tu_hmac_token (opcional)
+# ⚠️ REQUERIDO - Google OAuth
+VITE_GOOGLE_CLIENT_ID=123456789012-abc123def456ghi789jkl012mno345pq.apps.googleusercontent.com
 
 # Backend API
 VITE_API_BASE_URL=http://localhost:5000
 
 # MercadoPago
-VITE_MERCADOPAGO_PUBLIC_KEY=TEST-xxxxxxxxxxxxxxxxxxxxx (desarrollo)
+VITE_MERCADOPAGO_PUBLIC_KEY=TEST-xxxxxxxxxxxxxxxxxxxxx
+
+# Chatwoot (Opcional - para chat de soporte)
+VITE_CHATWOOT_TOKEN=tu_widget_token
+VITE_CHATWOOT_BASE_URL=https://app.chatwoot.com
+VITE_CHATWOOT_INBOX_IDENTIFIER=tu_inbox_identifier
+VITE_CHATWOOT_HMAC_TOKEN=tu_hmac_token
 ```
 
 ### 3. Verificar que funcionan las credenciales
@@ -195,32 +360,78 @@ Si usas credenciales de desarrollo, puedes usar estas tarjetas de prueba:
 
 ## 📝 Checklist de Configuración
 
+### Requerido (Mínimo para funcionar):
+
+- [ ] ✅ Proyecto en Google Cloud Console creado
+- [ ] ✅ OAuth Consent Screen configurado
+- [ ] ✅ Client ID de Google OAuth obtenido
+- [ ] ✅ Authorized JavaScript origins configurados
+- [ ] ✅ VITE_GOOGLE_CLIENT_ID en archivo `.env`
+- [ ] ✅ Cuenta de MercadoPago creada
+- [ ] ✅ Clave Pública de MercadoPago obtenida (TEST para desarrollo)
+- [ ] ✅ VITE_MERCADOPAGO_PUBLIC_KEY en archivo `.env`
+- [ ] ✅ API Backend disponible y accesible
+- [ ] ✅ VITE_API_BASE_URL configurado
+
+### Opcional (Para funcionalidades adicionales):
+
 - [ ] Instancia de Chatwoot configurada
 - [ ] Token del Widget de Chatwoot obtenido
 - [ ] Identificador del Inbox obtenido
 - [ ] URL Base de Chatwoot definida
-- [ ] Cuenta de MercadoPago creada
-- [ ] Clave Pública de MercadoPago obtenida
-- [ ] API Backend disponible y accesible
-- [ ] Archivo `.env` creado con todas las credenciales
-- [ ] Widget de Chatwoot funcional
-- [ ] Pagos con MercadoPago funcionales
+- [ ] Credenciales de Chatwoot en archivo `.env`
+
+### Verificación:
+
+- [ ] Servidor de desarrollo reiniciado después de editar `.env`
+- [ ] Botón de Google Sign-In aparece correctamente
+- [ ] Autenticación con Google funciona
+- [ ] Pagos con MercadoPago funcionales (tarjetas de prueba)
+- [ ] Widget de Chatwoot funcional (si está configurado)
 
 ---
 
 ## ⚠️ Notas de Seguridad
 
+### Google OAuth:
+
+1. ✅ **SÍ es seguro** compartir el Client ID (es público por diseño)
+2. 🚫 **NO expongas** el Client Secret (aunque no lo usamos en frontend)
+3. ⚠️ Configura correctamente los "Authorized JavaScript origins" para prevenir uso no autorizado
+4. 🔒 Mantén tu app en modo "Testing" durante desarrollo
+5. 📝 Revisa la lista de usuarios de prueba regularmente
+
+### General:
+
 1. **Nunca** hagas commit del archivo `.env` a git (ya está en `.gitignore`)
-2. **Nunca** compartas tus credenciales de producción
-3. Usa credenciales de desarrollo/prueba mientras desarrollas
+2. **Nunca** compartas tus credenciales privadas de MercadoPago o Chatwoot
+3. Usa credenciales de desarrollo/prueba (TEST-) mientras desarrollas
 4. Rotación de credenciales: Si crees que se han comprometido, regenera inmediatamente
 5. Para producción, almacena las credenciales en variables de entorno del servidor
 6. Considera usar sistemas de gestión de secretos (ej: HashiCorp Vault, AWS Secrets Manager)
+7. Habilita logs de auditoría en Google Cloud Console para monitorear uso del OAuth
 
 ---
 
-## Ayuda Adicional
+## 📚 Ayuda Adicional
 
-- [Documentación de Chatwoot](https://www.chatwoot.com/docs/)
+### Documentación Oficial:
+
+- [Google Identity Services](https://developers.google.com/identity/gsi/web/guides/overview)
+- [Google Cloud Console](https://console.cloud.google.com)
 - [Documentación de MercadoPago](https://developers.mercadopago.com/)
-- [Documentación del Proyecto](./README.md)
+- [Documentación de Chatwoot](https://www.chatwoot.com/docs/)
+
+### Documentación del Proyecto:
+
+- [Solución de Problemas - Google OAuth](./GOOGLE_OAUTH_TROUBLESHOOTING.md)
+- [Arquitectura de Subscripciones](./SUBSCRIPTION_ARCHITECTURE.md)
+- [Guía de Implementación Frontend](./FRONTEND_IMPLEMENTATION.md)
+- [README Principal](../README.md)
+
+### Contacto y Soporte:
+
+Si tienes problemas con:
+- **Google OAuth**: Revisa primero [GOOGLE_OAUTH_TROUBLESHOOTING.md](./GOOGLE_OAUTH_TROUBLESHOOTING.md)
+- **MercadoPago**: Consulta los logs del navegador y la documentación oficial
+- **Backend**: Verifica que el servidor esté corriendo y accesible
