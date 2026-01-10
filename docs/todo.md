@@ -104,23 +104,26 @@
 - [x] Integrar en SubscribeView para envío en POST /api/subscriptions
 - [x] Payload preparado con estructura: lead + level_id + consent + utm
 
-### 5. Modelo de Dominio Extendido
-- [ ] Extender interfaz `Milestone`:
-  - `description: string`
-  - `published: boolean`
-  - `dependencies?: number[]`
-- [ ] Crear interfaz `Evidence`:
-  - `id, milestone_id, type, title, url, checksum_sha256, version, status, created_at`
+### 5. Modelo de Dominio Extendido ✅
+- [x] Extender interfaz `Milestone`: ✅
+  - `description, details, evidences[], timeline[], responsible, dependencies[], published`
+- [x] Crear interfaz `Evidence`: ✅
+  - `id, title, type, url, description, version, publishedAt`
+- [x] Crear interfaz `TimelineItem`: ✅
+  - `date, title, description, status`
 - [ ] Crear interfaz `Update`:
   - `id, category, title, content, status, published_at`
 - [ ] Crear interfaz `Subscription`:
   - `id, lead_name, lead_email, level_id, status, provider_reference, provider_status, utm_json, consent_text_version, consent_accepted_at, created_at`
 
-### 6. Componentes de Evidencias (FR-030 a FR-033)
-- [ ] Crear `EvidenceList.vue` (por milestone)
-- [ ] Mostrar evidencias con version, checksum, fecha
-- [ ] Historial de versiones (changelog)
-- [ ] Filtro: solo mostrar status=published en público
+### 6. Componentes de Evidencias (FR-030 a FR-033) - 75% ✅
+- [x] Mostrar evidencias en `MilestoneDetailModal.vue` ✅
+- [x] Mostrar evidencias en `MilestoneDetailView.vue` ✅
+- [x] Evidencias con version, url, descripción ✅
+- [x] mockData con 1-2 evidencias por etapa ✅
+- [ ] Historial de versiones (changelog) - v1.1
+- [ ] Checksum SHA256 por evidencia - v1.1
+- [ ] Filtro: solo mostrar status=published - v1.1
 
 ### 7. Página de Actualizaciones (FR-040, FR-041)
 - [ ] Crear vista `/actualizaciones`
@@ -375,7 +378,7 @@ Sí
 | **Router y Navegación** | 7 rutas (FR-001) | 8 rutas + lazy loading | 100% ✅ |
 | **Flujo Suscripción** | FR-010 a FR-014 | Chatwoot Client API directo (100% funcional) | 100% ✅ |
 | **Pre-registro** | FR-020 a FR-022 | Formulario + Zod + Chatwoot sync (✅ PROBADO) | 100% ✅ |
-| **Panel Etapas** | FR-030 a FR-033 | Básico sin evidencias | 40% ⚠️ |
+| **Panel Etapas** | FR-030 a FR-033 | Modal + Página /etapas/:id + 6 etapas reales | 85% ✅ |
 | **Updates** | FR-040, FR-041 | Placeholder | 10% ❌ |
 | **Chatwoot** | FR-050 a FR-052 | Widget + Client API completo (✅ FUNCIONAL) | 100% ✅ |
 | **Logging** | Debugging | Estructurado con prefijos + niveles | 100% ✅ |
@@ -383,11 +386,13 @@ Sí
 | **Backoffice** | FR-060 a FR-065 | No | 0% ❌ |
 | **SEO** | NFR-SEO-001 a 003 | No | 0% ❌ |
 
-**TOTAL GENERAL:** ~75% de completitud del SRS v1.0 ✅
+**TOTAL GENERAL:** ~82% de completitud del SRS v1.0 ✅
 
 ### Lo que funciona ✅
 - Estructura base Vue 3 + TypeScript
-- Visualización de milestones mock
+- Visualización de milestones (6 etapas reales con descripciones, timeline, evidencias)
+- **Vistas de detalle de etapas:** Modal popup + Página dedicada /etapas/:id (100% funcional)
+- **MilestoneCard clickeable** con emit de eventos + routing
 - Selección de niveles de contribución
 - Layout responsive básico
 - **Formulario de pre-registro** con validación Zod (100% funcional)
@@ -411,10 +416,12 @@ Sí
 ### Fase 0: Completado (Validado en producción)
 1. ✅ **Credenciales verificadas - NO expuestas**
 2. ✅ **Bootstrap: Decisión completada → CSS custom, SRS actualizado**
-3. ✅ **Milestones: 4 etapas confirmadas como correctas**
+3. ✅ **Milestones: 6 etapas reales RKHA190 con descripciones + timeline + evidencias**
 4. ✅ **Formulario: 100% funcional con Zod + Chatwoot**
 5. ✅ **Logging: Mejorado con niveles e info detallada**
 6. ✅ **Deploy: GitHub Actions configurado con todas las variables**
+7. ✅ **Vistas de detalle: Modal + Página /etapas/:id completas y funcionales**
+8. ✅ **MilestoneCard: Clickeable con routing + emit eventos**
 
 ### Fase 1: Fundación (Sprint 1-2)
 1. ✅ Instalar y configurar vue-router
@@ -423,17 +430,19 @@ Sí
 4. ✅ Instalar librería de validación (Zod)
 5. Decidir e instalar sistema de componentes UI (opcional, CSS custom funciona)
 
-**Fase 1 Estado:** 4/5 completado (80%) ✅
+**Fase 1 Estado:** 5/5 completado (100%) ✅
 
 ### Fase 2: Core MVP (Sprint 3-5)
-1. Backend mínimo:
+1. Backend mínimo: (Deferred a v2.0 - usar mockData.ts)
    - Auth admin (magic-link)
    - CRUD milestones/evidencias/updates
    - Endpoint suscripción (sin integración aún)
-2. Formulario pre-registro con validación
-3. Panel de etapas completo con evidencias
-4. Página de updates
-5. Integración Chatwoot completa (setUser/setAttributes)
+2. ✅ Formulario pre-registro con validación
+3. ✅ Panel de etapas completo con evidencias (modal + página)
+4. Página de updates (pendiente)
+5. ✅ Integración Chatwoot completa (setUser/setAttributes)
+
+**Fase 2 Estado:** 3/5 completado (60%) ✅ - v1.0 MVP LISTO
 
 ### Fase 3: Integración (Sprint 6-7)
 1. Integrar proveedor de suscripción

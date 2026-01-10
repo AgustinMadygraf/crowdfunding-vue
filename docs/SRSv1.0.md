@@ -348,6 +348,13 @@ No incluye (en esta versión):
   - `VITE_CHATWOOT_INBOX_IDENTIFIER`, `VITE_CHATWOOT_HMAC_TOKEN` (nuevo)
 * ✅ **`.env.example`** con instrucciones claras sobre dónde obtener cada variable.
 * ✅ **Arquitectura final:** Chatwoot es el backend (SaaS) — no hay backend propio para suscripciones.
+* ✅ **Milestone interface extendido** (14 campos: description, details, evidences[], timeline[], responsible, dependencies[], published).
+* ✅ **mockData.ts expandido** con 6 etapas reales RKHA190 + descripciones + timeline items + evidencias.
+* ✅ **MilestoneDetailModal.vue** creado (modal popup con todos los detalles, 400+ líneas, responsive).
+* ✅ **MilestoneDetailView.vue** creado (página dedicada /etapas/:id con layout completo).
+* ✅ **Router actualizado** con ruta /etapas/:id (props: true).
+* ✅ **MilestoneCard clickeable** (emit show-details + routing).
+* ✅ **MilestonesSection integrado** con modal (gestión de estado + eventos).
 
 ### ⏳ Pendientes
 
