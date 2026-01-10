@@ -1,3 +1,29 @@
+/**
+ * GUÍA: Edición de Contenido para v1.0
+ * 
+ * v1.0 NO tiene backoffice admin. Para editar contenido del sitio, modifica este archivo directamente.
+ * 
+ * PASOS:
+ * 1. Edita los datos abajo (mockMilestones, mockContributionLevels, etc.)
+ * 2. Guarda los cambios
+ * 3. Ejecuta: git add -A && git commit -m "Update: descripción del cambio"
+ * 4. Ejecuta: git push main
+ * 5. GitHub Actions redeploy automático en ~2 minutos
+ * 6. Cambios online ✅
+ * 
+ * QUÉ EDITAR:
+ * - mockMilestones: Etapas del proyecto (título, monto, estado, fecha)
+ * - mockContributionLevels: Niveles de contribución (monto, beneficios, nombre)
+ * - mockUpdates: Actualizaciones/noticias del proyecto
+ * - mockEvidences: Evidencias por etapa (documentos, fotos, checksums)
+ * - mockDocuments: Documentos públicos disponibles para descargar
+ * 
+ * ESTRUCTURA JSON: Respeta indentación y comas. Si rompes JSON → error en deploy.
+ * Usa herramientas online si dudas: https://jsonlint.com/
+ * 
+ * v2.0+: Cuando cambios sean frecuentes (20+/mes) o contrates admin, implementar backoffice.
+ */
+
 import type { Milestone } from '@/domain/milestone';
 import type { ContributionLevel } from '@/domain/contribution-level';
 

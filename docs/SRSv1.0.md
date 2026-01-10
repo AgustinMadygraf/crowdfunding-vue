@@ -177,30 +177,23 @@ No incluye (en esta versión):
 
 ---
 
-### 3.7 Backoffice (admin único)
+### 3.7 Backoffice (admin único) - **v2.0** ⏳
 
-**FR-060** Backoffice `/admin` con autenticación.
+**Status:** Descartado para v1.0. Implementar edición directa en `mockData.ts`.
 
-**FR-061** Gestión de etapas:
+**FR-060** Backoffice `/admin` con autenticación. (v2.0+)
 
-* Crear/editar etapa, actualizar estado, montos, fechas.
+**FR-061** Gestión de etapas (v2.0+)
 
-**FR-062** Gestión de evidencias:
+**FR-062** Gestión de evidencias (v2.0+)
 
-* Subir/editar, versionar, publicar/despublicar.
-* Asociar a etapas.
+**FR-063** Gestión de updates (v2.0+)
 
-**FR-063** Gestión de updates:
+**FR-064** Gestión de suscripciones/leads (v2.0+)
 
-* Crear/editar/publicar.
+**FR-065** Auditoría (v2.0+)
 
-**FR-064** Gestión de suscripciones/leads:
-
-* Ver lista, filtrar por estado, exportar CSV.
-
-**FR-065** Auditoría:
-
-* Log de eventos admin (ver NFR/SEC).
+**Nota v1.0:** Para editar contenido, modificá `src/infrastructure/mockData.ts` y git push. GitHub Actions redeploy automático en 2 min.
 
 ---
 
@@ -324,34 +317,42 @@ No incluye (en esta versión):
 
 ## 9. Cambios técnicos requeridos en el frontend (desde el estado actual)
 
-### ✅ Completados (2026-01-09)
+### ✅ Completados (2026-01-10)
 
 * ✅ `vue-router@4` instalado y configurado con 8 rutas + lazy loading.
 * ✅ App.vue dividido en páginas (HomeView, MilestonesView, UpdatesView, DocumentsView, SubscribeView, SubscriptionStatusView, AdminView, NotFoundView).
 * ✅ Meta tags dinámicos por ruta (title, description).
 * ✅ Navigation guard preparado para autenticación.
-* ✅ Formulario de pre-registro creado en SubscribeView (FR-020 a FR-022) - validación básica implementada.
+* ✅ Formulario de pre-registro creado en SubscribeView (FR-020 a FR-022) - **validación con Zod 100% funcional**.
 * ✅ Captura UTM implementada en `main.ts` (NFR-MKT-001) - almacenamiento en sessionStorage + integración en SubscribeView.
 * ✅ `src/infrastructure/api.ts` implementado (cliente HTTP con fetch + manejo de errores).
 * ✅ DTOs completos en `src/infrastructure/dto.ts` (basados en SRS Sección 5).
-* ✅ Servicios API: milestonesService, subscriptionsService, updatesService, documentsService.
-* ✅ useMilestones actualizado con soporte API (useApi parameter + fallback a mocks).
+* ✅ Servicios API: milestonesService, updatesService, documentsService (con mock fallback).
+* ✅ useMilestones actualizado con soporte API (fallback a mocks).
 * ✅ Validación de formularios con Zod (subscriptionFormSchema + useFormValidation).
 * ✅ SubscribeView actualizado con validación en tiempo real y mensajes de error específicos.
 * ✅ Composable `useChatwoot` para integración con widget (setUser, setCustomAttributes, waitForReady).
-* ✅ Servicio `chatwootClientService` para Client API directo (createContact con HMAC SHA256).
-* ✅ SubscribeView integrado con Chatwoot: POST directo a `/public/api/v1/inboxes/.../contacts`.
-* ✅ **Arquitectura final:** Chatwoot es el backend (SaaS) — no hay backend propio.
+* ✅ Servicio `chatwootClientService` para Client API directo:
+  - ✅ `createContact()` → POST /public/api/v1/inboxes/{id}/contacts
+  - ✅ HMAC SHA256 (Web Crypto API)
+  - ✅ Identifier único: `lead_<uuid>_<timestamp>`
+  - ✅ Custom attributes flattened (14 campos)
+  - ✅ Error handling con ChatwootException
+  - ✅ **PROBADO EN VIVO:** Contactos se crean exitosamente en Chatwoot ✅
+* ✅ SubscribeView integrado con Chatwoot: POST directo (sin backend propio).
+* ✅ Logging estructurado con prefijos [Chatwoot] [Form] y niveles (info, warn, error).
+* ✅ **Adaptación dinámica** a estructura real de respuesta Chatwoot.
+* ✅ **Vite config** actualizado: allowedHosts para ngrok + desarrollo remoto.
+* ✅ **Deploy.yml** actualizado con todas las variables Chatwoot requeridas:
+  - `VITE_CHATWOOT_TOKEN`, `VITE_CHATWOOT_BASE_URL`
+  - `VITE_CHATWOOT_INBOX_IDENTIFIER`, `VITE_CHATWOOT_HMAC_TOKEN` (nuevo)
+* ✅ **`.env.example`** con instrucciones claras sobre dónde obtener cada variable.
+* ✅ **Arquitectura final:** Chatwoot es el backend (SaaS) — no hay backend propio para suscripciones.
 
 ### ⏳ Pendientes
 
-* Convertir mockData.ts → fuente API (cuando backend esté disponible).
-* Agregar interceptors para auth tokens (cuando se implemente autenticación).
-* Integración completa con API de subscriptionsService (POST /api/subscriptions).
-* Definir envs completos:
-
-  * ✅ `VITE_CHATWOOT_TOKEN` (configurado)
-  * ✅ `VITE_CHATWOOT_BASE_URL` (configurado)
-  * ⏳ `VITE_API_BASE_URL` (pendiente - backend en desarrollo)
-  * ⏳ `VITE_SUBSCRIBE_URL` (si aplica como base externa; preferible que el redirect venga del backend)
+* Integración con proveedor externo (Donweb) - si aplica en Fase 2.
+* **Backoffice admin (FR-060 a FR-065) - Deferred a v2.0** (usar mockData.ts editing para v1.0).
+* SEO (meta tags, sitemap, robots.txt) - Fase 2.
+* Testing E2E completo - Fase 2.
 

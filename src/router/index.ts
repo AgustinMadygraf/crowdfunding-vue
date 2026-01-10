@@ -57,16 +57,18 @@ const router = createRouter({
         description: 'Consulta el estado de tu suscripción'
       }
     },
-    {
-      path: '/admin',
-      name: 'admin',
-      component: () => import('../views/AdminView.vue'),
-      meta: {
-        title: 'Administración - Madypack',
-        description: 'Panel de administración (acceso restringido)',
-        requiresAuth: true
-      }
-    },
+    // {
+    //   path: '/admin',
+    //   name: 'admin',
+    //   component: () => import('../views/AdminView.vue'),
+    //   meta: {
+    //     title: 'Administración - Madypack',
+    //     description: 'Panel de administración (acceso restringido)',
+    //     requiresAuth: true
+    //   }
+    // },
+    // NOTE: v1.0 Sin backoffice admin. Para editar contenido, modificá src/infrastructure/mockData.ts y git push.
+    // v2.0+ Implementar backoffice cuando sea necesario (20+ cambios/mes o contratar admin).
     {
       path: '/:pathMatch(.*)*',
       name: 'not-found',
