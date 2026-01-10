@@ -6,6 +6,10 @@ const props = defineProps<{
   milestone: Milestone;
 }>();
 
+const emit = defineEmits<{
+  'show-details': [milestone: Milestone];
+}>();
+
 const progress = computed(() => {
   if (props.milestone.targetAmount === 0) {
     return 0;
@@ -16,11 +20,16 @@ const progress = computed(() => {
     100,
   );
 });
+
+const handleCardClick = () => {
+  emit('show-details', props.milestone);
+};
 </script>
 
 <template>
-  <article class="milestone-card">
+  <article class="milestone-card" @click="handleCardClick" role="button" tabindex="0" @keydown.enter="handleCardClick" @keydown.space="handleCardClick">
     <h3>{{ props.milestone.name }}</h3>
+    <p v-if="props.milestone.description" class="description">{{ props.milestone.description }}</p>
     <div class="progress-container" role="progressbar" :aria-valuenow="progress" aria-valuemin="0" aria-valuemax="100">
       <div class="progress-bar" :style="{ width: `${progress}%` }"></div>
     </div>
@@ -38,6 +47,9 @@ const progress = computed(() => {
         <dd>{{ new Date(props.milestone.targetDate).toLocaleDateString() }}</dd>
       </div>
     </dl>
+    <div class="card-footer">
+      <span class="link-text">Ver detalles →</span>
+    </div>
   </article>
 </template>
 
@@ -47,11 +59,33 @@ const progress = computed(() => {
   border-radius: 8px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   padding: 24px;
-  transition: transform 0.3s ease;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
 }
 
 .milestone-card:hover {
   transform: translateY(-4px);
+  box-shadow: 0 8px 12px rgba(0, 0, 0, 0.15);
+}
+
+.milestone-card:focus-visible {
+  outline: 2px solid #2196f3;
+  outline-offset: 2px;
+}
+
+h3 {
+  margin: 0 0 8px 0;
+  font-size: 18px;
+  color: #111;
+}
+
+.description {
+  margin: 0 0 12px 0;
+  font-size: 14px;
+  color: #666;
+  line-height: 1.4;
 }
 
 .progress-container {
@@ -59,19 +93,21 @@ const progress = computed(() => {
   height: 10px;
   background-color: #e0e0e0;
   border-radius: 5px;
-  margin: 16px 0;
+  margin: 12px 0;
   overflow: hidden;
 }
 
 .progress-bar {
   height: 100%;
   background-color: #4caf50;
+  transition: width 0.3s ease;
 }
 
 .milestone-details {
   display: grid;
   gap: 12px;
   margin: 0;
+  flex-grow: 1;
 }
 
 .milestone-details > div {
@@ -80,13 +116,35 @@ const progress = computed(() => {
   gap: 8px;
 }
 
-dt {
+.milestone-details dt {
   font-weight: 600;
-  color: #555;
+  font-size: 12px;
+  color: #999;
+  text-transform: uppercase;
 }
 
-dd {
+.milestone-details dd {
   margin: 0;
-  color: #111;
+  color: #333;
+  font-size: 14px;
+}
+
+.card-footer {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #e0e0e0;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.link-text {
+  font-size: 14px;
+  color: #2196f3;
+  font-weight: 600;
+  transition: color 0.2s;
+}
+
+.milestone-card:hover .link-text {
+  color: #1976d2;
 }
 </style>

@@ -1,6 +1,8 @@
 <script setup lang="ts">
+import { ref } from 'vue';
 import type { Milestone } from '@/domain/milestone';
 import MilestoneCard from '@/components/milestones/MilestoneCard.vue';
+import MilestoneDetailModal from '@/components/milestones/MilestoneDetailModal.vue';
 
 const props = defineProps<{
   milestones: Milestone[];
@@ -8,6 +10,19 @@ const props = defineProps<{
   totalRaisedAmount: number;
   progressPercentage: number;
 }>();
+
+const selectedMilestone = ref<Milestone | null>(null);
+const showModal = ref(false);
+
+const handleShowDetails = (milestone: Milestone) => {
+  selectedMilestone.value = milestone;
+  showModal.value = true;
+};
+
+const handleCloseModal = () => {
+  showModal.value = false;
+  selectedMilestone.value = null;
+};
 </script>
 
 <template>
@@ -30,9 +45,18 @@ const props = defineProps<{
           v-for="milestone in props.milestones"
           :key="milestone.id"
           :milestone="milestone"
+          @show-details="handleShowDetails"
         />
       </div>
     </div>
+
+    <!-- Modal de detalles -->
+    <MilestoneDetailModal
+      v-if="selectedMilestone"
+      :milestone="selectedMilestone"
+      :is-open="showModal"
+      @close="handleCloseModal"
+    />
   </section>
 </template>
 

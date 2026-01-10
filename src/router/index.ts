@@ -22,6 +22,16 @@ const router = createRouter({
       }
     },
     {
+      path: '/etapas/:id',
+      name: 'milestone-detail',
+      component: () => import('../views/MilestoneDetailView.vue'),
+      props: true,
+      meta: {
+        title: 'Etapa - Madypack',
+        description: 'Detalle de la etapa del proyecto RKHA190'
+      }
+    },
+    {
       path: '/actualizaciones',
       name: 'updates',
       component: () => import('../views/UpdatesView.vue'),
