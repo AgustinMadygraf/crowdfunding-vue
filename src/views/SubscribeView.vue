@@ -6,6 +6,7 @@ import { useFormValidation } from '@/application/composables/useFormValidation'
 import { useChatwoot } from '@/application/composables/useChatwoot'
 import { subscriptionFormSchema, type SubscriptionFormData } from '@/application/schemas/subscriptionSchema'
 import { chatwootClientService } from '@/infrastructure/services/chatwootClientService'
+import { initMercadoPago, initiatePayment } from '@/infrastructure/mercadopagoService'
 
 const { levels, selectedLevel, selectLevel, benefitAmount } = useContributionLevels()
 const { setUser, setCustomAttributes } = useChatwoot()
@@ -35,12 +36,23 @@ const {
 const isSubmitting = ref(false)
 const submitError = ref<string | null>(null)
 const utmParams = ref<UTMParams | null>(null)
+const contactCreated = ref(false)
+const contactId = ref<string | null>(null)
+const isProcessingPayment = ref(false)
 
-// Cargar UTM params al montar el componente
-onMounted(() => {
+// Cargar UTM params y inicializar MercadoPago al montar el componente
+onMounted(async () => {
   utmParams.value = getUTMFromSessionStorage()
   if (utmParams.value) {
-    console.log('UTM params loaded for subscription:', utmParams.value)
+    console.log('[Form] UTM params loaded:', utmParams.value)
+  }
+  
+  // Inicializar MercadoPago SDK
+  try {
+    await initMercadoPago()
+    console.log('[Form] MercadoPago initialized')
+  } catch (error) {
+    console.warn('[Form] MercadoPago initialization failed:', error)
   }
 })
 
@@ -129,13 +141,12 @@ const handleSubmit = async () => {
 
     console.info('[Form] ✅ Lead registered:', sourceId)
 
-    // Mostrar página de éxito
-    alert(
-      `¡Pre-registro completado!\n\nGracias ${formData.value.nombre}.\nNivel: ${selectedLevel.value?.name}\nEmail: ${formData.value.email}\n\nPróximamente te contactaremos para continuar el proceso.`
-    )
+    // Guardar contactId para el pago
+    contactId.value = sourceId
+    contactCreated.value = true
 
-    // Limpiar formulario (opcional)
-    // formData.value = { ... }
+    console.info('[Form] ✅ Pre-registro completado. Listo para pago.')
+
   } catch (error) {
     console.error('[Form] ❌ Error during submission:', error)
     
@@ -147,6 +158,42 @@ const handleSubmit = async () => {
   } finally {
     isSubmitting.value = false
     console.info('[Form] Submission completed (success or error)')
+  }
+}
+
+const handlePayment = async () => {
+  if (!contactId.value || !selectedLevel.value) {
+    submitError.value = 'Error: Datos de contacto no disponibles'
+    return
+  }
+
+  console.info('[Payment] Initiating MercadoPago flow...', {
+    contact_id: contactId.value,
+    level: selectedLevel.value.name,
+    amount: selectedLevel.value.amount
+  })
+
+  isProcessingPayment.value = true
+  submitError.value = null
+
+  try {
+    await initiatePayment({
+      contact_id: contactId.value,
+      level_id: selectedLevel.value.amount, // Usar amount como ID único
+      level_name: selectedLevel.value.name,
+      amount: selectedLevel.value.amount,
+      payer_email: formData.value.email,
+      payer_name: formData.value.nombre
+    })
+
+    console.info('[Payment] ✅ MercadoPago checkout opened')
+    // El usuario será redirigido a MercadoPago o verá modal
+    // El webhook manejará la actualización del estado
+
+  } catch (error) {
+    console.error('[Payment] ❌ Error:', error)
+    submitError.value = 'No pudimos iniciar el proceso de pago. Intentá nuevamente.'
+    isProcessingPayment.value = false
   }
 }
 </script>
@@ -291,13 +338,57 @@ const handleSubmit = async () => {
               {{ submitError }}
             </div>
 
+            <!-- Paso 1: Pre-registro -->
             <button
+              v-if="!contactCreated"
               type="submit"
               class="submit-button"
               :disabled="isSubmitting || !selectedLevel"
             >
-              {{ isSubmitting ? 'Procesando...' : 'Continuar a proveedor externo' }}
+              {{ isSubmitting ? 'Procesando...' : 'Completar pre-registro' }}
             </button>
+
+            <!-- Paso 2: Pago con MercadoPago -->
+            <div v-if="contactCreated" class="payment-section">
+              <div class="success-message">
+                <h3>✅ Pre-registro exitoso</h3>
+                <p>Gracias {{ formData.nombre }}. Ahora podés proceder con el pago.</p>
+              </div>
+
+              <div class="payment-summary">
+                <h4>Resumen de pago</h4>
+                <div class="summary-row">
+                  <span>Nivel:</span>
+                  <strong>{{ selectedLevel?.name }}</strong>
+                </div>
+                <div class="summary-row">
+                  <span>Monto:</span>
+                  <strong>${{ selectedLevel?.amount.toLocaleString() }}</strong>
+                </div>
+                <div class="summary-row">
+                  <span>Beneficio:</span>
+                  <strong>{{ benefitAmount }}</strong>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                class="payment-button"
+                @click="handlePayment"
+                :disabled="isProcessingPayment"
+              >
+                <span v-if="!isProcessingPayment">
+                  💳 Pagar con MercadoPago
+                </span>
+                <span v-else>
+                  Abriendo checkout...
+                </span>
+              </button>
+
+              <p class="payment-note">
+                Serás redirigido a MercadoPago para completar el pago de forma segura.
+              </p>
+            </div>
 
             <p class="note">
               * Campos obligatorios<br />
@@ -511,6 +602,102 @@ const handleSubmit = async () => {
   color: #666;
   font-size: 0.875rem;
   line-height: 1.6;
+}
+
+/* Payment Section Styles */
+.payment-section {
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 2px solid #e0e0e0;
+}
+
+.success-message {
+  background: linear-gradient(135deg, #42b983 0%, #35a372 100%);
+  color: white;
+  padding: 1.5rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.success-message h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.25rem;
+}
+
+.success-message p {
+  margin: 0;
+  opacity: 0.95;
+}
+
+.payment-summary {
+  background: #f8f9fa;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.payment-summary h4 {
+  margin: 0 0 1rem 0;
+  color: #2c3e50;
+  font-size: 1.1rem;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.summary-row:last-child {
+  border-bottom: none;
+  padding-top: 1rem;
+  font-size: 1.1rem;
+}
+
+.summary-row span {
+  color: #666;
+}
+
+.summary-row strong {
+  color: #2c3e50;
+}
+
+.payment-button {
+  width: 100%;
+  padding: 1rem 2rem;
+  background: linear-gradient(135deg, #009ee3 0%, #0077cc 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 136, 204, 0.2);
+}
+
+.payment-button:hover:not(:disabled) {
+  background: linear-gradient(135deg, #0088cc 0%, #0066bb 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 136, 204, 0.3);
+}
+
+.payment-button:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.payment-note {
+  text-align: center;
+  color: #666;
+  font-size: 0.9rem;
+  margin-top: 1rem;
+  font-style: italic;
 }
 
 @media (max-width: 768px) {
