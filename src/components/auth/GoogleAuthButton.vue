@@ -147,9 +147,8 @@ onMounted(() => {
     let configInfo: ReturnType<typeof authService.getConfigInfo>
     try {
       configInfo = authService.getConfigInfo()
-      console.log('[GoogleAuthButton] Configuración de Google:', configInfo)
-      console.warn(`[GoogleAuthButton] ⚠️⚠️⚠️ ACCIÓN REQUERIDA: Agrega este origen a Google Cloud Console:`)
-      console.warn(`[GoogleAuthButton] 👉 ${window.location.origin}`)
+      console.log('[GoogleAuthButton] ✅ Configuración de Google:', configInfo)
+      console.log('[GoogleAuthButton] 🌐 Origen:', window.location.origin)
     } catch (configError) {
       console.error('[GoogleAuthButton] ❌ Error al obtener configuración:', configError)
       console.error('[GoogleAuthButton] Stack trace:', configError instanceof Error ? configError.stack : 'No disponible')
@@ -194,14 +193,12 @@ onMounted(() => {
             console.error('[GoogleAuthButton] Mensaje:', initError instanceof Error ? initError.message : 'Error desconocido')
             console.error('[GoogleAuthButton] Stack:', initError instanceof Error ? initError.stack : 'No disponible')
             console.error(`[GoogleAuthButton] 🌐 Origen actual: ${window.location.origin}`)
-            console.warn('[GoogleAuthButton] Posibles causas: ')
-            console.warn('  1️⃣ Origen NO autorizado en Google Cloud Console')
-            console.warn('  2️⃣ Client ID incorrecto o expirado')
-            console.warn('  3️⃣ Problemas de CORS')
-            console.warn('  4️⃣ Restricciones de dominio en Google Cloud')
-            console.warn(`[GoogleAuthButton] 💡 SOLUCIÓN: Ve a https://console.cloud.google.com/`)
-            console.warn(`[GoogleAuthButton] 💡 Authorized JavaScript origins: Agrega ${window.location.origin}`)
-            error.value = 'Error al inicializar Google Sign-In. Ver consola para detalles.'
+            console.error('[GoogleAuthButton] Posibles causas: ')
+            console.error('  1️⃣ Origen NO autorizado en Google Cloud Console (más probable)')
+            console.error('  2️⃣ Client ID incorrecto o expirado')
+            console.error('  3️⃣ Problemas de red o CORS')
+            console.error('[GoogleAuthButton] 📚 Si ves "403" o "GSI_LOGGER: origin not allowed" → Ver docs/GOOGLE_ORIGIN_NOT_AUTHORIZED_FIX.md')
+            error.value = authService.getAuthState().error || 'Error al inicializar Google Sign-In. Ver consola para detalles.'
           }
         } else if (attempts >= maxAttempts) {
           clearInterval(checkGoogleReady)

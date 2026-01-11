@@ -391,18 +391,24 @@ class AuthService {
           },
           ux_mode: 'popup',
           auto_select: false,
-          error_callback: () => {
-            const errorMsg = 'Error en Google Sign-In initialization'
-            console.error(`[Auth] ❌ ${errorMsg}`)
-            console.error(`[Auth] 🌐 Origen: ${window.location.origin}`)
-            console.warn('[Auth] Posibles causas:')
-            console.warn('  1️⃣ El origen NO está en "Authorized JavaScript origins"')
-            console.warn('  2️⃣ El Client ID es incorrecto')
-            console.warn('  3️⃣ Restricciones de dominio en Google Cloud')
-            console.warn('[Auth] 💡 Solución: Ve a https://console.cloud.google.com/')
-            console.warn('[Auth] 💡 Credenciales > OAuth 2.0 Client ID > Authorized JavaScript origins')
-            console.warn(`[Auth] 💡 Agrega: ${window.location.origin}`)
-            this.authState.error = 'Error de configuración de Google Sign-In'
+          error_callback: (error: any) => {
+            // Este callback se dispara cuando Google rechaza el origen o hay error de configuración
+            console.error('[Auth] ❌❌❌ ERROR CRÍTICO: Origen NO autorizado en Google Cloud Console')
+            console.error('[Auth] 🌐 Origen bloqueado:', window.location.origin)
+            console.error('[Auth] 🔑 Client ID:', this.GOOGLE_CLIENT_ID.substring(0, 20) + '...')
+            console.error('[Auth] Error details:', error)
+            console.error('[Auth] ')
+            console.error('[Auth] 🔧 SOLUCIÓN RÁPIDA (5 minutos):')
+            console.error('[Auth] 1️⃣ Ve a: https://console.cloud.google.com/apis/credentials')
+            console.error('[Auth] 2️⃣ Busca el Client ID arriba en la lista de credenciales')
+            console.error('[Auth] 3️⃣ Click en editar > "Authorized JavaScript origins"')
+            console.error('[Auth] 4️⃣ Agrega:', window.location.origin)
+            console.error('[Auth] 5️⃣ También agrega: http://127.0.0.1:5173 (si usas localhost)')
+            console.error('[Auth] 6️⃣ Guarda y espera 1-2 minutos')
+            console.error('[Auth] 7️⃣ Recarga esta página con Ctrl+Shift+R')
+            console.error('[Auth] ')
+            console.error('[Auth] 📚 Documentación: Ver docs/GOOGLE_ORIGIN_NOT_AUTHORIZED_FIX.md')
+            this.authState.error = `Origen ${window.location.origin} no autorizado en Google Cloud Console. Ver consola para instrucciones.`
           }
         })
         console.log('[Auth] ✅ Google Sign-In inicializado')
