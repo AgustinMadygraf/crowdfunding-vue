@@ -126,7 +126,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { authService } from '@/infrastructure/services/authServiceFactory'
+import { useAuthService } from '@/application/useAuthService'
 import { contributionsRepository, ContributionRepositoryError, type UserContribution } from '@/infrastructure/repositories/ContributionsRepository'
 import type { User } from '@/domain/user'
 
@@ -240,7 +240,8 @@ const goToPayment = (token: string) => {
  * Maneja el logout
  */
 const handleLogout = () => {
-  authService.logout()
+  const auth = useAuthService()
+  auth.logout()
   router.push('/')
 }
 
@@ -248,7 +249,8 @@ const handleLogout = () => {
  * Inicializa el dashboard
  */
 onMounted(() => {
-  user.value = authService.getCurrentUser()
+  const auth = useAuthService()
+  user.value = auth.getCurrentUser()
   
   if (!user.value) {
     router.push('/')

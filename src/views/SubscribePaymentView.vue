@@ -145,7 +145,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
-import { authService } from '@/infrastructure/services/authServiceFactory'
+import { useAuthService } from '@/application/useAuthService'
 import type { User } from '@/domain/user'
 
 interface Contribution {
@@ -185,7 +185,8 @@ const loadContribution = async () => {
 
   try {
     const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'
-    const headers = authService.getAuthHeaders()
+    const auth = useAuthService()
+    const headers = auth.getAuthHeaders()
     // Evitar preflight CORS en GET: eliminar Content-Type
     if (headers['Content-Type']) {
       delete headers['Content-Type']
@@ -295,7 +296,8 @@ const formatDate = (dateString: string): string => {
  * Carga usuario actual si está autenticado
  */
 onMounted(() => {
-  user.value = authService.getCurrentUser()
+  const auth = useAuthService()
+  user.value = auth.getCurrentUser()
   loadContribution()
 })
 </script>

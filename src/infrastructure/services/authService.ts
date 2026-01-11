@@ -5,6 +5,8 @@
 
 import type { User } from '@/domain/user'
 import type { IAuthService, AuthState, MutableAuthState, GoogleAuthConfig, AuthServiceConfig } from './IAuthService'
+import { DefaultTokenStorage } from './auth/tokenStorage'
+import { DefaultGoogleOAuthProvider } from './auth/googleOAuthProvider'
 
 interface GoogleAuthResponse {
   user_id: string
@@ -30,6 +32,8 @@ export class AuthService implements IAuthService {
   private loginAttempts: { timestamp: number }[] = []
   private readonly MAX_LOGIN_ATTEMPTS = 5
   private readonly LOGIN_TIMEOUT_MS = 60000 // 1 minuto
+  private readonly storage = new DefaultTokenStorage('auth_token', 'auth_user')
+  private readonly provider = new DefaultGoogleOAuthProvider()
 
   constructor(config?: AuthServiceConfig) {
     // Aplicar configuración con fallback a variables de entorno
@@ -62,6 +66,8 @@ export class AuthService implements IAuthService {
       throw new Error('API must use HTTPS in production')
     }
 
+    // Reconfigurar storage con claves del config
+    ;(this as any).storage = new DefaultTokenStorage(this.TOKEN_STORAGE_KEY, this.USER_STORAGE_KEY)
     this.loadStoredAuth()
     this.loadGoogleScript()
   }
@@ -138,41 +144,7 @@ export class AuthService implements IAuthService {
    * Carga el script de Google Identity Services
    */
   private loadGoogleScript(): void {
-    try {
-      if (document.getElementById('google-jssdk')) {
-        console.log('[Auth] ✅ Google SDK script ya cargado')
-        return
-      }
-
-      const script = document.createElement('script')
-      script.id = 'google-jssdk'
-      script.src = 'https://accounts.google.com/gsi/client'
-      script.async = true
-      script.defer = true
-      
-      script.onerror = () => {
-        console.error('[Auth] ❌ Error al cargar Google Identity Services SDK')
-        console.error(`[Auth] 🌐 URL intentada: https://accounts.google.com/gsi/client`)
-        console.error('[Auth] Posibles causas: ')
-        console.error('  1️⃣ Sin conexión a internet')
-        console.error('  2️⃣ Bloqueado por firewall o antivirus')
-        console.error('  3️⃣ Problemas de CORS')
-        console.error('  4️⃣ accounts.google.com no es accesible')
-        this.authState.error = 'No se pudo cargar Google Sign-In'
-      }
-      
-      script.onload = () => {
-        console.log('[Auth] ✅ Google Identity Services SDK cargado exitosamente')
-        console.log('[Auth] window.google disponible:', !!window.google)
-      }
-      
-      document.head.appendChild(script)
-      console.log('[Auth] 📝 Script de Google agregado al DOM')
-    } catch (error) {
-      console.error('[Auth] ❌ Error al inicializar Google SDK:', error)
-      console.error('[Auth] Stack:', error instanceof Error ? error.stack : 'No disponible')
-      this.authState.error = 'Error de inicialización'
-    }
+    this.provider.loadScript()
   }
 
   /**
@@ -281,10 +253,8 @@ export class AuthService implements IAuthService {
         this.authState.token = data.auth_token
         this.authState.isAuthenticated = true
 
-        // Persistir en localStorage
-        localStorage.setItem(this.TOKEN_STORAGE_KEY, data.auth_token)
-        localStorage.setItem(this.USER_STORAGE_KEY, JSON.stringify(user))
-        console.log('[Auth] 💾 Sesión guardada en localStorage')
+        this.storage.save(user, data.auth_token)
+        console.log('[Auth] 💾 Sesión guardada')
       } catch (storageError) {
         console.warn('[Auth] ⚠️ Error al guardar en localStorage:', storageError)
         console.warn('[Auth] ⚠️ La sesión funcionará pero no será persistida en recarga')
@@ -317,22 +287,14 @@ export class AuthService implements IAuthService {
       this.authState.isAuthenticated = false
       this.authState.error = null
 
-      try {
-        localStorage.removeItem(this.TOKEN_STORAGE_KEY)
-        localStorage.removeItem(this.USER_STORAGE_KEY)
-        console.log('[Auth] ✅ localStorage limpiado')
-      } catch (storageError) {
-        console.warn('[Auth] ⚠️ Error al limpiar localStorage:', storageError)
-      }
+      this.storage.clear()
+      console.log('[Auth] ✅ Sesión limpiada')
 
       // Revocar sesión de Google si está disponible
-      if (window.google?.accounts?.id) {
-        try {
-          window.google.accounts.id.disableAutoSelect()
-          console.log('[Auth] ✅ Google auto-select deshabilitado')
-        } catch (googleError) {
-          console.warn('[Auth] ⚠️ Error al revocar sesión de Google:', googleError)
-        }
+      try {
+        this.provider.disableAutoSelect()
+      } catch (googleError) {
+        console.warn('[Auth] ⚠️ Error al revocar sesión de Google:', googleError)
       }
 
       console.log('[Auth] ✅ Sesión cerrada exitosamente')
@@ -347,28 +309,19 @@ export class AuthService implements IAuthService {
    */
   private loadStoredAuth(): void {
     try {
-      const token = localStorage.getItem(this.TOKEN_STORAGE_KEY)
-      const userStr = localStorage.getItem(this.USER_STORAGE_KEY)
-
-      if (token && userStr) {
+      const { token, user } = this.storage.load()
+      if (token && user) {
         // Validar que el token no haya expirado
         if (!this.isTokenValid(token)) {
           console.warn('[Auth] ❌ Token expirado, cerrando sesión...')
           this.logout()
           return
         }
-
-        try {
-          this.authState.user = JSON.parse(userStr)
-          this.authState.token = token
-          this.authState.isAuthenticated = true
-          console.log('[Auth] ✅ Sesión restaurada desde localStorage')
-          console.log('[Auth] 👤 Usuario:', this.authState.user?.email)
-        } catch (parseError) {
-          console.error('[Auth] ❌ Error al parsear datos de usuario:', parseError)
-          console.warn('[Auth] Limpiando localStorage y reiniciando...')
-          this.logout()
-        }
+        this.authState.user = user
+        this.authState.token = token
+        this.authState.isAuthenticated = true
+        console.log('[Auth] ✅ Sesión restaurada')
+        console.log('[Auth] 👤 Usuario:', this.authState.user?.email)
       } else {
         console.log('[Auth] ℹ️ No hay sesión previa almacenada')
       }
@@ -453,7 +406,7 @@ export class AuthService implements IAuthService {
       console.log(`[Auth] 🌐 Iniciando Google Sign-In desde origen: ${window.location.origin}`)
       
       // Validar que Google SDK esté cargado
-      if (!window.google?.accounts?.id) {
+      if (!this.provider.isReady()) {
         const errorMsg = 'Google Identity Services SDK no está cargado'
         console.error(`[Auth] ❌ ${errorMsg}`)
         console.error('[Auth] window.google:', window.google)
@@ -480,23 +433,20 @@ export class AuthService implements IAuthService {
       console.log('[Auth] 🔧 Configurando Google Sign-In...')
 
       try {
-        window.google.accounts.id.initialize({
-          client_id: this.GOOGLE_CLIENT_ID,
-          callback: (response: CredentialResponse) => {
+        this.provider.initialize(
+          this.GOOGLE_CLIENT_ID,
+          (cred) => {
             try {
               console.log('[Auth] ✅ Usuario autenticado con Google')
               console.log('[Auth] 📝 Procesando credential...')
-              callback(response.credential)
+              callback(cred)
             } catch (callbackError) {
               console.error('[Auth] ❌ Error en callback de autenticación:', callbackError)
               console.error('[Auth] Stack:', callbackError instanceof Error ? callbackError.stack : 'No disponible')
               this.authState.error = 'Error procesando autenticación'
             }
           },
-          ux_mode: 'popup',
-          auto_select: false,
-          error_callback: (error: any) => {
-            // Este callback se dispara cuando Google rechaza el origen o hay error de configuración
+          (error: any) => {
             console.error('[Auth] ❌❌❌ ERROR CRÍTICO: Origen NO autorizado en Google Cloud Console')
             console.error('[Auth] 🌐 Origen bloqueado:', window.location.origin)
             console.error('[Auth] 🔑 Client ID:', this.GOOGLE_CLIENT_ID.substring(0, 20) + '...')
@@ -514,7 +464,7 @@ export class AuthService implements IAuthService {
             console.error('[Auth] 📚 Documentación: Ver docs/GOOGLE_ORIGIN_NOT_AUTHORIZED_FIX.md')
             this.authState.error = `Origen ${window.location.origin} no autorizado en Google Cloud Console. Ver consola para instrucciones.`
           }
-        })
+        )
         console.log('[Auth] ✅ Google Sign-In inicializado')
         console.log('[Auth] 🔍 Esperando respuesta de Google... (el error 403 puede aparecer ahora)')
         
@@ -544,15 +494,7 @@ export class AuthService implements IAuthService {
       }
 
       try {
-        window.google.accounts.id.renderButton(
-          container,
-          {
-            theme: 'outline',
-            size: 'large',
-            text: 'signin_with',
-            locale: 'es'
-          }
-        )
+        this.provider.renderButton(container)
         console.log('[Auth] ✅ Botón de Google Sign-In renderizado exitosamente')
         console.log(`[Auth] 📍 Contenedor: #${containerId}`)
         console.log('[Auth] 🔎 Verificando iframe de Google... (revisar Network tab para 403)')

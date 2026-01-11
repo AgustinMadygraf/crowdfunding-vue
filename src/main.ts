@@ -4,6 +4,8 @@ import './assets/components.css' // Componentes reutilizables
 import { createApp } from 'vue'
 import App from './App.vue'
 import router from './router'
+import { authService } from '@/infrastructure/services/authServiceFactory'
+import { AUTH_SERVICE_KEY } from '@/application/useAuthService'
 
 // Captura UTM parameters en la carga inicial (NFR-MKT-001)
 const captureUTMParameters = () => {
@@ -41,4 +43,5 @@ captureUTMParameters()
 const app = createApp(App)
 
 app.use(router)
+app.provide(AUTH_SERVICE_KEY, authService)
 app.mount('#app')

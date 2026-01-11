@@ -36,7 +36,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
-import { authService } from '@/infrastructure/services/authServiceFactory'
+import { useAuthService } from '@/application/useAuthService'
 import type { User } from '@/domain/user'
 
 const props = defineProps({
@@ -56,7 +56,8 @@ const user = ref<User | null>(null)
 const error = ref<string | null>(null)
 const isLoading = ref(false)
 
-const isAuthenticated = computed(() => authService.isAuthenticated())
+const auth = useAuthService()
+const isAuthenticated = computed(() => auth.isAuthenticated())
 
 /**
  * Maneja el callback de Google Sign-In
@@ -76,7 +77,7 @@ const handleGoogleCallback = async (token: string) => {
     console.log('[GoogleAuthButton] Intentando autenticar usuario...')
     
     try {
-      const authenticatedUser = await authService.loginWithGoogle(token)
+      const authenticatedUser = await auth.loginWithGoogle(token)
       user.value = authenticatedUser
       console.log('[GoogleAuthButton] Autenticación exitosa:', authenticatedUser.email)
       emit('auth-success', authenticatedUser)
@@ -103,7 +104,7 @@ const handleLogout = () => {
   console.log('[GoogleAuthButton] Iniciando cierre de sesión')
   try {
     try {
-      authService.logout()
+      auth.logout()
     } catch (logoutError) {
       console.error('[GoogleAuthButton] Error en authService.logout():', logoutError)
       throw logoutError
@@ -132,7 +133,7 @@ onMounted(() => {
     
     // Cargar usuario actual si ya está autenticado
     try {
-      user.value = authService.getCurrentUser()
+      user.value = auth.getCurrentUser()
       if (user.value) {
         console.log('[GoogleAuthButton] ✓ Usuario autenticado encontrado:', user.value.email)
       } else {
@@ -150,9 +151,9 @@ onMounted(() => {
     }
 
     // Verificar configuración de Google
-    let configInfo: ReturnType<typeof authService.getConfigInfo>
+    let configInfo: ReturnType<typeof auth.getConfigInfo>
     try {
-      configInfo = authService.getConfigInfo()
+      configInfo = auth.getConfigInfo()
       console.log('[GoogleAuthButton] ✅ Configuración de Google:', configInfo)
       console.log('[GoogleAuthButton] 🌐 Origen:', window.location.origin)
     } catch (configError) {
@@ -189,7 +190,7 @@ onMounted(() => {
           console.log('[GoogleAuthButton] Inicializando Google Sign-In...')
           
           try {
-            authService.initGoogleSignIn(
+            auth.initGoogleSignIn(
               props.buttonContainerId,
               handleGoogleCallback
             )
@@ -204,7 +205,7 @@ onMounted(() => {
             console.error('  2️⃣ Client ID incorrecto o expirado')
             console.error('  3️⃣ Problemas de red o CORS')
             console.error('[GoogleAuthButton] 📚 Si ves "403" o "GSI_LOGGER: origin not allowed" → Ver docs/GOOGLE_ORIGIN_NOT_AUTHORIZED_FIX.md')
-            error.value = authService.getAuthState().error || 'Error al inicializar Google Sign-In. Ver consola para detalles.'
+            error.value = auth.getAuthState().error || 'Error al inicializar Google Sign-In. Ver consola para detalles.'
           }
         } else if (attempts >= maxAttempts) {
           clearInterval(checkGoogleReady)

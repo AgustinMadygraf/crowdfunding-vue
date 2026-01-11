@@ -4,7 +4,7 @@ import { useRouter } from 'vue-router'
 import { useContributionLevels } from '@/application/useContributionLevels'
 import { getUTMFromSessionStorage, type UTMParams } from '@/utils/utm'
 import { initMercadoPago } from '@/infrastructure/mercadopagoService'
-import { authService } from '@/infrastructure/services/authServiceFactory'
+import { useAuthService } from '@/application/useAuthService'
 import { contributionsRepository, ContributionRepositoryError } from '@/infrastructure/repositories/ContributionsRepository'
 import GoogleAuthButton from '@/components/auth/GoogleAuthButton.vue'
 import type { User } from '@/domain/user'
@@ -28,14 +28,15 @@ const contributionCreated = ref(false)
 const contributionToken = ref<string | null>(null)
 const isProcessingPayment = ref(false)
 
-const isAuthenticated = computed(() => authService.isAuthenticated())
+const auth = useAuthService()
+const isAuthenticated = computed(() => auth.isAuthenticated())
 
 // Cargar usuario actual y UTM params al montar
 onMounted(async () => {
   console.log('[Subscribe] 📋 Montando SubscribeView...')
   
   try {
-    user.value = authService.getCurrentUser()
+    user.value = auth.getCurrentUser()
     if (user.value) {
       console.log('[Subscribe] 👤 Usuario actual:', user.value.email)
     } else {
