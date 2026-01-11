@@ -3,6 +3,7 @@ import type { Milestone } from '@/domain/milestone'
 import { mockMilestones } from '@/infrastructure/mockData'
 import { milestonesRepository, MilestoneRepositoryError } from '@/infrastructure/repositories/MilestonesRepository'
 import type { MilestoneDTO } from '@/infrastructure/dto'
+import { Logger } from '@/infrastructure/logger'
 
 /**
  * Transforma MilestoneDTO del API a modelo de dominio Milestone
@@ -42,6 +43,16 @@ export function useMilestones(useApi = false) {
       milestones.value = [...mockMilestones]
     } finally {
       isLoading.value = false
+    }
+  }
+
+  async function fetchMilestones() {
+    try {
+      const data = await milestonesRepository.getAll()
+      milestones.value = data.map(transformMilestone)
+    } catch (error) {
+      Logger.error('Error fetching milestones', error)
+      throw error
     }
   }
 

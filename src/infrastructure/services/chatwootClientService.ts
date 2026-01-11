@@ -6,6 +6,7 @@
  */
 
 import type { UTMParams } from '@/utils/utm'
+import { Logger } from '@/infrastructure/logger'
 
 /**
  * Request para crear contacto en Chatwoot
@@ -315,6 +316,36 @@ export const chatwootClientService = {
 
       console.error('Error updating contact in Chatwoot:', error)
       throw new ChatwootException(500, {}, `Error updating contact: ${(error as Error).message}`)
+    }
+  },
+
+  /**
+   * Envia un mensaje a Chatwoot
+   * @param message - Mensaje a enviar
+   */
+  async sendMessage(message: string) {
+    try {
+      const baseUrl = this.getBaseUrl()
+      const inboxIdentifier = this.getInboxIdentifier()
+
+      const endpoint = `${baseUrl}/public/api/v1/inboxes/${inboxIdentifier}/messages`
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ message })
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new ChatwootException(response.status, error, `Chatwoot API error: ${response.statusText}`)
+      }
+
+      return await response.json()
+    } catch (error) {
+      Logger.error('Error enviando mensaje a Chatwoot', error)
+      throw error
     }
   }
 }

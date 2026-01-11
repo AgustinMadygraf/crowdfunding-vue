@@ -3,11 +3,15 @@
  * Define la estructura de datos de un usuario en la aplicación
  */
 
+
+export type UserRole = 'user' | 'admin' | 'superuser';
+
 export interface User {
   id: string
   email: string
   nombre: string
   avatar_url?: string
+  roles?: UserRole[] // roles opcionales para control de acceso
 }
 
 export interface UserWithContributions extends User {

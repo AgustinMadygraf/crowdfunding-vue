@@ -1,10 +1,20 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
+import { Logger } from '@/infrastructure/logger'
 
 const router = useRouter()
 
 const goHome = () => {
   router.push('/')
+}
+
+const handleNotFound = () => {
+  try {
+    // ...existing code...
+  } catch (error) {
+    Logger.error('Error en NotFoundView', error)
+    // ...existing code...
+  }
 }
 </script>
 

@@ -1,4 +1,4 @@
-/**
+import { Logger } from '@/infrastructure/logger' /**
  * URL Sanitizer
  * Previene XSS validando y sanitizando URLs de recursos externos
  */
@@ -134,9 +134,14 @@ export function sanitizeAvatarUrl(
  * @returns URL sanitizada o null
  */
 export function sanitizeUrl(url: string | undefined | null): string | null {
-  if (isUrlSafe(url)) {
-    return url!.trim()
-  }
+  try {
+    if (isUrlSafe(url)) {
+      return url!.trim()
+    }
 
-  return null
+    return null
+  } catch (error) {
+    Logger.error('Error sanitizando URL', error)
+    throw error
+  }
 }

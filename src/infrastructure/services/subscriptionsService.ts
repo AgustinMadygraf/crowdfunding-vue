@@ -5,6 +5,7 @@
  */
 
 import { apiClient } from '@/infrastructure/api'
+import { Logger } from '@/infrastructure/logger'
 import type {
   CreateSubscriptionRequest,
   CreateSubscriptionResponse,
@@ -33,7 +34,7 @@ export const subscriptionsService = {
     try {
       return await apiClient.get<GetSubscriptionResponse>(`/api/subscriptions/${subscriptionId}`)
     } catch (error) {
-      console.error(`Error fetching subscription ${subscriptionId}:`, error)
+      Logger.error('Error obteniendo suscripción', error)
       throw error
     }
   }

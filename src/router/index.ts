@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { authService } from '@/infrastructure/services/authServiceFactory'
 import { useAuthStore } from '@/stores/authStore'
+import { Logger } from '@/infrastructure/logger'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -88,16 +89,19 @@ const router = createRouter({
         description: 'Consulta el estado de tu suscripción'
       }
     },
-    // {
-    //   path: '/admin',
-    //   name: 'admin',
-    //   component: () => import('../views/AdminView.vue'),
-    //   meta: {
-    //     title: 'Administración - Madypack',
-    //     description: 'Panel de administración (acceso restringido)',
-    //     requiresAuth: true
-    //   }
-    // },
+    // Ejemplo de ruta protegida por rol admin:
+    {
+      path: '/admin',
+      name: 'admin',
+      component: () => import('../views/AdminView.vue'),
+      meta: {
+        title: 'Administración - Madypack',
+        description: 'Panel de administración (acceso restringido)',
+        requiresAuth: true,
+        roles: ['admin'] // Solo usuarios con rol 'admin' pueden acceder
+      }
+    },
+    // Para agregar más roles, usa meta: { roles: ['admin', 'superuser'] }
     // NOTE: v1.0 Sin backoffice admin. Para editar contenido, modificá src/infrastructure/mockData.ts y git push.
     // v2.0+ Implementar backoffice cuando sea necesario (20+ cambios/mes o contratar admin).
     {
@@ -178,14 +182,31 @@ router.beforeEach((to, _from, next) => {
   }
   canonical.setAttribute('href', `https://madypack.com.ar${to.path}`)
   
-  // Auth guard centralizado: protege rutas con requiresAuth
+
+  // Auth guard centralizado: protege rutas con requiresAuth y roles
+  const authStore = useAuthStore()
+  const user = authStore.user
+  // 1. Rutas que requieren autenticación
   if (to.meta.requiresAuth && !authService.isAuthenticated()) {
     console.warn(`[Router] Acceso denegado a ${to.fullPath}: usuario no autenticado`)
     next('/suscribir')
     return
   }
+  // 2. Rutas que requieren roles específicos (meta.roles: string[])
+  if (to.meta.roles && Array.isArray(to.meta.roles)) {
+    const requiredRoles = to.meta.roles as import('@/domain/user').UserRole[];
+    if (!user || !user.roles || !requiredRoles.some((role) => user.roles!.includes(role))) {
+      console.warn(`[Router] Acceso denegado a ${to.fullPath}: requiere roles [${requiredRoles.join(', ')}]`)
+      next('/') // o a una página de acceso denegado
+      return
+    }
+  }
 
   next()
+})
+
+router.onError((error) => {
+  Logger.error('Router error', error)
 })
 
 export default router

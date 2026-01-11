@@ -8,6 +8,7 @@ import type { Update, UpdateCategory } from '@/domain/update'
 import { mockUpdates } from '@/infrastructure/mockData'
 import { updatesRepository, UpdateRepositoryError, type GetUpdatesParams } from '@/infrastructure/repositories/UpdatesRepository'
 import type { UpdateDTO } from '@/infrastructure/dto'
+import { Logger } from '@/infrastructure/logger'
 
 /**
  * Transforma UpdateDTO del API a modelo de dominio Update
@@ -93,5 +94,14 @@ export function useUpdates(useApi = false, params?: GetUpdatesParams) {
     isLoading,
     error,
     reload: loadUpdates
+  }
+}
+
+async function fetchUpdates() {
+  try {
+    // ...existing code...
+  } catch (error) {
+    Logger.error('Error fetching updates', error)
+    throw error
   }
 }

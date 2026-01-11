@@ -130,6 +130,7 @@ import { useAuthService } from '@/application/useAuthService'
 import { contributionsRepository, ContributionRepositoryError, type UserContribution } from '@/infrastructure/repositories/ContributionsRepository'
 import type { User } from '@/domain/user'
 import { sanitizeAvatarUrl } from '@/utils/urlSanitizer'
+import { Logger } from '@/infrastructure/logger'
 
 const router = useRouter()
 
@@ -260,6 +261,24 @@ onMounted(() => {
 
   loadContributions()
 })
+
+const fetchUserData = async () => {
+  try {
+    const auth = useAuthService()
+    user.value = auth.getCurrentUser()
+    
+    if (!user.value) {
+      router.push('/')
+      return
+    }
+
+    loadContributions()
+  } catch (err) {
+    Logger.error('Error obteniendo datos de usuario', err)
+    error.value = err instanceof Error ? err.message : 'Error al obtener datos del usuario'
+    isLoading.value = false
+  }
+}
 </script>
 
 <style scoped lang="css">

@@ -1,3 +1,5 @@
+import { Logger } from '@/infrastructure/logger'
+
 /**
  * CSRF Protection Service
  * Maneja la lectura y gestión de tokens CSRF
@@ -197,3 +199,12 @@ export class DefaultCsrfService implements ICsrfService {
  * Instancia singleton del servicio CSRF
  */
 export const csrfService = new DefaultCsrfService()
+
+export async function fetchCsrfToken() {
+  try {
+    // ...existing code...
+  } catch (error) {
+    Logger.error('Error obteniendo CSRF token', error)
+    throw error
+  }
+}

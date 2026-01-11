@@ -6,6 +6,7 @@
 import { ref, computed, type Ref } from 'vue'
 import { contributionsRepository, ContributionRepositoryError, type UserContribution } from '@/infrastructure/repositories/ContributionsRepository'
 import type { User } from '@/domain/user'
+import { Logger } from '@/infrastructure/logger'
 
 export interface CreateContributionData {
   user_id: string
@@ -173,6 +174,18 @@ export function useSubscription() {
     token.value = null
     error.value = null
     isLoading.value = false
+  }
+
+  /**
+   * Fetch subscription data
+   */
+  async function fetchSubscription() {
+    try {
+      // ...existing code...
+    } catch (error) {
+      Logger.error('Error fetching subscription', error)
+      throw error
+    }
   }
 
   return {

@@ -2,6 +2,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { contributionsRepository, ContributionRepositoryError } from '@/infrastructure/repositories/ContributionsRepository'
+import { Logger } from '@/infrastructure/logger'
 
 const route = useRoute()
 const router = useRouter()
@@ -71,6 +72,8 @@ const loadContribution = async () => {
     } else {
       error.value = err instanceof Error ? err.message : 'Error desconocido'
     }
+
+    Logger.error('Error obteniendo estado de suscripción', err)
   } finally {
     isLoading.value = false
   }

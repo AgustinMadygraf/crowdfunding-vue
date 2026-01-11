@@ -4,10 +4,12 @@
  */
 
 import type { User } from '@/domain/user'
+// import type { Credentials } from '@/domain/user' // Eliminado: no existe export Credentials
 import type { IAuthService, AuthState, MutableAuthState, GoogleAuthConfig, AuthServiceConfig } from './IAuthService'
 import { getApiBaseUrl } from '@/config/api'
 import { DefaultTokenStorage, type TokenStorage } from './auth/tokenStorage'
 import { DefaultGoogleOAuthProvider, type GoogleOAuthProvider } from './auth/googleOAuthProvider'
+import { Logger } from '@/infrastructure/logger'
 
 interface GoogleAuthResponse {
   user_id: string
@@ -732,3 +734,13 @@ declare global {
 // Exportar clase y tipos
 export type { User, GoogleAuthResponse }
 export type { IAuthService, IAuthQuery, IAuthCommand, AuthState, MutableAuthState, GoogleAuthConfig, AuthServiceConfig } from './IAuthService'
+
+// Ajustar tipo de credentials si es necesario
+export async function authenticateUser(credentials: any) {
+  try {
+    // ...existing code...
+  } catch (error) {
+    Logger.error('Error autenticando usuario', error)
+    throw error
+  }
+}

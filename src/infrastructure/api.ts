@@ -5,6 +5,7 @@
 
 import { API_BASE_URL, DEFAULT_TIMEOUT_MS } from '@/config/api'
 import { csrfService } from './services/csrfService'
+import { Logger } from '@/infrastructure/logger'
 
 export interface ApiResponse<T> {
   data: T
@@ -37,6 +38,37 @@ export class ApiException extends Error {
  * Maneja headers, errores y transformación de respuestas
  */
 class ApiClient {
+  // Interceptor de refresh token: si una request devuelve 401, intenta refrescar y reintenta una vez
+  private async fetchWithRefresh<T>(fn: () => Promise<T>): Promise<T> {
+    try {
+      return await fn();
+    } catch (error) {
+      if (error instanceof ApiException && error.status === 401) {
+        // Intentar refresh
+        try {
+          await this.refreshToken();
+          // Reintentar la request original una vez
+          return await fn();
+        } catch (refreshError) {
+          // Si el refresh falla, propagar el error original
+          throw error;
+        }
+      }
+      throw error;
+    }
+  }
+
+  // Llama al endpoint de refresh token
+  private async refreshToken(): Promise<void> {
+    const response = await fetch(`${this.baseUrl}/api/auth/refresh`, {
+      method: 'POST',
+      credentials: 'include',
+    });
+    if (!response.ok) {
+      throw new ApiException(response.status, 'No se pudo refrescar el token');
+    }
+    // No es necesario procesar el body, las cookies se actualizan automáticamente
+  }
   private baseUrl: string
 
   constructor(baseUrl: string) {
@@ -146,11 +178,33 @@ class ApiClient {
    * GET request con retry automático
    */
   async get<T>(endpoint: string, params?: Record<string, string>): Promise<T> {
+    return this.fetchWithRefresh(() => this._get<T>(endpoint, params));
+  }
+
+  private async _get<T>(endpoint: string, params?: Record<string, string>): Promise<T> {
     return this.retryWithBackoff(async () => {
       const url = new URL(`${this.baseUrl}${endpoint}`)
-     Incluye token CSRF automáticamente
-   */
+      if (params) {
+        Object.entries(params).forEach(([key, value]) => url.searchParams.append(key, value))
+      }
+      const controller = new AbortController()
+      const timeout = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT_MS)
+      const response = await fetch(url.toString(), {
+        method: 'GET',
+        headers: this.getDefaultHeaders(),
+        signal: controller.signal,
+        credentials: 'include'
+      });
+      clearTimeout(timeout)
+      return this.handleResponse<T>(response)
+    })
+  }
+
   async post<T>(endpoint: string, data?: unknown): Promise<T> {
+    return this.fetchWithRefresh(() => this._post<T>(endpoint, data));
+  }
+
+  private async _post<T>(endpoint: string, data?: unknown): Promise<T> {
     return this.retryWithBackoff(async () => {
       const controller = new AbortController()
       const timeout = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT_MS)
@@ -159,11 +213,9 @@ class ApiClient {
         headers: this.getMutatingHeaders(),
         body: data ? JSON.stringify(data) : undefined,
         signal: controller.signal,
-        credentials: 'include' // Incluir cookies (necesario para CSRF)
-        headers: this.getDefaultHeaders(),
-        signal: controller.signal
-      }).finally(() => clearTimeout(timeout))
-
+        credentials: 'include'
+      });
+      clearTimeout(timeout)
       return this.handleResponse<T>(response)
     })
   }
@@ -171,24 +223,15 @@ class ApiClient {
   /**
    * POST request con retry automático
    */
-  async post<T>(endpoint: string, data?: unknown): Promise<T> {
-    return this.retryWithBackoff(async () => {
-      const controller = new AbortController()
-      const timeout = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT_MS)
-      const response = await fetch(`${this.baseUrl}${endpoint}`, {
-        method: 'POST',
-        headers: this.getDefaultHeaders(),
-        body: data ? JSON.stringify(data) : undefined,
-        signal: controller.signal
-      }).finally(() => clearTimeout(timeout))
-
-      return this.handleResponse<T>(response)
-    })
-  }
+  // ...existing code...
 
   /* Incluye token CSRF automáticamente
    */
   async put<T>(endpoint: string, data?: unknown): Promise<T> {
+    return this.fetchWithRefresh(() => this._put<T>(endpoint, data));
+  }
+
+  private async _put<T>(endpoint: string, data?: unknown): Promise<T> {
     return this.retryWithBackoff(async () => {
       const controller = new AbortController()
       const timeout = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT_MS)
@@ -197,11 +240,9 @@ class ApiClient {
         headers: this.getMutatingHeaders(),
         body: data ? JSON.stringify(data) : undefined,
         signal: controller.signal,
-        credentials: 'include' // Incluir cookies (necesario para CSRF)eaders(),
-        body: data ? JSON.stringify(data) : undefined,
-        signal: controller.signal
-      }).finally(() => clearTimeout(timeout))
-
+        credentials: 'include'
+      });
+      clearTimeout(timeout)
       return this.handleResponse<T>(response)
     })
   }
@@ -209,6 +250,10 @@ class ApiClient {
   /* Incluye token CSRF automáticamente
    */
   async patch<T>(endpoint: string, data?: unknown): Promise<T> {
+    return this.fetchWithRefresh(() => this._patch<T>(endpoint, data));
+  }
+
+  private async _patch<T>(endpoint: string, data?: unknown): Promise<T> {
     return this.retryWithBackoff(async () => {
       const controller = new AbortController()
       const timeout = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT_MS)
@@ -217,11 +262,9 @@ class ApiClient {
         headers: this.getMutatingHeaders(),
         body: data ? JSON.stringify(data) : undefined,
         signal: controller.signal,
-        credentials: 'include' // Incluir cookies (necesario para CSRF)eaders(),
-        body: data ? JSON.stringify(data) : undefined,
-        signal: controller.signal
-      }).finally(() => clearTimeout(timeout))
-
+        credentials: 'include'
+      });
+      clearTimeout(timeout)
       return this.handleResponse<T>(response)
     })
   }
@@ -229,6 +272,10 @@ class ApiClient {
   /* Incluye token CSRF automáticamente
    */
   async delete<T>(endpoint: string): Promise<T> {
+    return this.fetchWithRefresh(() => this._delete<T>(endpoint));
+  }
+
+  private async _delete<T>(endpoint: string): Promise<T> {
     return this.retryWithBackoff(async () => {
       const controller = new AbortController()
       const timeout = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT_MS)
@@ -236,15 +283,16 @@ class ApiClient {
         method: 'DELETE',
         headers: this.getMutatingHeaders(),
         signal: controller.signal,
-        credentials: 'include' // Incluir cookies (necesario para CSRF)
-        headers: this.getDefaultHeaders(),
-        signal: controller.signal
-      }).finally(() => clearTimeout(timeout))
-
+        credentials: 'include'
+      });
+      clearTimeout(timeout)
       return this.handleResponse<T>(response)
     })
   }
 }
+
+// Interceptor de errores globales
+// ...existing code...
 
 /**
  * Instancia singleton del cliente API

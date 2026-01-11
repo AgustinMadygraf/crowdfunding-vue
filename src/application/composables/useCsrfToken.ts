@@ -5,6 +5,7 @@
 import { onMounted } from 'vue'
 import { csrfService } from '@/infrastructure/services/csrfService'
 import { getApiBaseUrl } from '@/config/api'
+import { Logger } from '@/infrastructure/logger'
 
 /**
  * Composable para cargar y gestionar el token CSRF
@@ -136,6 +137,35 @@ export function useCsrfToken() {
   onMounted(() => {
     initializeCsrfToken()
   })
+
+  async function getCsrfToken() {
+    try {
+      // Intentar leer de meta tag primero (inyectado por servidor)
+      let token = csrfService.readFromHeader('X-CSRF-Token')
+      
+      // Si no está en meta tag, leer de cookie
+      if (!token) {
+        token = csrfService.readFromCookie('XSRF-TOKEN')
+      }
+
+      // Si encontramos un token, almacenarlo
+      if (token) {
+        csrfService.setToken(token)
+        if (import.meta.env.DEV) {
+          console.log('[useCsrfToken] ✅ Token CSRF inicializado exitosamente')
+        }
+      } else {
+        // Si no encontramos el token, solicitarlo del backend
+        if (import.meta.env.DEV) {
+          console.log('[useCsrfToken] 🔍 Token no encontrado en meta tag/cookie, solicitando del backend...')
+        }
+        await fetchCsrfTokenFromBackend()
+      }
+    } catch (error) {
+      Logger.error('Error obteniendo CSRF token (composable)', error)
+      throw error
+    }
+  }
 
   return {
     initializeCsrfToken,

@@ -13,6 +13,7 @@ Notas importantes:
 import type { Milestone } from '@/domain/milestone';
 import type { ContributionLevel } from '@/domain/contribution-level';
 import type { Update } from '@/domain/update';
+import { Logger } from '@/infrastructure/logger'
 
 export const mockMilestones: Milestone[] = [
   {
@@ -512,3 +513,16 @@ No publicaremos datos sensibles (cuentas, datos personales, números completos d
     publishedAt: '2026-01-18T12:00:00Z',
   },
 ];
+
+export function getMockData() {
+  try {
+    return {
+      milestones: mockMilestones,
+      contributionLevels: mockContributionLevels,
+      updates: mockUpdates,
+    };
+  } catch (error) {
+    Logger.error('Error obteniendo mock data', error)
+    throw error
+  }
+}

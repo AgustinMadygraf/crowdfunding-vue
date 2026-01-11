@@ -7,6 +7,16 @@ import App from './App.vue'
 import router from './router'
 import { authService } from '@/infrastructure/services/authServiceFactory'
 import { AUTH_SERVICE_KEY } from '@/application/useAuthService'
+import { Logger } from '@/infrastructure/logger'
+
+// Inicializar Sentry solo en producción
+if (import.meta.env.PROD) {
+  Logger.setupSentry({
+    dsn: import.meta.env.VITE_SENTRY_DSN,
+    environment: import.meta.env.MODE,
+    tracesSampleRate: 1.0,
+  })
+}
 
 // Captura UTM parameters en la carga inicial (NFR-MKT-001)
 const captureUTMParameters = () => {
@@ -47,4 +57,15 @@ const pinia = createPinia()
 app.use(pinia)
 app.use(router)
 app.provide(AUTH_SERVICE_KEY, authService)
+
+// Captura global de errores no manejados
+type GlobalError = ErrorEvent | PromiseRejectionEvent | Event
+
+window.addEventListener('error', (event: GlobalError) => {
+  Logger.error('Global error', event)
+})
+window.addEventListener('unhandledrejection', (event: PromiseRejectionEvent) => {
+  Logger.error('Unhandled promise rejection', event.reason)
+})
+
 app.mount('#app')

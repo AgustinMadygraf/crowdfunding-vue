@@ -1,3 +1,5 @@
+import { Logger } from '@/infrastructure/logger'
+
 export interface GoogleOAuthProvider {
   loadScript(): void
   isReady(): boolean
@@ -72,5 +74,14 @@ export class DefaultGoogleOAuthProvider implements GoogleOAuthProvider {
     } catch {
       // ignore
     }
+  }
+}
+
+export async function getGoogleOAuthToken() {
+  try {
+    // ...existing code...
+  } catch (error) {
+    Logger.error('Error obteniendo token de Google OAuth', error)
+    throw error
   }
 }

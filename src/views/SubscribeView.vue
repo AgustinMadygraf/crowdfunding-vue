@@ -10,6 +10,7 @@ import GoogleAuthButton from '@/components/auth/GoogleAuthButton.vue'
 import type { User } from '@/domain/user'
 import { sanitizeAvatarUrl } from '@/utils/urlSanitizer'
 import { useAuthStore } from '@/stores/authStore'
+import { Logger } from '@/infrastructure/logger'
 
 const router = useRouter()
 const { levels, selectedLevel, selectLevel, benefitAmount } = useContributionLevels()
@@ -128,7 +129,7 @@ const handleSubmit = async () => {
   isSubmitting.value = true
 
   try {
-    // Validar datos antes de enviar
+    // Validar datos antes de enviar (Zod)
     console.log('[Subscribe] ✔️ Validando datos de contribución...')
     const validationResult = validateContribution({
       user_id: user.value.id,
@@ -142,12 +143,12 @@ const handleSubmit = async () => {
       const errorMessages = Object.values(validationResult.errors).join(', ')
       submitError.value = `Validación fallida: ${errorMessages}`
       console.error('[Subscribe] ❌ Errores de validación:', validationResult.errors)
+      isSubmitting.value = false
       return
     }
 
     // Crear contribución usando repository
     console.log('[Subscribe] 1️⃣ Creando contribución en backend...')
-    
     const contribution = await contributionsRepository.create({
       user_id: user.value.id,
       monto: selectedLevel.value.amount,
@@ -155,7 +156,7 @@ const handleSubmit = async () => {
       nivel_nombre: selectedLevel.value.name,
       utm_params: utmParams.value || {}
     })
-    
+
     console.log('[Subscribe] ✅ Contribución creada')
     console.log('[Subscribe] 🎫 Token:', contribution.token.substring(0, 20) + '...')
 
@@ -165,13 +166,9 @@ const handleSubmit = async () => {
     console.log('[Subscribe] 2️⃣ Preparado para pago')
 
   } catch (error) {
-    console.error('[Subscribe] ❌ Error en handleSubmit:', error)
-    
+    Logger.error('Error en submit de contribución', error)
+    // Mostrar errores claros al usuario
     if (error instanceof ContributionRepositoryError) {
-      console.error('[Subscribe] Status:', error.statusCode)
-      console.error('[Subscribe] Detalles:', error.details)
-      
-      // Mensajes de error más amigables según código HTTP
       if (error.statusCode === 401) {
         submitError.value = 'Sesión expirada. Por favor, cerrá sesión y volvé a ingresar.'
       } else if (error.statusCode === 403) {
@@ -181,11 +178,13 @@ const handleSubmit = async () => {
       } else {
         submitError.value = error.message || 'Error al crear contribución'
       }
+    } else if (error instanceof Error) {
+      submitError.value = error.message
     } else {
-      submitError.value = error instanceof Error ? error.message : 'Error desconocido al procesar tu contribución'
+      submitError.value = 'Error desconocido al procesar tu contribución'
     }
-    console.error('[Subscribe] Stack:', error instanceof Error ? error.stack : 'No disponible')
-    submitError.value = error instanceof Error ? error.message : 'Error al procesar solicitud'
+    console.error('[Subscribe] ❌ Error en handleSubmit:', error)
+    isSubmitting.value = false
   } finally {
     isSubmitting.value = false
   }

@@ -5,6 +5,7 @@
  */
 
 import { apiClient } from '@/infrastructure/api'
+import { Logger } from '@/infrastructure/logger'
 import type { UpdateDTO, ListResponse } from '@/infrastructure/dto'
 
 export const updatesService = {
@@ -21,7 +22,7 @@ export const updatesService = {
       const response = await apiClient.get<ListResponse<UpdateDTO>>('/api/updates', queryParams)
       return response.data
     } catch (error) {
-      console.error('Error fetching updates:', error)
+      Logger.error('Error obteniendo updates', error)
       throw error
     }
   },

@@ -7,6 +7,7 @@ import { computed, ref } from 'vue'
 import { authService } from '@/infrastructure/services/authServiceFactory'
 import type { User } from '@/domain/user'
 import type { AuthState } from '@/infrastructure/services/IAuthService'
+import { Logger } from '@/infrastructure/logger'
 
 const mapStateFromService = (): AuthState => {
   const state = authService.getAuthState()
@@ -43,6 +44,7 @@ export const useAuthStore = defineStore('auth', () => {
       hydrateFromService()
       return authenticatedUser
     } catch (err) {
+      Logger.error('Error en login (authStore)', err)
       error.value = err instanceof Error ? err.message : 'Error desconocido de autenticación'
       isAuthenticated.value = false
       throw err

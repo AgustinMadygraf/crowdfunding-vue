@@ -1,3 +1,5 @@
+import { Logger } from '@/infrastructure/logger'
+
 /**
  * UTM Parameters Utility
  * Maneja la captura y recuperación de parámetros UTM desde sessionStorage
@@ -53,4 +55,32 @@ export const clearUTMParams = (): void => {
  */
 export const hasUTMParams = (): boolean => {
   return sessionStorage.getItem('utm_params') !== null
+}
+
+/**
+ * Parsea los parámetros UTM de una URL
+ * @param url URL con parámetros UTM
+ * @returns Objeto con parámetros UTM
+ */
+export function parseUtmParams(url: string) {
+  try {
+    const urlParams = new URLSearchParams(url)
+    const getOrUndefined = (key: string): string | undefined => {
+      const value = urlParams.get(key)
+      return value === null ? undefined : value
+    }
+    const utmParams: UTMParams = {
+      utm_source: getOrUndefined('utm_source'),
+      utm_medium: getOrUndefined('utm_medium'),
+      utm_campaign: getOrUndefined('utm_campaign'),
+      utm_term: getOrUndefined('utm_term'),
+      utm_content: getOrUndefined('utm_content'),
+      campaign_id: getOrUndefined('campaign_id'),
+      referrer: getOrUndefined('referrer'),
+    }
+    return utmParams
+  } catch (error) {
+    Logger.error('Error parseando UTM params', error)
+    throw error
+  }
 }

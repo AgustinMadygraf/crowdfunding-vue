@@ -6,6 +6,7 @@ import { milestonesRepository, MilestoneRepositoryError } from '@/infrastructure
 import { updatesRepository, UpdateRepositoryError } from '@/infrastructure/repositories/UpdatesRepository'
 import { contributionsRepository, ContributionRepositoryError } from '@/infrastructure/repositories/ContributionsRepository'
 import type { MilestoneDTO, UpdateDTO } from '@/infrastructure/dto'
+import { Logger } from '@/infrastructure/logger'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -58,6 +59,24 @@ const loadData = async () => {
   } catch (err) {
     console.error('[AdminView] ❌ Error al cargar datos:', err)
     error.value = 'Error al cargar datos administrativos'
+  } finally {
+    isLoading.value = false
+  }
+}
+
+const fetchAdminData = async () => {
+  try {
+    isLoading.value = true
+    error.value = null
+
+    // Cargar milestones
+    milestones.value = await milestonesRepository.getAll()
+
+    // Cargar updates
+    updates.value = await updatesRepository.getAll()
+  } catch (err) {
+    Logger.error('Error obteniendo datos de admin', err)
+    error.value = err instanceof Error ? err.message : 'Error al obtener datos administrativos'
   } finally {
     isLoading.value = false
   }
@@ -593,6 +612,7 @@ const formatDate = (dateString: string) => {
   line-height: 1.5;
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }

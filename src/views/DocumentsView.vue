@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { documentsRepository, DocumentRepositoryError } from '@/infrastructure/repositories/DocumentsRepository'
+import { Logger } from '@/infrastructure/logger'
 import type { DocumentDTO } from '@/infrastructure/dto'
 
 // State
@@ -55,6 +56,7 @@ const loadDocuments = async () => {
     }
   } catch (err) {
     console.error('[DocumentsView] ❌ Error al cargar documentos:', err)
+    Logger.error('Error obteniendo documentos (vista)', err)
     
     if (err instanceof DocumentRepositoryError) {
       error.value = err.message || 'Error al cargar documentos'
@@ -287,6 +289,7 @@ onMounted(() => {
   line-height: 1.5;
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }

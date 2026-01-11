@@ -6,8 +6,9 @@
 import { AuthService } from './authService'
 import { getApiBaseUrl } from '@/config/api'
 import type { IAuthService, AuthServiceConfig } from './IAuthService'
-import { DefaultTokenStorage, SessionStorageTokenStorage } from './auth/tokenStorage'
+import { DefaultTokenStorage, SessionStorageTokenStorage, MemoryOnlyTokenStorage } from './auth/tokenStorage'
 import { DefaultGoogleOAuthProvider } from './auth/googleOAuthProvider'
+import { Logger } from '@/infrastructure/logger'
 
 /**
  * Configuración por defecto del servicio de autenticación
@@ -45,18 +46,22 @@ const defaultConfig: AuthServiceConfig = {
  * })
  */
 export function createAuthService(config?: Partial<AuthServiceConfig>): IAuthService {
-  const finalConfig: AuthServiceConfig = {
-    ...defaultConfig,
-    ...config
+  try {
+    const finalConfig: AuthServiceConfig = {
+      ...defaultConfig,
+      ...config
+    }
+
+    // MIGRATION: Usar MemoryOnlyTokenStorage (máxima seguridad, no persiste entre recargas)
+    // Requiere que el backend maneje la sesión vía httpOnly cookies para persistencia real
+    const storage = new MemoryOnlyTokenStorage()
+    const provider = new DefaultGoogleOAuthProvider()
+
+    return new AuthService(finalConfig, { storage, provider })
+  } catch (error) {
+    Logger.error('Error creando AuthService', error)
+    throw error
   }
-
-  // MIGRATION: Usar MemoryOnlyTokenStorage (máxima seguridad, no persiste entre recargas)
-  // Requiere que el backend maneje la sesión vía httpOnly cookies para persistencia real
-  const { MemoryOnlyTokenStorage } = require('./auth/tokenStorage')
-  const storage = new MemoryOnlyTokenStorage()
-  const provider = new DefaultGoogleOAuthProvider()
-
-  return new AuthService(finalConfig, { storage, provider })
 }
 
 /**

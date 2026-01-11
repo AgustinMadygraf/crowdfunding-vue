@@ -3,6 +3,7 @@ import { ref, computed } from 'vue';
 import { useUpdates } from '@/application/useUpdates';
 import UpdateCard from '@/components/updates/UpdateCard.vue';
 import type { Update, UpdateCategory } from '@/domain/update';
+import { Logger } from '@/infrastructure/logger';
 
 const { updates, categoryCounts } = useUpdates(false); // false = usar mocks
 const selectedCategory = ref<UpdateCategory | 'all'>('all');
@@ -39,6 +40,17 @@ const handleCloseModal = () => {
   showModal.value = false;
   selectedUpdate.value = null;
 };
+
+const fetchUpdates = async () => {
+  try {
+    // Lógica para obtener updates
+  } catch (error) {
+    Logger.error('Error obteniendo updates (vista)', error);
+    // Manejo de error adicional si es necesario
+  }
+};
+
+fetchUpdates();
 </script>
 
 <template>

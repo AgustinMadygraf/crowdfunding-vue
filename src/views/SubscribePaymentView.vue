@@ -148,6 +148,7 @@ import { useRoute } from 'vue-router'
 import { useSubscription } from '@/application/useSubscription'
 import { useAuthService } from '@/application/useAuthService'
 import type { User } from '@/domain/user'
+import { Logger } from '@/infrastructure/logger'
 
 interface Contribution {
   id: string

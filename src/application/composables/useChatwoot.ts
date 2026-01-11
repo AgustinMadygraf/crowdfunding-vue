@@ -6,6 +6,7 @@
  */
 
 import { ref, onMounted } from 'vue'
+import { Logger } from '@/infrastructure/logger'
 
 /**
  * Estado de disponibilidad del widget Chatwoot
@@ -235,6 +236,37 @@ export function useChatwoot() {
     state.value.errorMessage = null
   }
 
+  /**
+   * Envia un mensaje de texto al chat de Chatwoot
+   * @param message - Mensaje a enviar
+   */
+  const sendChatwootMessage = async (message: string) => {
+    try {
+      const isReady = await waitForChatwootReady()
+      if (!isReady) {
+        console.warn('Chatwoot no está listo. Intentando enviar mensaje de todas formas.')
+      }
+
+      const sdk = getChatwootSDK()
+      if (!sdk) {
+        state.value.isError = true
+        state.value.errorMessage = 'Chatwoot SDK no disponible'
+        console.error('window.$chatwoot no encontrado')
+        return false
+      }
+
+      sdk.sendMessage(message)
+      state.value.isError = false
+      return true
+    } catch (error) {
+      Logger.error('Error enviando mensaje a Chatwoot (composable)', error)
+      state.value.isError = true
+      state.value.errorMessage = `Error en sendChatwootMessage: ${(error as Error).message}`
+      console.error('Error calling sendChatwootMessage:', error)
+      return false
+    }
+  }
+
   return {
     // Estado
     state,
@@ -252,6 +284,9 @@ export function useChatwoot() {
     initializeChatwoot,
     waitForChatwootReady,
     getChatwootSDK,
-    clearError
+    clearError,
+
+    // Envío de mensajes
+    sendChatwootMessage
   }
 }

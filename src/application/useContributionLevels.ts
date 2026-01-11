@@ -1,6 +1,7 @@
 import { computed, ref } from 'vue';
 import type { ContributionLevel } from '@/domain/contribution-level';
 import { mockContributionLevels } from '@/infrastructure/mockData';
+import { Logger } from '@/infrastructure/logger'
 
 export function useContributionLevels() {
   const levels = ref<ContributionLevel[]>([...mockContributionLevels]);
@@ -13,6 +14,15 @@ export function useContributionLevels() {
   const selectLevel = (level: ContributionLevel) => {
     selectedLevel.value = level;
   };
+
+  const fetchContributionLevels = async () => {
+    try {
+      // ...existing code...
+    } catch (error) {
+      Logger.error('Error fetching contribution levels', error)
+      throw error
+    }
+  }
 
   return {
     levels,

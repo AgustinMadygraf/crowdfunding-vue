@@ -1,4 +1,5 @@
 import type { User } from '@/domain/user'
+import { Logger } from '@/infrastructure/logger'
 
 export interface TokenStorage {
   load(): { user: User | null; token: string | null }
@@ -29,6 +30,7 @@ export class DefaultTokenStorage implements TokenStorage {
       localStorage.setItem(this.tokenKey, token)
       localStorage.setItem(this.userKey, JSON.stringify(user))
     } catch (e) {
+      Logger.error('Error guardando token', e)
       // Ignore storage errors; session becomes non-persistent
     }
   }
@@ -72,6 +74,7 @@ export class SessionStorageTokenStorage implements TokenStorage {
         console.log('[SessionStorageTokenStorage] ✅ Token guardado en sessionStorage')
       }
     } catch (e) {
+      Logger.error('Error guardando token en sessionStorage', e)
       // Ignore storage errors; session becomes non-persistent
       if (import.meta.env.DEV) {
         console.warn('[SessionStorageTokenStorage] ⚠️ No se pudo guardar en sessionStorage')
@@ -121,6 +124,15 @@ export class MemoryOnlyTokenStorage implements TokenStorage {
     if (import.meta.env.DEV) {
       console.log('[MemoryOnlyTokenStorage] ✅ Token eliminado de memoria')
     }
+  }
+}
+
+export function saveToken(token: string) {
+  try {
+    // ...existing code...
+  } catch (error) {
+    Logger.error('Error guardando token', error)
+    throw error
   }
 }
 
