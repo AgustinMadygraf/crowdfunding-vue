@@ -72,7 +72,7 @@
 
           <div class="contribution-actions">
             <router-link 
-              :to="`/subscribe/${contribution.token}`"
+              :to="`/suscribir/${contribution.token}`"
               class="view-link"
             >
               Ver Detalles
@@ -109,14 +109,14 @@
     <div v-if="!isLoading && contributions.length === 0 && !error" class="empty-state">
       <h2>Aún no tienes contribuciones</h2>
       <p>¡Comienza tu primer aporte hoy!</p>
-      <router-link to="/subscribe" class="primary-button">
+      <router-link to="/suscribir" class="primary-button">
         Hacer una Contribución
       </router-link>
     </div>
 
     <!-- New Contribution Button -->
     <div v-if="contributions.length > 0" class="actions-footer">
-      <router-link to="/subscribe" class="secondary-button">
+      <router-link to="/suscribir" class="secondary-button">
         + Nueva Contribución
       </router-link>
     </div>
@@ -261,7 +261,7 @@ const getPendingCount = (): number => {
  * Navega a la página de pago
  */
 const goToPayment = (token: string) => {
-  router.push(`/subscribe/${token}`)
+  router.push(`/suscribir/${token}`)
 }
 
 /**

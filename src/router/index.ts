@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { authService } from '@/infrastructure/services/authService'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -71,9 +72,18 @@ const router = createRouter({
       path: '/account',
       name: 'account',
       component: () => import('../views/UserDashboardView.vue'),
+      beforeEnter: (to, from, next) => {
+        if (authService.isAuthenticated()) {
+          next()
+        } else {
+          console.warn('[Router] Acceso denegado a /account: usuario no autenticado')
+          next('/suscribir')
+        }
+      },
       meta: {
         title: 'Mi Cuenta - Madypack',
-        description: 'Panel de usuario con tu historial de contribuciones'
+        description: 'Panel de usuario con tu historial de contribuciones',
+        requiresAuth: true
       }
     },
     {

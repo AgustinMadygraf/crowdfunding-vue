@@ -100,6 +100,12 @@ onMounted(async () => {
 const handleAuthSuccess = (authenticatedUser: User) => {
   user.value = authenticatedUser
   isAuthenticationModalOpen.value = false
+  
+  // Forzar actualización de la UI redirigiendo brevemente
+  console.log('[Subscribe] ✅ Auth exitoso, actualizando UI...')
+  setTimeout(() => {
+    window.location.reload()
+  }, 300)
 }
 
 /**
