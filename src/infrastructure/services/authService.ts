@@ -4,6 +4,7 @@
  */
 
 import type { User } from '@/domain/user'
+import type { IAuthService, AuthState, MutableAuthState, GoogleAuthConfig, AuthServiceConfig } from './IAuthService'
 
 interface GoogleAuthResponse {
   user_id: string
@@ -13,16 +14,8 @@ interface GoogleAuthResponse {
   auth_token: string
 }
 
-interface AuthState {
-  user: User | null
-  token: string | null
-  isAuthenticated: boolean
-  isLoading: boolean
-  error: string | null
-}
-
-class AuthService {
-  private authState: AuthState = {
+export class AuthService implements IAuthService {
+  private authState: MutableAuthState = {
     user: null,
     token: null,
     isAuthenticated: false,
@@ -30,12 +23,21 @@ class AuthService {
     error: null
   }
 
-  private readonly API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'
-  private readonly GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || ''
-  private readonly TOKEN_STORAGE_KEY = 'auth_token'
-  private readonly USER_STORAGE_KEY = 'auth_user'
+  private readonly API_BASE_URL: string
+  private readonly GOOGLE_CLIENT_ID: string
+  private readonly TOKEN_STORAGE_KEY: string
+  private readonly USER_STORAGE_KEY: string
+  private loginAttempts: { timestamp: number }[] = []
+  private readonly MAX_LOGIN_ATTEMPTS = 5
+  private readonly LOGIN_TIMEOUT_MS = 60000 // 1 minuto
 
-  constructor() {
+  constructor(config?: AuthServiceConfig) {
+    // Aplicar configuración con fallback a variables de entorno
+    this.API_BASE_URL = config?.apiBaseUrl || import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'
+    this.GOOGLE_CLIENT_ID = config?.googleClientId || import.meta.env.VITE_GOOGLE_CLIENT_ID || ''
+    this.TOKEN_STORAGE_KEY = config?.tokenStorageKey || 'auth_token'
+    this.USER_STORAGE_KEY = config?.userStorageKey || 'auth_user'
+
     // Validar que el client_id esté configurado
     if (!this.GOOGLE_CLIENT_ID) {
       console.error('[Auth] ❌ VITE_GOOGLE_CLIENT_ID no está configurado en las variables de entorno')
@@ -44,63 +46,92 @@ class AuthService {
       console.warn('[Auth] 📋 Con contenido: VITE_GOOGLE_CLIENT_ID=tu_client_id_aqui.apps.googleusercontent.com')
       this.authState.error = 'Configuración de Google OAuth incompleta'
     } else {
-      console.log('[Auth] ✅ Google Client ID configurado correctamente')
-      console.log('[Auth] 🔑 Client ID:', this.GOOGLE_CLIENT_ID.substring(0, 20) + '...')
+      // Solo loguear client ID en desarrollo por seguridad
+      if (import.meta.env.DEV) {
+        console.log('[Auth] ✅ Google Client ID configurado correctamente')
+        console.log('[Auth] 🔑 Client ID:', this.GOOGLE_CLIENT_ID.substring(0, 20) + '...')
+      } else {
+        console.log('[Auth] ✅ Google Client ID configurado correctamente')
+      }
+    }
+
+    // Validar que API use HTTPS en producción
+    if (import.meta.env.PROD && !this.API_BASE_URL.startsWith('https://')) {
+      console.error('[Auth] 🚨 SEGURIDAD: API_BASE_URL debe usar HTTPS en producción')
+      console.error('[Auth] URL actual:', this.API_BASE_URL)
+      throw new Error('API must use HTTPS in production')
     }
 
     this.loadStoredAuth()
     this.loadGoogleScript()
-    this.setupGoogleErrorInterceptor()
   }
 
   /**
-   * Intercepta errores de Google (GSI_LOGGER) para mostrar instrucciones
+   * Decodifica un JWT y retorna su payload
+   * @param token JWT en formato xxx.yyy.zzz
+   * @returns Payload decodificado o null si no es JWT válido
    */
-  private setupGoogleErrorInterceptor(): void {
-    // Interceptar console.error
-    const originalError = console.error
-    const originalWarn = console.warn
-    const self = this
-    
-    const detectGoogleOriginError = function(...args: any[]) {
-      const message = args.join(' ')
-      
-      // Detectar mensaje específico de Google sobre origen no autorizado
-      if ((message.includes('GSI_LOGGER') || message.includes('gsi')) && 
-          (message.includes('origin is not allowed') || message.includes('origin') && message.includes('not allowed'))) {
-        
-        // Mostrar el error original primero
-        originalError.apply(console, args)
-        
-        // Luego mostrar instrucciones
-        setTimeout(() => {
-          console.error('[Auth] ')
-          console.error('[Auth] ❌❌❌ DETECTADO: Google bloqueó el origen')
-          console.error('[Auth] 🌐 Origen bloqueado:', window.location.origin)
-          console.error('[Auth] 🔑 Client ID:', self.GOOGLE_CLIENT_ID.substring(0, 30) + '...')
-          console.error('[Auth] ')
-          console.error('[Auth] 🔧 SOLUCIÓN INMEDIATA (5 min):')
-          console.error('[Auth] 1. Abre: https://console.cloud.google.com/apis/credentials')
-          console.error('[Auth] 2. Busca el Client ID de arriba')
-          console.error('[Auth] 3. Click en editar > "Authorized JavaScript origins"')
-          console.error('[Auth] 4. Agrega:', window.location.origin)
-          console.error('[Auth] 5. Agrega también: http://127.0.0.1:5173')
-          console.error('[Auth] 6. Guarda y espera 1-2 minutos')
-          console.error('[Auth] 7. Recarga con Ctrl+Shift+R')
-          console.error('[Auth] ')
-          console.error('[Auth] 📚 Guía completa: docs/GOOGLE_ORIGIN_NOT_AUTHORIZED_FIX.md')
-        }, 100)
-        return
+  private decodeJWT(token: string): any | null {
+    try {
+      const parts = token.split('.')
+      if (parts.length !== 3) {
+        console.warn('[Auth] ⚠️ Token no tiene formato JWT (esperado: 3 partes, recibido:', parts.length + ')')
+        return null
       }
-      
-      originalError.apply(console, args)
+
+      // Decodificar payload (segunda parte)
+      const payload = parts[1]
+      // Reemplazar caracteres URL-safe de Base64
+      const base64 = payload.replace(/-/g, '+').replace(/_/g, '/')
+      const jsonPayload = decodeURIComponent(
+        atob(base64)
+          .split('')
+          .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+          .join('')
+      )
+
+      return JSON.parse(jsonPayload)
+    } catch (error) {
+      console.error('[Auth] ❌ Error al decodificar JWT:', error)
+      console.error('[Auth] Token (primeros 20 chars):', token.substring(0, 20) + '...')
+      return null
     }
+  }
+
+  /**
+   * Valida si un JWT ha expirado
+   * @param token JWT a validar
+   * @returns true si el token es válido y no expiró, false si expiró o no es JWT
+   */
+  private isTokenValid(token: string): boolean {
+    const payload = this.decodeJWT(token)
     
-    console.error = detectGoogleOriginError as any
-    console.warn = function(...args: any[]) {
-      detectGoogleOriginError.apply(console, args)
-      originalWarn.apply(console, args)
-    } as any
+    if (!payload) {
+      console.warn('[Auth] ⚠️ No se pudo decodificar token para validar expiración')
+      // Si no es JWT, asumir válido y dejar que backend decida (401)
+      return true
+    }
+
+    // Verificar claim 'exp' (expiración en segundos Unix)
+    if (!payload.exp) {
+      console.warn('[Auth] ⚠️ JWT sin claim "exp"; no se puede validar expiración en frontend')
+      return true // Asumir válido si no tiene exp
+    }
+
+    const now = Math.floor(Date.now() / 1000) // Timestamp actual en segundos
+    const isExpired = now >= payload.exp
+
+    if (isExpired) {
+      const expiredDate = new Date(payload.exp * 1000).toLocaleString('es-AR')
+      console.warn('[Auth] ⏰ Token expiró el', expiredDate)
+      console.warn('[Auth] 🕐 Tiempo actual:', new Date().toLocaleString('es-AR'))
+    } else {
+      const expiresIn = payload.exp - now
+      const minutesLeft = Math.floor(expiresIn / 60)
+      console.log(`[Auth] ✅ Token válido (expira en ${minutesLeft} minutos)`)
+    }
+
+    return !isExpired
   }
 
   /**
@@ -149,6 +180,21 @@ class AuthService {
    * @param token Token de ID de Google
    */
   async loginWithGoogle(token: string): Promise<User> {
+    // Rate limiting: prevenir spam de intentos de login
+    const now = Date.now()
+    this.loginAttempts = this.loginAttempts.filter(attempt => now - attempt.timestamp < this.LOGIN_TIMEOUT_MS)
+    
+    if (this.loginAttempts.length >= this.MAX_LOGIN_ATTEMPTS) {
+      const oldestAttempt = this.loginAttempts[0].timestamp
+      const waitTime = Math.ceil((this.LOGIN_TIMEOUT_MS - (now - oldestAttempt)) / 1000)
+      const errorMsg = `Demasiados intentos de login. Espera ${waitTime} segundos.`
+      console.warn(`[Auth] 🚫 Rate limit alcanzado: ${this.loginAttempts.length} intentos en 1 minuto`)
+      this.authState.error = errorMsg
+      throw new Error(errorMsg)
+    }
+    
+    this.loginAttempts.push({ timestamp: now })
+    
     this.authState.isLoading = true
     this.authState.error = null
 
@@ -305,6 +351,13 @@ class AuthService {
       const userStr = localStorage.getItem(this.USER_STORAGE_KEY)
 
       if (token && userStr) {
+        // Validar que el token no haya expirado
+        if (!this.isTokenValid(token)) {
+          console.warn('[Auth] ❌ Token expirado, cerrando sesión...')
+          this.logout()
+          return
+        }
+
         try {
           this.authState.user = JSON.parse(userStr)
           this.authState.token = token
@@ -630,6 +683,6 @@ declare global {
   }
 }
 
-// Exportar singleton
-export const authService = new AuthService()
-export type { User, AuthState, GoogleAuthResponse }
+// Exportar clase y tipos
+export type { User, GoogleAuthResponse }
+export type { IAuthService, IAuthQuery, IAuthCommand, AuthState, MutableAuthState, GoogleAuthConfig, AuthServiceConfig } from './IAuthService'

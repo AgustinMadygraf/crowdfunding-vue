@@ -145,7 +145,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
-import { authService } from '@/infrastructure/services/authService'
+import { authService } from '@/infrastructure/services/authServiceFactory'
 import type { User } from '@/domain/user'
 
 interface Contribution {

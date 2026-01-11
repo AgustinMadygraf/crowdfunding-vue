@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
-import { mockUpdates } from '@/infrastructure/mockData';
+import { useUpdates } from '@/application/useUpdates';
 import UpdateCard from '@/components/updates/UpdateCard.vue';
 import type { Update, UpdateCategory } from '@/domain/update';
 
-const updates = ref<Update[]>(mockUpdates.filter(u => u.status === 'published'));
+const { updates, categoryCounts } = useUpdates(false); // false = usar mocks
 const selectedCategory = ref<UpdateCategory | 'all'>('all');
 const selectedUpdate = ref<Update | null>(null);
 const showModal = ref(false);
@@ -22,13 +22,13 @@ const sortedUpdates = computed(() => {
   });
 });
 
-const categories = [
-  { value: 'all', label: 'Todas', count: updates.value.length },
-  { value: 'comercial', label: 'Comercial', count: updates.value.filter(u => u.category === 'comercial').length },
-  { value: 'tecnico', label: 'Técnico', count: updates.value.filter(u => u.category === 'tecnico').length },
-  { value: 'logistica', label: 'Logística', count: updates.value.filter(u => u.category === 'logistica').length },
-  { value: 'legal', label: 'Legal', count: updates.value.filter(u => u.category === 'legal').length },
-];
+const categories = computed(() => [
+  { value: 'all', label: 'Todas', count: categoryCounts.value.all },
+  { value: 'comercial', label: 'Comercial', count: categoryCounts.value.comercial },
+  { value: 'tecnico', label: 'Técnico', count: categoryCounts.value.tecnico },
+  { value: 'logistica', label: 'Logística', count: categoryCounts.value.logistica },
+  { value: 'legal', label: 'Legal', count: categoryCounts.value.legal },
+]);
 
 const handleCardClick = (update: Update) => {
   selectedUpdate.value = update;

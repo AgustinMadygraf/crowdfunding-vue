@@ -1,7 +1,7 @@
 import { computed, ref, onMounted } from 'vue'
 import type { Milestone } from '@/domain/milestone'
 import { mockMilestones } from '@/infrastructure/mockData'
-import { milestonesService } from '@/infrastructure/services'
+import { milestonesRepository, MilestoneRepositoryError } from '@/infrastructure/repositories/MilestonesRepository'
 import type { MilestoneDTO } from '@/infrastructure/dto'
 
 /**
@@ -28,11 +28,16 @@ export function useMilestones(useApi = false) {
     error.value = null
 
     try {
-      const data = await milestonesService.getAll()
+      const data = await milestonesRepository.getAll()
       milestones.value = data.map(transformMilestone)
     } catch (err) {
-      console.error('Error loading milestones:', err)
-      error.value = 'Error al cargar las etapas'
+      if (err instanceof MilestoneRepositoryError) {
+        console.error('[useMilestones] ❌', err.message, 'HTTP', err.statusCode)
+        error.value = err.message
+      } else {
+        console.error('[useMilestones] ❌ Error inesperado:', err)
+        error.value = 'Error al cargar las etapas'
+      }
       // Fallback a datos mock en caso de error
       milestones.value = [...mockMilestones]
     } finally {

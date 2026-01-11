@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 import AppFooter from '@/components/layout/AppFooter.vue'
 import AppHeader from '@/components/layout/AppHeader.vue'
-import { authService } from '@/infrastructure/services/authService'
+import { authService } from '@/infrastructure/services/authServiceFactory'
 
 const isAuthenticated = computed(() => authService.isAuthenticated())
 

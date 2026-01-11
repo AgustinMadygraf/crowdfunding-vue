@@ -36,7 +36,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
-import { authService } from '@/infrastructure/services/authService'
+import { authService } from '@/infrastructure/services/authServiceFactory'
 import type { User } from '@/domain/user'
 
 const props = defineProps({

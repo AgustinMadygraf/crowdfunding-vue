@@ -4,7 +4,8 @@ import { useRouter } from 'vue-router'
 import { useContributionLevels } from '@/application/useContributionLevels'
 import { getUTMFromSessionStorage, type UTMParams } from '@/utils/utm'
 import { initMercadoPago } from '@/infrastructure/mercadopagoService'
-import { authService } from '@/infrastructure/services/authService'
+import { authService } from '@/infrastructure/services/authServiceFactory'
+import { contributionsRepository, ContributionRepositoryError } from '@/infrastructure/repositories/ContributionsRepository'
 import GoogleAuthButton from '@/components/auth/GoogleAuthButton.vue'
 import type { User } from '@/domain/user'
 
@@ -84,82 +85,8 @@ const handleAuthSuccess = (authenticatedUser: User) => {
 }
 
 /**
- * Crea una contribución en el backend
+ * Maneja el submit del formulario
  */
-const createContribution = async (): Promise<{ token: string; preference_id: string }> => {
-  console.log('[Subscribe] 📝 Creando contribución...')
-  
-  if (!user.value) {
-    const errorMsg = 'Usuario no disponible'
-    console.error('[Subscribe] ❌ ' + errorMsg)
-    throw new Error(errorMsg)
-  }
-
-  if (!selectedLevel.value) {
-    const errorMsg = 'Nivel de contribución no seleccionado'
-    console.error('[Subscribe] ❌ ' + errorMsg)
-    throw new Error(errorMsg)
-  }
-
-  console.log('[Subscribe] 👤 Usuario:', user.value.email)
-  console.log('[Subscribe] 💰 Nivel:', selectedLevel.value.name, `($${selectedLevel.value.amount})`)
-
-  const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'
-  const headers = authService.getAuthHeaders()
-
-  console.log(`[Subscribe] 📤 Enviando a: ${apiBaseUrl}/api/contributions`)
-
-  try {
-    const response = await fetch(`${apiBaseUrl}/api/contributions`, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify({
-        user_id: user.value.id,
-        monto: selectedLevel.value.amount,
-        nivel_id: selectedLevel.value.name,
-        nivel_nombre: selectedLevel.value.name,
-        utm_params: utmParams.value || {}
-      })
-    }).catch((fetchError) => {
-      console.error('[Subscribe] ❌ Error de conexión:', fetchError)
-      console.error('[Subscribe] 🌐 URL:', apiBaseUrl)
-      throw new Error(`No se pudo conectar: ${fetchError instanceof Error ? fetchError.message : 'Error desconocido'}`)
-    })
-
-    if (!response.ok) {
-      console.error(`[Subscribe] ❌ Respuesta del servidor: HTTP ${response.status}`)
-      
-      let errorData: any = {}
-      try {
-        errorData = await response.json()
-        console.error('[Subscribe] Respuesta:', errorData)
-      } catch (parseErr) {
-        const text = await response.text()
-        console.error('[Subscribe] Contenido:', text)
-      }
-
-      const errorMsg = errorData.message || `HTTP ${response.status}`
-      throw new Error(errorMsg)
-    }
-
-    let result: any
-    try {
-      result = await response.json()
-      console.log('[Subscribe] ✅ Contribución creada')
-      console.log('[Subscribe] 🎫 Token:', result.token?.substring(0, 20) + '...')
-      console.log('[Subscribe] 🛒 Preference ID:', result.preference_id)
-      return result
-    } catch (parseError) {
-      console.error('[Subscribe] ❌ Error al parsear respuesta:', parseError)
-      throw new Error('Respuesta inválida del servidor')
-    }
-  } catch (error) {
-    console.error('[Subscribe] ❌ Error al crear contribución:', error)
-    console.error('[Subscribe] Mensaje:', error instanceof Error ? error.message : 'Error desconocido')
-    throw error
-  }
-}
-
 const handleSubmit = async () => {
   console.log('[Subscribe] 🔄 handleSubmit iniciado')
   
@@ -176,18 +103,32 @@ const handleSubmit = async () => {
     return
   }
 
+  if (!user.value) {
+    submitError.value = 'Error: usuario no disponible'
+    return
+  }
+
   console.log('[Subscribe] 📝 Creando contribución...')
-  console.log('[Subscribe] 👤 Email:', user.value?.email)
+  console.log('[Subscribe] 👤 Email:', user.value.email)
   console.log('[Subscribe] 💰 Nivel:', selectedLevel.value.name, `($${selectedLevel.value.amount})`)
 
   submitError.value = null
   isSubmitting.value = true
 
   try {
-    // Crear contribución en el backend
+    // Crear contribución usando repository
     console.log('[Subscribe] 1️⃣ Creando contribución en backend...')
-    const contribution = await createContribution()
+    
+    const contribution = await contributionsRepository.create({
+      user_id: user.value.id,
+      monto: selectedLevel.value.amount,
+      nivel_id: selectedLevel.value.name,
+      nivel_nombre: selectedLevel.value.name,
+      utm_params: utmParams.value || {}
+    })
+    
     console.log('[Subscribe] ✅ Contribución creada')
+    console.log('[Subscribe] 🎫 Token:', contribution.token.substring(0, 20) + '...')
 
     contributionToken.value = contribution.token
     contributionCreated.value = true
@@ -196,8 +137,24 @@ const handleSubmit = async () => {
 
   } catch (error) {
     console.error('[Subscribe] ❌ Error en handleSubmit:', error)
-    console.error('[Subscribe] Tipo:', typeof error)
-    console.error('[Subscribe] Detalles:', error instanceof Error ? error.message : 'Error desconocido')
+    
+    if (error instanceof ContributionRepositoryError) {
+      console.error('[Subscribe] Status:', error.statusCode)
+      console.error('[Subscribe] Detalles:', error.details)
+      
+      // Mensajes de error más amigables según código HTTP
+      if (error.statusCode === 401) {
+        submitError.value = 'Sesión expirada. Por favor, cerrá sesión y volvé a ingresar.'
+      } else if (error.statusCode === 403) {
+        submitError.value = 'No tenés permisos para realizar esta acción.'
+      } else if (error.statusCode && error.statusCode >= 500) {
+        submitError.value = 'Error del servidor. Por favor, intentá de nuevo más tarde.'
+      } else {
+        submitError.value = error.message || 'Error al crear contribución'
+      }
+    } else {
+      submitError.value = error instanceof Error ? error.message : 'Error desconocido al procesar tu contribución'
+    }
     console.error('[Subscribe] Stack:', error instanceof Error ? error.stack : 'No disponible')
     submitError.value = error instanceof Error ? error.message : 'Error al procesar solicitud'
   } finally {

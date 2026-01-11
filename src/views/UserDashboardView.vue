@@ -126,24 +126,15 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { authService } from '@/infrastructure/services/authService'
+import { authService } from '@/infrastructure/services/authServiceFactory'
+import { contributionsRepository, ContributionRepositoryError, type UserContribution } from '@/infrastructure/repositories/ContributionsRepository'
 import type { User } from '@/domain/user'
-
-interface Contribution {
-  id: string
-  monto: number
-  nivel_nombre: string
-  estado_pago: 'pendiente' | 'procesando' | 'completado' | 'fallido' | 'cancelado'
-  created_at: string
-  completed_at?: string
-  token: string
-}
 
 const router = useRouter()
 
 // State
 const user = ref<User | null>(null)
-const contributions = ref<Contribution[]>([])
+const contributions = ref<UserContribution[]>([])
 const isLoading = ref(false)
 const error = ref<string | null>(null)
 
@@ -159,40 +150,21 @@ const loadContributions = async () => {
   error.value = null
 
   try {
-    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'
-    const headers = authService.getAuthHeaders()
-
-    const response = await fetch(
-      `${apiBaseUrl}/api/users/${user.value.id}/contributions`,
-      { headers }
-    )
-
-    if (!response.ok) {
-      throw new Error('No se pudieron cargar las contribuciones')
-    }
-
-    const data = await response.json()
-
-    const list = Array.isArray(data)
-      ? data
-      : Array.isArray(data?.contributions)
-        ? data.contributions
-        : Array.isArray(data?.items)
-          ? data.items
-          : null
-
-    if (!list) {
-      console.error('[Dashboard] Respuesta cruda de contribuciones:', data)
-      throw new Error('Formato de respuesta inválido para contribuciones')
-    }
-
+    const list = await contributionsRepository.getByUserId(user.value.id)
     contributions.value = list
+    
     // Ordenar por fecha más reciente primero
     contributions.value.sort((a, b) => 
       new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
     )
   } catch (err) {
-    error.value = err instanceof Error ? err.message : 'Error desconocido'
+    if (err instanceof ContributionRepositoryError) {
+      error.value = err.message
+      console.error('[Dashboard] Status:', err.statusCode)
+      console.error('[Dashboard] Detalles:', err.details)
+    } else {
+      error.value = err instanceof Error ? err.message : 'Error desconocido'
+    }
     console.error('[Dashboard] Error loading contributions:', err)
   } finally {
     isLoading.value = false
