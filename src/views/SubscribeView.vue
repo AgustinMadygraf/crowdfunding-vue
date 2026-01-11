@@ -16,6 +16,10 @@ const { levels, selectedLevel, selectLevel, benefitAmount } = useContributionLev
 const user = ref<User | null>(null)
 const isAuthenticationModalOpen = ref(false)
 
+// MODO TESTING: Bypass de Google Auth para probar Mercado Pago
+const isTestingMode = ref(false)
+const testUser = ref<User | null>(null)
+
 // Form data removed; user info comes from Google Auth
 
 // Form validation removed
@@ -27,7 +31,28 @@ const contributionCreated = ref(false)
 const contributionToken = ref<string | null>(null)
 const isProcessingPayment = ref(false)
 
-const isAuthenticated = computed(() => authService.isAuthenticated())
+const isAuthenticated = computed(() => {
+  // ✅ Autenticado por Google
+  if (authService.isAuthenticated()) return true
+  // ✅ O en modo testing
+  if (isTestingMode.value && testUser.value) return true
+  return false
+})
+
+// Función para habilitar modo testing
+const enableTestingMode = () => {
+  console.log('[Subscribe] 🧪 Habilitando modo testing...')
+  isTestingMode.value = true
+  testUser.value = {
+    id: 'test-user-' + Date.now(),
+    email: 'test@example.com',
+    nombre: 'Test User',
+    avatar_url: undefined
+  }
+  user.value = testUser.value
+  console.log('[Subscribe] ✅ Modo testing habilitado')
+  console.log('[Subscribe] 👤 Usuario:', testUser.value.email)
+}
 
 // Cargar usuario actual y UTM params al montar
 onMounted(async () => {
@@ -99,7 +124,18 @@ const createContribution = async (): Promise<{ token: string; preference_id: str
   console.log('[Subscribe] 💰 Nivel:', selectedLevel.value.name, `($${selectedLevel.value.amount})`)
 
   const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'
-  const headers = authService.getAuthHeaders()
+  
+  // En modo testing, usar headers sin token
+  let headers: any
+  if (isTestingMode.value) {
+    console.log('[Subscribe] 🧪 Modo testing: usando headers sin auth')
+    headers = {
+      'Content-Type': 'application/json',
+      'X-Test-Mode': 'true'
+    }
+  } else {
+    headers = authService.getAuthHeaders()
+  }
 
   console.log(`[Subscribe] 📤 Enviando a: ${apiBaseUrl}/api/contributions`)
 
@@ -264,6 +300,25 @@ const handlePayment = async () => {
 
     <section class="form-section">
       <div class="container-narrow">
+        <!-- Testing Mode Indicator & Button -->
+        <div v-if="!isAuthenticated" class="testing-mode-section">
+          <div class="testing-mode-banner">
+            <p>⚙️ Modo Testing: Prueba Mercado Pago sin necesidad de Google Auth</p>
+            <button 
+              v-if="!isTestingMode" 
+              type="button" 
+              class="testing-mode-button"
+              @click="enableTestingMode"
+            >
+              🧪 Habilitar Modo Testing
+            </button>
+            <div v-else class="testing-mode-active">
+              <span class="badge">🧪 Testing Mode Activo</span>
+              <p>Usuario: {{ testUser?.email }}</p>
+            </div>
+          </div>
+        </div>
+
         <div v-if="isAuthenticated && user" class="auth-header">
           <div class="user-badge">
             <img v-if="user.avatar_url" :src="user.avatar_url" :alt="user.nombre" class="avatar-sm">
@@ -652,6 +707,67 @@ const handlePayment = async () => {
   cursor: not-allowed;
 }
 
+/* Testing Mode Styles */
+.testing-mode-section {
+  margin-bottom: 2rem;
+}
+
+.testing-mode-banner {
+  background: linear-gradient(135deg, #f9a825 0%, #ff8c00 100%);
+  color: white;
+  padding: 1.5rem;
+  border-radius: 8px;
+  border-left: 4px solid #ff6b00;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.testing-mode-banner p {
+  margin: 0;
+  font-weight: 500;
+}
+
+.testing-mode-button {
+  padding: 0.75rem 1.5rem;
+  background: white;
+  color: #ff8c00;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.testing-mode-button:hover {
+  background: #fff;
+  transform: scale(1.05);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.testing-mode-active {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-grow: 1;
+}
+
+.testing-mode-active .badge {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.testing-mode-active p {
+  margin: 0;
+  font-size: 0.95rem;
+}
 
 .success-section {
   margin-top: 2rem;
