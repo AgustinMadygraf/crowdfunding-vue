@@ -1,42 +1,82 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
+import { ref, onMounted, computed } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { contributionsRepository, ContributionRepositoryError } from '@/infrastructure/repositories/ContributionsRepository'
 
 const route = useRoute()
-const subscriptionId = ref(route.params.id as string)
+const router = useRouter()
 
-// TODO: Implement API call to GET /api/subscriptions/:id
-const subscriptionStatus = ref({
-  id: subscriptionId.value,
-  status: 'verificacion',
-  leadName: 'Usuario Ejemplo',
-  levelName: 'Colaborador',
-  amount: 25000,
-  createdAt: new Date().toISOString(),
-  providerStatus: 'pending_verification'
-})
+const contributionId = computed(() => route.params.id as string)
+const isLoading = ref(false)
+const error = ref<string | null>(null)
 
+// Contribution data
+const contribution = ref<{
+  id: string
+  monto: number
+  nivel_nombre: string
+  estado_pago: 'pendiente' | 'procesando' | 'completado' | 'fallido' | 'cancelado'
+  created_at: string
+  completed_at?: string
+  token: string
+  mercadopago_preference_id?: string
+} | null>(null)
+
+// Map payment status to display labels
 const statusLabels: Record<string, string> = {
-  interesado: 'Interesado',
-  iniciado: 'Iniciado',
-  verificacion: 'En verificación',
-  confirmado: 'Confirmado',
-  rechazado: 'Rechazado',
-  expirado: 'Expirado'
+  pendiente: 'Pendiente',
+  procesando: 'Procesando',
+  completado: 'Completado',
+  fallido: 'Fallido',
+  cancelado: 'Cancelado'
 }
 
 const statusColors: Record<string, string> = {
-  interesado: '#999',
-  iniciado: '#3498db',
-  verificacion: '#f39c12',
-  confirmado: '#42b983',
-  rechazado: '#e74c3c',
-  expirado: '#95a5a6'
+  pendiente: '#f39c12',
+  procesando: '#3498db',
+  completado: '#42b983',
+  fallido: '#e74c3c',
+  cancelado: '#95a5a6'
+}
+
+const loadContribution = async () => {
+  if (!contributionId.value) {
+    error.value = 'ID de contribución inválido'
+    return
+  }
+
+  isLoading.value = true
+  error.value = null
+
+  try {
+    console.log('[SubscriptionStatus] Cargando contribución:', contributionId.value)
+    contribution.value = await contributionsRepository.getByToken(contributionId.value)
+    console.log('[SubscriptionStatus] ✅ Contribución cargada')
+  } catch (err) {
+    console.error('[SubscriptionStatus] ❌ Error:', err)
+    
+    if (err instanceof ContributionRepositoryError) {
+      if (err.statusCode === 404) {
+        error.value = 'No se encontró la contribución solicitada'
+      } else if (err.statusCode === 401) {
+        error.value = 'No tienes permisos para ver esta contribución'
+      } else {
+        error.value = err.message || 'Error al cargar la contribución'
+      }
+    } else {
+      error.value = err instanceof Error ? err.message : 'Error desconocido'
+    }
+  } finally {
+    isLoading.value = false
+  }
+}
+
+const retry = () => {
+  loadContribution()
 }
 
 onMounted(() => {
-  // TODO: Fetch subscription status from API
-  console.log('Fetching subscription status for ID:', subscriptionId.value)
+  loadContribution()
 })
 </script>
 
@@ -44,71 +84,118 @@ onMounted(() => {
   <div class="subscription-status-view">
     <section class="hero-section">
       <div class="container">
-        <h1>Estado de Suscripción</h1>
-        <p class="subtitle">ID: {{ subscriptionId }}</p>
+        <h1>Estado de Contribución</h1>
+        <p class="subtitle" v-if="contributionId">ID: {{ contributionId }}</p>
       </div>
     </section>
 
-    <section class="status-section">
+    <!-- Loading State -->
+    <section v-if="isLoading" class="status-section">
+      <div class="container">
+        <div class="status-card loading">
+          <p>Cargando información de tu contribución...</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Error State -->
+    <section v-else-if="error && !contribution" class="status-section">
+      <div class="container">
+        <div class="status-card error">
+          <h2>Error</h2>
+          <p>{{ error }}</p>
+          <div class="actions">
+            <button @click="retry" class="btn-primary">Reintentar</button>
+            <router-link to="/" class="btn-secondary">Volver al inicio</router-link>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Success State -->
+    <section v-else-if="contribution" class="status-section">
       <div class="container">
         <div class="status-card">
           <div class="status-header">
             <h2>Estado actual</h2>
             <span
               class="status-badge"
-              :style="{ backgroundColor: statusColors[subscriptionStatus.status] }"
+              :style="{ backgroundColor: statusColors[contribution.estado_pago] }"
             >
-              {{ statusLabels[subscriptionStatus.status] }}
+              {{ statusLabels[contribution.estado_pago] }}
             </span>
           </div>
 
           <div class="status-details">
             <div class="detail-row">
-              <span class="label">Nombre:</span>
-              <span class="value">{{ subscriptionStatus.leadName }}</span>
-            </div>
-            <div class="detail-row">
               <span class="label">Nivel:</span>
-              <span class="value">{{ subscriptionStatus.levelName }}</span>
+              <span class="value">{{ contribution.nivel_nombre }}</span>
             </div>
             <div class="detail-row">
               <span class="label">Monto:</span>
-              <span class="value">${{ subscriptionStatus.amount.toLocaleString() }}</span>
+              <span class="value">${{ contribution.monto.toLocaleString('es-AR') }}</span>
             </div>
             <div class="detail-row">
-              <span class="label">Fecha de inicio:</span>
+              <span class="label">Fecha de creación:</span>
               <span class="value">{{
-                new Date(subscriptionStatus.createdAt).toLocaleDateString('es-AR')
+                new Date(contribution.created_at).toLocaleDateString('es-AR', {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit'
+                })
+              }}</span>
+            </div>
+            <div v-if="contribution.completed_at" class="detail-row">
+              <span class="label">Completado:</span>
+              <span class="value">{{
+                new Date(contribution.completed_at).toLocaleDateString('es-AR', {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit'
+                })
               }}</span>
             </div>
             <div class="detail-row">
-              <span class="label">Estado del proveedor:</span>
-              <span class="value">{{ subscriptionStatus.providerStatus }}</span>
+              <span class="label">Token:</span>
+              <span class="value token">{{ contribution.token }}</span>
             </div>
           </div>
 
           <div class="status-explanation">
             <h3>¿Qué significa esto?</h3>
-            <p v-if="subscriptionStatus.status === 'verificacion'">
-              Tu suscripción está siendo verificada por el proveedor externo. Este proceso puede
-              tardar entre 24 y 48 horas.
+            <p v-if="contribution.estado_pago === 'pendiente'">
+              Tu contribución está pendiente de pago. Por favor completa el proceso de pago para confirmar tu participación.
             </p>
-            <p v-else-if="subscriptionStatus.status === 'confirmado'">
-              ¡Felicitaciones! Tu suscripción ha sido confirmada. Recibirás un email con los
-              próximos pasos.
+            <p v-else-if="contribution.estado_pago === 'procesando'">
+              Tu pago está siendo procesado. Este proceso puede tardar algunos minutos. Te notificaremos cuando se complete.
             </p>
-            <p v-else-if="subscriptionStatus.status === 'rechazado'">
-              Lamentablemente tu suscripción fue rechazada. Por favor contactá a soporte para más
-              información.
+            <p v-else-if="contribution.estado_pago === 'completado'">
+              ¡Felicitaciones! Tu contribución ha sido confirmada. Recibirás un email con los próximos pasos y detalles de tu participación en el proyecto.
             </p>
-            <p v-else-if="subscriptionStatus.status === 'expirado'">
-              Tu solicitud de suscripción ha expirado. Podés iniciar un nuevo proceso.
+            <p v-else-if="contribution.estado_pago === 'fallido'">
+              Lamentablemente tu pago no pudo ser procesado. Por favor intenta nuevamente o contacta a soporte para más información.
             </p>
-            <p v-else>Tu suscripción está en proceso.</p>
+            <p v-else-if="contribution.estado_pago === 'cancelado'">
+              Tu contribución fue cancelada. Si deseas participar en el proyecto, puedes iniciar un nuevo proceso de contribución.
+            </p>
           </div>
 
           <div class="actions">
-            <router-link to="/" class="btn-primary">Volver al inicio</router-link>
+            <router-link 
+              v-if="contribution.estado_pago === 'pendiente'" 
+              :to="`/suscribir/pago/${contribution.token}`" 
+              class="btn-primary"
+            >
+              Completar Pago
+            </router-link>
+            <button v-if="contribution.estado_pago === 'procesando'" @click="retry" class="btn-primary">
+              Actualizar Estado
+            </button>
+            <router-link to="/" class="btn-secondary">Volver al inicio</router-link>
             <a href="mailto:info@madypack.com.ar" class="btn-secondary">Contactar soporte</a>
           </div>
         </div>
@@ -160,6 +247,21 @@ onMounted(() => {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
+.status-card.loading,
+.status-card.error {
+  text-align: center;
+  padding: 4rem 3rem;
+}
+
+.status-card.error {
+  border: 2px solid #e74c3c;
+}
+
+.status-card.error h2 {
+  color: #e74c3c;
+  margin-bottom: 1rem;
+}
+
 .status-header {
   display: flex;
   justify-content: space-between;
@@ -206,6 +308,12 @@ onMounted(() => {
   color: #2c3e50;
 }
 
+.value.token {
+  font-family: monospace;
+  font-size: 0.875rem;
+  word-break: break-all;
+}
+
 .status-explanation {
   background: #f5f5f5;
   padding: 1.5rem;
@@ -228,6 +336,7 @@ onMounted(() => {
   display: flex;
   gap: 1rem;
   justify-content: center;
+  flex-wrap: wrap;
 }
 
 .btn-primary,
@@ -237,6 +346,9 @@ onMounted(() => {
   text-decoration: none;
   font-weight: 600;
   transition: all 0.2s ease;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
 }
 
 .btn-primary {
@@ -277,6 +389,12 @@ onMounted(() => {
 
   .actions {
     flex-direction: column;
+  }
+
+  .btn-primary,
+  .btn-secondary {
+    width: 100%;
+    text-align: center;
   }
 }
 </style>

@@ -145,8 +145,8 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
+import { useSubscription } from '@/application/useSubscription'
 import { useAuthService } from '@/application/useAuthService'
-import { getApiBaseUrl } from '@/config/api'
 import type { User } from '@/domain/user'
 
 interface Contribution {
@@ -161,6 +161,7 @@ interface Contribution {
 }
 
 const route = useRoute()
+const subscriptionService = useSubscription()
 
 // State
 const user = ref<User | null>(null)
@@ -185,46 +186,18 @@ const loadContribution = async () => {
   error.value = null
 
   try {
-    const apiBaseUrl = getApiBaseUrl()
-    const auth = useAuthService()
-    const headers = auth.getAuthHeaders()
-    // Evitar preflight CORS en GET: eliminar Content-Type
-    if (headers['Content-Type']) {
-      delete headers['Content-Type']
-    }
+    console.log('[SubscribePayment] 🔄 Cargando contribución por token:', token.value)
 
-    console.log('[SubscribePayment] 🔄 Cargando contribución por token (GET):', token.value)
-    console.log('[SubscribePayment] 🌐 Endpoint:', `${apiBaseUrl}/api/contributions/${token.value}`)
-
-    const response = await fetch(`${apiBaseUrl}/api/contributions/${token.value}`, {
-      method: 'GET',
-      headers,
-      // Asegurar modo CORS explícito
-      mode: 'cors'
-    })
-
-    if (!response.ok) {
-      console.warn('[SubscribePayment] ⚠️ Respuesta no OK del backend:', response.status, response.statusText)
-      throw new Error('No se pudo cargar la contribución')
-    }
-
-    try {
-      contribution.value = await response.json()
-    } catch (parseErr) {
-      console.error('[SubscribePayment] ❌ Error al parsear JSON de contribución:', parseErr)
-      throw new Error('Respuesta del servidor inválida')
+    const result = await subscriptionService.loadContributionByToken(token.value)
+    
+    if (result) {
+      contribution.value = result as Contribution
+    } else {
+      error.value = subscriptionService.error.value || 'No se pudo cargar la contribución'
     }
   } catch (err) {
     error.value = err instanceof Error ? err.message : 'Error desconocido'
     console.error('[SubscribePayment] ❌ Error cargando contribución:', err)
-    // Pistas específicas para CORS/preflight
-    if (err instanceof TypeError) {
-      console.warn('[SubscribePayment] ⚠️ Posible bloqueo CORS/preflight en GET')
-      console.warn('[SubscribePayment] 💡 Sugerencias:')
-      console.warn('   • Verificar que el backend responda OPTIONS en /api/contributions/:token')
-      console.warn('   • Habilitar CORS para métodos GET y headers enviados')
-      console.warn('   • Revisar consola del servidor para códigos 404/500 en OPTIONS')
-    }
   } finally {
     isLoading.value = false
   }

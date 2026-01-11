@@ -5,7 +5,6 @@
 
 import { ref, computed, type Ref } from 'vue'
 import { contributionsRepository, ContributionRepositoryError, type UserContribution } from '@/infrastructure/repositories/ContributionsRepository'
-import { getApiBaseUrl } from '@/config/api'
 import type { User } from '@/domain/user'
 
 export interface CreateContributionData {
@@ -99,24 +98,7 @@ export function useSubscription() {
     try {
       console.log('[useSubscription] Cargando contribución por token:', contributionToken.substring(0, 20) + '...')
 
-      // Nota: contributionsRepository actualmente no tiene método getByToken
-      // Se hace fetch directo en SubscribePaymentView
-      // TODO: Implementar contributionsRepository.getByToken() cuando esté disponible
-      
-      const apiBaseUrl = getApiBaseUrl()
-      const response = await fetch(`${apiBaseUrl}/api/contributions/${contributionToken}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        mode: 'cors'
-      })
-
-      if (!response.ok) {
-        throw new Error('No se pudo cargar la contribución')
-      }
-
-      const result = await response.json()
+      const result = await contributionsRepository.getByToken(contributionToken)
       contribution.value = result
       token.value = contributionToken
 
@@ -124,7 +106,19 @@ export function useSubscription() {
       return result
     } catch (err) {
       console.error('[useSubscription] ❌ Error al cargar contribución:', err)
-      error.value = err instanceof Error ? err.message : 'Error desconocido'
+      
+      if (err instanceof ContributionRepositoryError) {
+        if (err.statusCode === 404) {
+          error.value = 'No se encontró la contribución'
+        } else if (err.statusCode === 401) {
+          error.value = 'Sesión expirada'
+        } else {
+          error.value = err.message || 'Error al cargar contribución'
+        }
+      } else {
+        error.value = err instanceof Error ? err.message : 'Error desconocido'
+      }
+      
       return null
     } finally {
       isLoading.value = false
