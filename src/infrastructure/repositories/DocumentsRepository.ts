@@ -75,8 +75,14 @@ export class DocumentsRepository {
 
       const data = await response.json()
 
-      // Normalizar respuesta: aceptar array directo o {data: [...]}
-      const list = Array.isArray(data) ? data : Array.isArray(data?.data) ? data.data : null
+      // Normalizar respuesta: aceptar array directo, {data: [...]}, o {documents: [...]}
+      const list = Array.isArray(data) 
+        ? data 
+        : Array.isArray(data?.data) 
+          ? data.data 
+          : Array.isArray(data?.documents)
+            ? data.documents
+            : null
 
       if (!list) {
         console.error('[DocumentsRepository] ❌ Formato de respuesta inválido:', data)
