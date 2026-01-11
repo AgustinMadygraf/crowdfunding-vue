@@ -2,10 +2,10 @@
 import { computed } from 'vue'
 import AppFooter from '@/components/layout/AppFooter.vue'
 import AppHeader from '@/components/layout/AppHeader.vue'
-import { useAuthService } from '@/application/useAuthService'
+import { useAuthStore } from '@/stores/authStore'
 
-const auth = useAuthService()
-const isAuthenticated = computed(() => auth.isAuthenticated())
+const authStore = useAuthStore()
+const isAuthenticated = computed(() => authStore.isAuthenticated)
 
 const navigationLinks = computed(() => {
   const baseLinks = [

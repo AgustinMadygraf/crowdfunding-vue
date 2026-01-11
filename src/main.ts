@@ -2,6 +2,7 @@ import './assets/main.css'
 import './assets/components.css' // Componentes reutilizables
 
 import { createApp } from 'vue'
+import { createPinia } from 'pinia'
 import App from './App.vue'
 import router from './router'
 import { authService } from '@/infrastructure/services/authServiceFactory'
@@ -41,7 +42,9 @@ const captureUTMParameters = () => {
 captureUTMParameters()
 
 const app = createApp(App)
+const pinia = createPinia()
 
+app.use(pinia)
 app.use(router)
 app.provide(AUTH_SERVICE_KEY, authService)
 app.mount('#app')

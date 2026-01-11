@@ -39,6 +39,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useAuthService } from '@/application/useAuthService'
 import type { User } from '@/domain/user'
 import { sanitizeAvatarUrl } from '@/utils/urlSanitizer'
+import { useAuthStore } from '@/stores/authStore'
 
 const props = defineProps({
   buttonContainerId: {
@@ -53,12 +54,13 @@ const emit = defineEmits<{
   'logout': []
 }>()
 
-const user = ref<User | null>(null)
+const authStore = useAuthStore()
+const user = computed(() => authStore.user)
 const error = ref<string | null>(null)
 const isLoading = ref(false)
 
 const auth = useAuthService()
-const isAuthenticated = computed(() => auth.isAuthenticated())
+const isAuthenticated = computed(() => authStore.isAuthenticated)
 
 // Debounce/throttle state para prevenir múltiples llamadas simultáneas
 let authInProgress = false
@@ -98,8 +100,7 @@ const handleGoogleCallback = async (token: string) => {
     console.log('[GoogleAuthButton] Intentando autenticar usuario...')
     
     try {
-      const authenticatedUser = await auth.loginWithGoogle(token)
-      user.value = authenticatedUser
+      const authenticatedUser = await authStore.loginWithGoogle(token)
       console.log('[GoogleAuthButton] Autenticación exitosa:', authenticatedUser.email)
       emit('auth-success', authenticatedUser)
     } catch (authError) {
@@ -132,13 +133,12 @@ const handleLogout = () => {
   console.log('[GoogleAuthButton] Iniciando cierre de sesión')
   try {
     try {
-      auth.logout()
+      authStore.logout()
     } catch (logoutError) {
       console.error('[GoogleAuthButton] Error en authService.logout():', logoutError)
       throw logoutError
     }
     
-    user.value = null
     error.value = null
     emit('logout')
     console.log('[GoogleAuthButton] Sesión cerrada exitosamente')
@@ -161,14 +161,14 @@ onMounted(() => {
     
     // Cargar usuario actual si ya está autenticado
     try {
-      user.value = auth.getCurrentUser()
+      authStore.hydrateFromService()
       if (user.value) {
         console.log('[GoogleAuthButton] ✓ Usuario autenticado encontrado:', user.value.email)
       } else {
         console.log('[GoogleAuthButton] ⚠️ No hay usuario autenticado previamente')
       }
     } catch (getUserError) {
-      console.error('[GoogleAuthButton] ❌ Error al obtener usuario actual:', getUserError)
+      console.error('[GoogleAuthButton] ❌ Error al sincronizar estado de auth:', getUserError)
       console.warn('[GoogleAuthButton] ⚠️ Continuando sin usuario previo')
     }
 

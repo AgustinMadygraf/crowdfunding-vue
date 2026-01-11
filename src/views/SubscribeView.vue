@@ -4,18 +4,17 @@ import { useRouter } from 'vue-router'
 import { useContributionLevels } from '@/application/useContributionLevels'
 import { getUTMFromSessionStorage, type UTMParams } from '@/utils/utm'
 import { initMercadoPago } from '@/infrastructure/mercadopagoService'
-import { useAuthService } from '@/application/useAuthService'
 import { contributionsRepository, ContributionRepositoryError } from '@/infrastructure/repositories/ContributionsRepository'
 import GoogleAuthButton from '@/components/auth/GoogleAuthButton.vue'
 import type { User } from '@/domain/user'
 import { sanitizeAvatarUrl } from '@/utils/urlSanitizer'
+import { useAuthStore } from '@/stores/authStore'
 
 const router = useRouter()
 const { levels, selectedLevel, selectLevel, benefitAmount } = useContributionLevels()
 // Chatwoot form and contact syncing removed; relying on Google Auth only
 
 // Auth state
-const user = ref<User | null>(null)
 const isAuthenticationModalOpen = ref(false)
 
 // Form data removed; user info comes from Google Auth
@@ -29,15 +28,16 @@ const contributionCreated = ref(false)
 const contributionToken = ref<string | null>(null)
 const isProcessingPayment = ref(false)
 
-const auth = useAuthService()
-const isAuthenticated = computed(() => auth.isAuthenticated())
+const authStore = useAuthStore()
+const user = computed(() => authStore.user)
+const isAuthenticated = computed(() => authStore.isAuthenticated)
 
 // Cargar usuario actual y UTM params al montar
 onMounted(async () => {
   console.log('[Subscribe] 📋 Montando SubscribeView...')
+  authStore.hydrateFromService()
   
   try {
-    user.value = auth.getCurrentUser()
     if (user.value) {
       console.log('[Subscribe] 👤 Usuario actual:', user.value.email)
     } else {
@@ -76,14 +76,9 @@ onMounted(async () => {
  * Maneja el éxito de autenticación con Google
  */
 const handleAuthSuccess = (authenticatedUser: User) => {
-  user.value = authenticatedUser
   isAuthenticationModalOpen.value = false
-  
-  // Forzar actualización de la UI redirigiendo brevemente
-  console.log('[Subscribe] ✅ Auth exitoso, actualizando UI...')
-  setTimeout(() => {
-    window.location.reload()
-  }, 300)
+
+  console.log('[Subscribe] ✅ Auth exitoso, actualizando UI sin recargar')
 }
 
 /**
