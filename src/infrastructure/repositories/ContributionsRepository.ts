@@ -69,17 +69,40 @@ export class ContributionsRepository {
   async create(data: CreateContributionDTO): Promise<ContributionResponse> {
     // Refrescar token si es necesario antes de la operación
     await authService.refreshTokenIfNeeded()
-    
-    const headers = authService.getAuthHeaders()
+
+    // Obtener JWT y CSRF token
+    const jwt = authService.getAuthToken()
+    // Usar el composable para obtener el token CSRF
+    let csrfToken: string | null = null
+    try {
+      // Import dinámico para evitar dependencias circulares
+      const { useCsrfToken } = await import('@/application/composables/useCsrfToken')
+      csrfToken = useCsrfToken().getToken()
+    } catch (e) {
+      // Fallback: intentar leer de csrfService
+      try {
+        const { csrfService } = await import('@/infrastructure/services/csrfService')
+        csrfToken = csrfService.getToken()
+      } catch {}
+    }
+
+    const headers: Record<string, string> = {
+      ...authService.getAuthHeaders(),
+      ...(csrfToken ? { 'X-CSRF-Token': csrfToken } : {}),
+      ...(jwt ? { 'Authorization': `Bearer ${jwt}` } : {}),
+      'Content-Type': 'application/json'
+    }
     const url = `${this.apiBaseUrl}/api/contributions`
 
     if (import.meta.env.DEV) {
       console.log('[ContributionsRepository] 📤 POST', url)
+      console.log('[ContributionsRepository] Headers:', headers)
     }
 
     try {
       const response = await fetch(url, {
         method: 'POST',
+        credentials: 'include',
         headers,
         body: JSON.stringify(data)
       })
