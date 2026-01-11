@@ -87,8 +87,9 @@ export function useSubscription() {
    * Carga una contribución existente por token
    */
   const loadContributionByToken = async (contributionToken: string): Promise<UserContribution | null> => {
-    if (!contributionToken) {
-      error.value = 'Token de contribución inválido'
+    // Validar token antes de fetch
+    if (!contributionToken?.trim()) {
+      error.value = 'Token de contribución inválido o vacío'
       return null
     }
 
@@ -96,13 +97,17 @@ export function useSubscription() {
     error.value = null
 
     try {
-      console.log('[useSubscription] Cargando contribución por token:', contributionToken.substring(0, 20) + '...')
+      if (import.meta.env.DEV) {
+        console.log('[useSubscription] Cargando contribución por token:', contributionToken.substring(0, 20) + '...')
+      }
 
       const result = await contributionsRepository.getByToken(contributionToken)
       contribution.value = result
       token.value = contributionToken
 
-      console.log('[useSubscription] ✅ Contribución cargada:', result.id)
+      if (import.meta.env.DEV) {
+        console.log('[useSubscription] ✅ Contribución cargada:', result.id)
+      }
       return result
     } catch (err) {
       console.error('[useSubscription] ❌ Error al cargar contribución:', err)

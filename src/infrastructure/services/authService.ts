@@ -185,8 +185,10 @@ export class AuthService implements IAuthService {
         throw new Error(errorMsg)
       }
 
-      console.log(`[Auth] 📤 Enviando solicitud de autenticación a ${this.API_BASE_URL}/api/auth/google`)
-      console.log(`[Auth] 🌐 Token length: ${token.length} caracteres`)
+      if (import.meta.env.DEV) {
+        console.log(`[Auth] 📤 Enviando solicitud de autenticación a ${this.API_BASE_URL}/api/auth/google`)
+        console.log(`[Auth] 🌐 Token length: ${token.length} caracteres`)
+      }
       
       // Enviar token a backend para validación
       const response = await fetch(`${this.API_BASE_URL}/api/auth/google`, {
@@ -260,13 +262,17 @@ export class AuthService implements IAuthService {
         this.authState.isAuthenticated = true
 
         this.storage.save(user, data.auth_token)
+        if (import.meta.env.DEV) {
         console.log('[Auth] 💾 Sesión guardada')
+      }
       } catch (storageError) {
         console.warn('[Auth] ⚠️ Error al guardar en localStorage:', storageError)
         console.warn('[Auth] ⚠️ La sesión funcionará pero no será persistida en recarga')
       }
 
-      console.log('[Auth] ✅ Usuario autenticado correctamente:', user.email)
+      if (import.meta.env.DEV) {
+        console.log('[Auth] ✅ Usuario autenticado correctamente:', user.email)
+      }
 
       return user
     } catch (error) {
@@ -326,8 +332,10 @@ export class AuthService implements IAuthService {
         this.authState.user = user
         this.authState.token = token
         this.authState.isAuthenticated = true
-        console.log('[Auth] ✅ Sesión restaurada')
-        console.log('[Auth] 👤 Usuario:', this.authState.user?.email)
+        if (import.meta.env.DEV) {
+          console.log('[Auth] ✅ Sesión restaurada')
+          console.log('[Auth] 👤 Usuario:', this.authState.user?.email)
+        }
       } else {
         console.log('[Auth] ℹ️ No hay sesión previa almacenada')
       }
@@ -380,6 +388,96 @@ export class AuthService implements IAuthService {
     }
 
     return headers
+  }
+
+  /**
+   * Refresca el token JWT de forma silenciosa antes de que expire
+   * Se ejecuta proactivamente 5 minutos antes de la expiración
+   */
+  private async silentRefresh(): Promise<boolean> {
+    if (!this.authState.token) {
+      console.warn('[Auth] ⚠️ No hay token disponible para refrescar')
+      return false
+    }
+
+    try {
+      if (import.meta.env.DEV) {
+        console.log('[Auth] 🔄 Iniciando refresh silencioso de token...')
+      }
+
+      const response = await fetch(`${this.API_BASE_URL}/api/auth/refresh`, {
+        method: 'POST',
+        headers: this.getAuthHeaders(),
+        body: JSON.stringify({ token: this.authState.token })
+      })
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          console.warn('[Auth] ❌ Token refresh rechazado (401). Sesión expirada.')
+          this.logout()
+          return false
+        }
+        throw new Error(`Refresh falló: ${response.status}`)
+      }
+
+      const data = (await response.json()) as { auth_token: string }
+      const newToken = data.auth_token
+
+      // Validar nuevo token
+      if (!newToken || newToken.trim() === '') {
+        console.error('[Auth] ❌ Backend retornó token vacío')
+        return false
+      }
+
+      // Actualizar token en estado y storage
+      this.authState.token = newToken
+      if (this.authState.user) {
+        this.storage.save(this.authState.user, newToken)
+      }
+
+      if (import.meta.env.DEV) {
+        const payload = this.decodeJWT(newToken)
+        const expiresIn = payload?.exp ? payload.exp - Math.floor(Date.now() / 1000) : 0
+        const minutesLeft = Math.floor(expiresIn / 60)
+        console.log(`[Auth] ✅ Token refrescado (expira en ${minutesLeft} minutos)`)
+      }
+
+      return true
+    } catch (error) {
+      console.error('[Auth] ❌ Error al refrescar token:', error)
+      this.logout()
+      return false
+    }
+  }
+
+  /**
+   * Verifica si el token está próximo a expirar y lo refresca si es necesario
+   * Se debe llamar antes de operaciones críticas
+   */
+  async refreshTokenIfNeeded(): Promise<boolean> {
+    if (!this.authState.token || !this.authState.isAuthenticated) {
+      return false
+    }
+
+    const payload = this.decodeJWT(this.authState.token)
+    if (!payload?.exp) {
+      return false
+    }
+
+    const now = Math.floor(Date.now() / 1000)
+    const expiresIn = payload.exp - now
+    const REFRESH_THRESHOLD = 300 // 5 minutos en segundos
+
+    // Si el token expira en menos de 5 minutos, refrescar
+    if (expiresIn < REFRESH_THRESHOLD) {
+      if (import.meta.env.DEV) {
+        const minutesLeft = Math.floor(expiresIn / 60)
+        console.log(`[Auth] ⏰ Token expirará en ${minutesLeft}m, refrescando...`)
+      }
+      return await this.silentRefresh()
+    }
+
+    return true // Token aún válido
   }
 
   /**

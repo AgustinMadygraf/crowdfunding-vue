@@ -67,10 +67,15 @@ export class ContributionsRepository {
    * Crea una nueva contribución
    */
   async create(data: CreateContributionDTO): Promise<ContributionResponse> {
+    // Refrescar token si es necesario antes de la operación
+    await authService.refreshTokenIfNeeded()
+    
     const headers = authService.getAuthHeaders()
     const url = `${this.apiBaseUrl}/api/contributions`
 
-    console.log('[ContributionsRepository] 📤 POST', url)
+    if (import.meta.env.DEV) {
+      console.log('[ContributionsRepository] 📤 POST', url)
+    }
 
     try {
       const response = await fetch(url, {
@@ -168,11 +173,19 @@ export class ContributionsRepository {
   /**
    * Obtiene una contribución por su token
    */
-  async getByToken(token: string): Promise<UserContribution> {
+  async getByToken(token: string): Promise<UserContribution> {    // Refrescar token si es necesario antes de la operación
+    await authService.refreshTokenIfNeeded()
+        // Validar token antes de fetch
+    if (!token?.trim()) {
+      throw new ContributionRepositoryError('Token de contribución inválido o vacío')
+    }
+
     const headers = authService.getAuthHeaders()
     const url = `${this.apiBaseUrl}/api/contributions/${token}`
 
-    console.log('[ContributionsRepository] 📥 GET', url)
+    if (import.meta.env.DEV) {
+      console.log('[ContributionsRepository] 📥 GET', url)
+    }
 
     try {
       const response = await fetch(url, { headers })
@@ -185,7 +198,9 @@ export class ContributionsRepository {
       }
 
       const contribution: UserContribution = await response.json()
-      console.log('[ContributionsRepository] ✅ Contribución obtenida:', contribution.id)
+      if (import.meta.env.DEV) {
+        console.log('[ContributionsRepository] ✅ Contribución obtenida:', contribution.id)
+      }
       
       return contribution
     } catch (error) {

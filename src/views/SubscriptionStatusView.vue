@@ -40,8 +40,9 @@ const statusColors: Record<string, string> = {
 }
 
 const loadContribution = async () => {
-  if (!contributionId.value) {
-    error.value = 'ID de contribución inválido'
+  // Validar token antes de fetch
+  if (!contributionId.value?.trim()) {
+    error.value = 'ID de contribución inválido o vacío'
     return
   }
 
@@ -49,9 +50,13 @@ const loadContribution = async () => {
   error.value = null
 
   try {
-    console.log('[SubscriptionStatus] Cargando contribución:', contributionId.value)
+    if (import.meta.env.DEV) {
+      console.log('[SubscriptionStatus] Cargando contribución:', contributionId.value)
+    }
     contribution.value = await contributionsRepository.getByToken(contributionId.value)
-    console.log('[SubscriptionStatus] ✅ Contribución cargada')
+    if (import.meta.env.DEV) {
+      console.log('[SubscriptionStatus] ✅ Contribución cargada')
+    }
   } catch (err) {
     console.error('[SubscriptionStatus] ❌ Error:', err)
     

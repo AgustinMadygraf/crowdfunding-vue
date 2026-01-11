@@ -4,6 +4,7 @@
  */
 
 import { API_BASE_URL, DEFAULT_TIMEOUT_MS } from '@/config/api'
+import { csrfService } from './services/csrfService'
 
 export interface ApiResponse<T> {
   data: T
@@ -53,6 +54,69 @@ class ApiClient {
   }
 
   /**
+   * Headers para requests que modifican estado (POST, PUT, PATCH, DELETE)
+   * Incluye el token CSRF si está disponible
+   */
+  private getMutatingHeaders(): HeadersInit {
+    const headers = { ...this.getDefaultHeaders() }
+    const csrfToken = csrfService.getToken()
+    
+    if (csrfToken) {
+      Object.assign(headers, csrfService.getTokenHeader(csrfToken, 'X-CSRF-Token'))
+      if (import.meta.env.DEV) {
+        console.log('[ApiClient] 🔐 Token CSRF adjuntado a request')
+      }
+    } else if (import.meta.env.DEV) {
+      console.warn('[ApiClient] ⚠️ Token CSRF no disponible para operación de mutación')
+    }
+
+    return headers
+  }
+
+  /**
+   * Reintenta una operación con backoff exponencial
+   * Espera: 1s, 2s, 4s entre intentos
+   * @param fn Función a ejecutar
+   * @param maxAttempts Número máximo de intentos (default: 3)
+   * @returns Resultado de la función
+   * @throws ApiException si falla después de todos los intentos
+   */
+  private async retryWithBackoff<T>(
+    fn: () => Promise<T>,
+    maxAttempts: number = 3
+  ): Promise<T> {
+    let lastError: Error | null = null
+
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      try {
+        return await fn()
+      } catch (error) {
+        lastError = error instanceof Error ? error : new Error(String(error))
+        
+        // Si es el último intento o error no recuperable, lanzar
+        if (attempt === maxAttempts - 1) {
+          throw error
+        }
+
+        // Solo reintentar en errores de red o 5xx (no en 4xx)
+        if (error instanceof ApiException && error.status >= 400 && error.status < 500) {
+          throw error // No reintentar errores de cliente
+        }
+
+        // Esperar con backoff exponencial: 1s, 2s, 4s
+        const delayMs = Math.pow(2, attempt) * 1000
+        if (import.meta.env.DEV) {
+          console.log(`[ApiClient] 🔄 Reintentando (intento ${attempt + 1}/${maxAttempts}) después de ${delayMs}ms...`)
+        }
+        await new Promise(resolve => setTimeout(resolve, delayMs))
+      }
+    }
+
+    // Este código nunca se ejecuta, pero TypeScript lo requiere
+    throw lastError || new Error('Retry exhausted')
+  }
+
+  /**
    * Manejo centralizado de errores HTTP
    */
   private async handleResponse<T>(response: Response): Promise<T> {
@@ -79,88 +143,106 @@ class ApiClient {
   }
 
   /**
-   * GET request
+   * GET request con retry automático
    */
   async get<T>(endpoint: string, params?: Record<string, string>): Promise<T> {
-    const url = new URL(`${this.baseUrl}${endpoint}`)
-    if (params) {
-      Object.entries(params).forEach(([key, value]) => {
-        url.searchParams.append(key, value)
-      })
-    }
-
-    const controller = new AbortController()
-    const timeout = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT_MS)
-    const response = await fetch(url.toString(), {
-      method: 'GET',
-      headers: this.getDefaultHeaders(),
-      signal: controller.signal
-    }).finally(() => clearTimeout(timeout))
-
-    return this.handleResponse<T>(response)
-  }
-
-  /**
-   * POST request
+    return this.retryWithBackoff(async () => {
+      const url = new URL(`${this.baseUrl}${endpoint}`)
+     Incluye token CSRF automáticamente
    */
   async post<T>(endpoint: string, data?: unknown): Promise<T> {
-    const controller = new AbortController()
-    const timeout = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT_MS)
-    const response = await fetch(`${this.baseUrl}${endpoint}`, {
-      method: 'POST',
-      headers: this.getDefaultHeaders(),
-      body: data ? JSON.stringify(data) : undefined,
-      signal: controller.signal
-    }).finally(() => clearTimeout(timeout))
+    return this.retryWithBackoff(async () => {
+      const controller = new AbortController()
+      const timeout = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT_MS)
+      const response = await fetch(`${this.baseUrl}${endpoint}`, {
+        method: 'POST',
+        headers: this.getMutatingHeaders(),
+        body: data ? JSON.stringify(data) : undefined,
+        signal: controller.signal,
+        credentials: 'include' // Incluir cookies (necesario para CSRF)
+        headers: this.getDefaultHeaders(),
+        signal: controller.signal
+      }).finally(() => clearTimeout(timeout))
 
-    return this.handleResponse<T>(response)
+      return this.handleResponse<T>(response)
+    })
   }
 
   /**
-   * PUT request
+   * POST request con retry automático
+   */
+  async post<T>(endpoint: string, data?: unknown): Promise<T> {
+    return this.retryWithBackoff(async () => {
+      const controller = new AbortController()
+      const timeout = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT_MS)
+      const response = await fetch(`${this.baseUrl}${endpoint}`, {
+        method: 'POST',
+        headers: this.getDefaultHeaders(),
+        body: data ? JSON.stringify(data) : undefined,
+        signal: controller.signal
+      }).finally(() => clearTimeout(timeout))
+
+      return this.handleResponse<T>(response)
+    })
+  }
+
+  /* Incluye token CSRF automáticamente
    */
   async put<T>(endpoint: string, data?: unknown): Promise<T> {
-    const controller = new AbortController()
-    const timeout = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT_MS)
-    const response = await fetch(`${this.baseUrl}${endpoint}`, {
-      method: 'PUT',
-      headers: this.getDefaultHeaders(),
-      body: data ? JSON.stringify(data) : undefined,
-      signal: controller.signal
-    }).finally(() => clearTimeout(timeout))
+    return this.retryWithBackoff(async () => {
+      const controller = new AbortController()
+      const timeout = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT_MS)
+      const response = await fetch(`${this.baseUrl}${endpoint}`, {
+        method: 'PUT',
+        headers: this.getMutatingHeaders(),
+        body: data ? JSON.stringify(data) : undefined,
+        signal: controller.signal,
+        credentials: 'include' // Incluir cookies (necesario para CSRF)eaders(),
+        body: data ? JSON.stringify(data) : undefined,
+        signal: controller.signal
+      }).finally(() => clearTimeout(timeout))
 
-    return this.handleResponse<T>(response)
+      return this.handleResponse<T>(response)
+    })
   }
 
-  /**
-   * PATCH request
+  /* Incluye token CSRF automáticamente
    */
   async patch<T>(endpoint: string, data?: unknown): Promise<T> {
-    const controller = new AbortController()
-    const timeout = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT_MS)
-    const response = await fetch(`${this.baseUrl}${endpoint}`, {
-      method: 'PATCH',
-      headers: this.getDefaultHeaders(),
-      body: data ? JSON.stringify(data) : undefined,
-      signal: controller.signal
-    }).finally(() => clearTimeout(timeout))
+    return this.retryWithBackoff(async () => {
+      const controller = new AbortController()
+      const timeout = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT_MS)
+      const response = await fetch(`${this.baseUrl}${endpoint}`, {
+        method: 'PATCH',
+        headers: this.getMutatingHeaders(),
+        body: data ? JSON.stringify(data) : undefined,
+        signal: controller.signal,
+        credentials: 'include' // Incluir cookies (necesario para CSRF)eaders(),
+        body: data ? JSON.stringify(data) : undefined,
+        signal: controller.signal
+      }).finally(() => clearTimeout(timeout))
 
-    return this.handleResponse<T>(response)
+      return this.handleResponse<T>(response)
+    })
   }
 
-  /**
-   * DELETE request
+  /* Incluye token CSRF automáticamente
    */
   async delete<T>(endpoint: string): Promise<T> {
-    const controller = new AbortController()
-    const timeout = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT_MS)
-    const response = await fetch(`${this.baseUrl}${endpoint}`, {
-      method: 'DELETE',
-      headers: this.getDefaultHeaders(),
-      signal: controller.signal
-    }).finally(() => clearTimeout(timeout))
+    return this.retryWithBackoff(async () => {
+      const controller = new AbortController()
+      const timeout = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT_MS)
+      const response = await fetch(`${this.baseUrl}${endpoint}`, {
+        method: 'DELETE',
+        headers: this.getMutatingHeaders(),
+        signal: controller.signal,
+        credentials: 'include' // Incluir cookies (necesario para CSRF)
+        headers: this.getDefaultHeaders(),
+        signal: controller.signal
+      }).finally(() => clearTimeout(timeout))
 
-    return this.handleResponse<T>(response)
+      return this.handleResponse<T>(response)
+    })
   }
 }
 

@@ -5,6 +5,7 @@ import { useContributionLevels } from '@/application/useContributionLevels'
 import { getUTMFromSessionStorage, type UTMParams } from '@/utils/utm'
 import { initMercadoPago } from '@/infrastructure/mercadopagoService'
 import { contributionsRepository, ContributionRepositoryError } from '@/infrastructure/repositories/ContributionsRepository'
+import { validateContribution } from '@/application/schemas/contributionSchema'
 import GoogleAuthButton from '@/components/auth/GoogleAuthButton.vue'
 import type { User } from '@/domain/user'
 import { sanitizeAvatarUrl } from '@/utils/urlSanitizer'
@@ -34,14 +35,20 @@ const isAuthenticated = computed(() => authStore.isAuthenticated)
 
 // Cargar usuario actual y UTM params al montar
 onMounted(async () => {
-  console.log('[Subscribe] 📋 Montando SubscribeView...')
+  if (import.meta.env.DEV) {
+    console.log('[Subscribe] 📋 Montando SubscribeView...')
+  }
   authStore.hydrateFromService()
   
   try {
     if (user.value) {
-      console.log('[Subscribe] 👤 Usuario actual:', user.value.email)
+      if (import.meta.env.DEV) {
+        console.log('[Subscribe] 👤 Usuario actual:', user.value.email)
+      }
     } else {
-      console.log('[Subscribe] ⚠️ Sin usuario autenticado')
+      if (import.meta.env.DEV) {
+        console.log('[Subscribe] ⚠️ Sin usuario autenticado')
+      }
     }
   } catch (userError) {
     console.error('[Subscribe] ❌ Error al obtener usuario:', userError)
@@ -50,21 +57,29 @@ onMounted(async () => {
   try {
     utmParams.value = getUTMFromSessionStorage()
     if (utmParams.value) {
-      console.log('[Subscribe] 📊 UTM params cargados:', utmParams.value)
+      if (import.meta.env.DEV) {
+        console.log('[Subscribe] 📊 UTM params cargados:', utmParams.value)
+      }
     }
   } catch (utmError) {
     console.warn('[Subscribe] ⚠️ Error al cargar UTM params:', utmError)
   }
   
   // Inicializar MercadoPago SDK
-  console.log('[Subscribe] 💳 Inicializando MercadoPago...')
+  if (import.meta.env.DEV) {
+    console.log('[Subscribe] 💳 Inicializando MercadoPago...')
+  }
   try {
     await initMercadoPago()
-    console.log('[Subscribe] ✅ MercadoPago inicializado')
+    if (import.meta.env.DEV) {
+      console.log('[Subscribe] ✅ MercadoPago inicializado')
+    }
   } catch (error) {
     console.error('[Subscribe] ❌ Error en inicialización de MercadoPago:', error)
-    console.error('[Subscribe] Tipo:', typeof error)
-    console.error('[Subscribe] Detalles:', error instanceof Error ? error.message : 'Error desconocido')
+    if (import.meta.env.DEV) {
+      console.error('[Subscribe] Tipo:', typeof error)
+      console.error('[Subscribe] Detalles:', error instanceof Error ? error.message : 'Error desconocido')
+    }
     console.warn('[Subscribe] ⚠️ Los pagos pueden no funcionar correctamente')
     submitError.value = 'Error al cargar Mercado Pago. Por favor, recarga la página.'
   }
@@ -113,6 +128,23 @@ const handleSubmit = async () => {
   isSubmitting.value = true
 
   try {
+    // Validar datos antes de enviar
+    console.log('[Subscribe] ✔️ Validando datos de contribución...')
+    const validationResult = validateContribution({
+      user_id: user.value.id,
+      monto: selectedLevel.value.amount,
+      nivel_id: selectedLevel.value.name,
+      nivel_nombre: selectedLevel.value.name,
+      utm_params: utmParams.value || {}
+    })
+
+    if (!validationResult.valid) {
+      const errorMessages = Object.values(validationResult.errors).join(', ')
+      submitError.value = `Validación fallida: ${errorMessages}`
+      console.error('[Subscribe] ❌ Errores de validación:', validationResult.errors)
+      return
+    }
+
     // Crear contribución usando repository
     console.log('[Subscribe] 1️⃣ Creando contribución en backend...')
     

@@ -46,9 +46,13 @@ const loadDocuments = async () => {
   error.value = null
   
   try {
-    console.log('[DocumentsView] Cargando documentos...')
+    if (import.meta.env.DEV) {
+      console.log('[DocumentsView] Cargando documentos...')
+    }
     documents.value = await documentsRepository.getAll()
-    console.log('[DocumentsView] ✅ Documentos cargados:', documents.value.length)
+    if (import.meta.env.DEV) {
+      console.log('[DocumentsView] ✅ Documentos cargados:', documents.value.length)
+    }
   } catch (err) {
     console.error('[DocumentsView] ❌ Error al cargar documentos:', err)
     

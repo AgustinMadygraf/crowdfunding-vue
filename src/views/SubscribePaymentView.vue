@@ -177,8 +177,9 @@ const showAuthInfo = computed(() => !user.value && contribution.value)
  * Carga la información de la contribución
  */
 const loadContribution = async () => {
-  if (!token.value) {
-    error.value = 'Token de contribución inválido'
+  // Validar token antes de fetch
+  if (!token.value?.trim()) {
+    error.value = 'Token de contribución inválido o vacío'
     return
   }
 
@@ -186,7 +187,9 @@ const loadContribution = async () => {
   error.value = null
 
   try {
-    console.log('[SubscribePayment] 🔄 Cargando contribución por token:', token.value)
+    if (import.meta.env.DEV) {
+      console.log('[SubscribePayment] 🔄 Cargando contribución por token:', token.value)
+    }
 
     const result = await subscriptionService.loadContributionByToken(token.value)
     

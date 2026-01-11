@@ -80,6 +80,12 @@ export interface IAuthQuery {
    * Obtiene información de configuración de Google
    */
   getConfigInfo(): GoogleAuthConfig
+
+  /**
+   * Refresca el token JWT si está próximo a expirar (< 5 minutos)
+   * @returns true si el token es válido o fue refrescado, false si expiró
+   */
+  refreshTokenIfNeeded(): Promise<boolean>
 }
 
 /**

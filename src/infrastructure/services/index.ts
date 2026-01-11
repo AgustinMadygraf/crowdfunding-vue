@@ -7,6 +7,8 @@ export { milestonesService } from './milestonesService'
 export { subscriptionsService } from './subscriptionsService'
 export { updatesService } from './updatesService'
 export { documentsService } from './documentsService'
+export { csrfService } from './csrfService'
+export type { ICsrfService } from './csrfService'
 
 // Auth service - clase y factory
 export { AuthService } from './authService'

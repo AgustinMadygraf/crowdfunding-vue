@@ -32,12 +32,16 @@ const loadData = async () => {
   error.value = null
   
   try {
-    console.log('[AdminView] Cargando datos administrativos...')
+    if (import.meta.env.DEV) {
+      console.log('[AdminView] Cargando datos administrativos...')
+    }
     
     // Cargar milestones
     try {
       milestones.value = await milestonesRepository.getAll()
-      console.log('[AdminView] ✅ Milestones cargados:', milestones.value.length)
+      if (import.meta.env.DEV) {
+        console.log('[AdminView] ✅ Milestones cargados:', milestones.value.length)
+      }
     } catch (err) {
       console.warn('[AdminView] ⚠️ Error cargando milestones:', err)
     }
@@ -45,7 +49,9 @@ const loadData = async () => {
     // Cargar updates
     try {
       updates.value = await updatesRepository.getAll()
-      console.log('[AdminView] ✅ Updates cargados:', updates.value.length)
+      if (import.meta.env.DEV) {
+        console.log('[AdminView] ✅ Updates cargados:', updates.value.length)
+      }
     } catch (err) {
       console.warn('[AdminView] ⚠️ Error cargando updates:', err)
     }
