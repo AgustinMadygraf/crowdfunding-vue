@@ -6,20 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="referrer" content="strict-origin-when-cross-origin">
     
-    <!-- Content Security Policy -->
-    <meta http-equiv="Content-Security-Policy" content="
-      default-src 'self';
-      script-src 'self' 'unsafe-inline' https://accounts.google.com https://sdk.mercadopago.com https://*.chatwoot.com https://chatwoot.madygraf.com;
-      style-src 'self' 'unsafe-inline' https://accounts.google.com https://fonts.googleapis.com;
-      font-src 'self' https://fonts.gstatic.com;
-      img-src 'self' data: https: http://localhost:5173;
-      connect-src 'self' https://accounts.google.com https://api.mercadopago.com https://www.mercadolibre.com https://api.mercadolibre.com https://*.chatwoot.com https://chatwoot.madygraf.com http://localhost:5000 http://127.0.0.1:5000;
-      frame-src 'self' https://accounts.google.com https://www.mercadopago.com.ar https://www.mercadolibre.com https://*.chatwoot.com https://chatwoot.madygraf.com;
-      object-src 'none';
-      base-uri 'self';
-      form-action 'self' https://www.mercadopago.com.ar;
-      upgrade-insecure-requests;
-    ">
+    <!-- CSP migrada a cabecera HTTP (ver .htaccess) -->
     
     <title>Madypack - Crowdfunding RKHA190</title>
     
@@ -54,6 +41,7 @@
       (function(d,t) {
         var BASE_URL="%VITE_CHATWOOT_BASE_URL%";
         var TOKEN="%VITE_CHATWOOT_TOKEN%";
+        var INTEGRITY="%VITE_CHATWOOT_SDK_INTEGRITY%";
         
         // Verificar si las credenciales están configuradas
         if (!BASE_URL || BASE_URL.includes("%VITE_") || !TOKEN || TOKEN.includes("%VITE_")) {
@@ -63,6 +51,12 @@
         var g=d.createElement(t),s=d.getElementsByTagName(t)[0];
         g.src=BASE_URL+"/packs/js/sdk.js";
         g.async = true;
+        // Preparar para SRI si se provee hash
+        if (INTEGRITY && !INTEGRITY.includes('%VITE_')) {
+          g.integrity = INTEGRITY;
+          g.crossOrigin = 'anonymous';
+        }
+        // NO establecer crossOrigin sin integrity; puede causar CORS issues
         s.parentNode.insertBefore(g,s);
         g.onload=function(){
           window.chatwootSDK.run({

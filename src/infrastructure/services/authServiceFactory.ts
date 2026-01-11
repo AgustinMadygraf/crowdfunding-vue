@@ -5,6 +5,8 @@
 
 import { AuthService } from './authService'
 import type { IAuthService, AuthServiceConfig } from './IAuthService'
+import { DefaultTokenStorage } from './auth/tokenStorage'
+import { DefaultGoogleOAuthProvider } from './auth/googleOAuthProvider'
 
 /**
  * Configuración por defecto del servicio de autenticación
@@ -47,7 +49,13 @@ export function createAuthService(config?: Partial<AuthServiceConfig>): IAuthSer
     ...config
   }
 
-  return new AuthService(finalConfig)
+  const storage = new DefaultTokenStorage(
+    finalConfig.tokenStorageKey || 'auth_token',
+    finalConfig.userStorageKey || 'auth_user'
+  )
+  const provider = new DefaultGoogleOAuthProvider()
+
+  return new AuthService(finalConfig, { storage, provider })
 }
 
 /**

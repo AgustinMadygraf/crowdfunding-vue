@@ -72,14 +72,6 @@ const router = createRouter({
       path: '/account',
       name: 'account',
       component: () => import('../views/UserDashboardView.vue'),
-      beforeEnter: (to, from, next) => {
-        if (authService.isAuthenticated()) {
-          next()
-        } else {
-          console.warn('[Router] Acceso denegado a /account: usuario no autenticado')
-          next('/suscribir')
-        }
-      },
       meta: {
         title: 'Mi Cuenta - Madypack',
         description: 'Panel de usuario con tu historial de contribuciones',
@@ -185,13 +177,13 @@ router.beforeEach((to, _from, next) => {
   }
   canonical.setAttribute('href', `https://madypack.com.ar${to.path}`)
   
-  // TODO: Implement auth check for requiresAuth routes
-  // if (to.meta.requiresAuth && !isAuthenticated()) {
-  //   next({ name: 'home' })
-  // } else {
-  //   next()
-  // }
-  
+  // Auth guard centralizado: protege rutas con requiresAuth
+  if (to.meta.requiresAuth && !authService.isAuthenticated()) {
+    console.warn(`[Router] Acceso denegado a ${to.fullPath}: usuario no autenticado`)
+    next('/suscribir')
+    return
+  }
+
   next()
 })
 

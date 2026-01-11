@@ -1,0 +1,14 @@
+<IfModule mod_headers.c>
+  # Content Security Policy (migrated from meta)
+  Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' https://accounts.google.com https://sdk.mercadopago.com https://*.chatwoot.com https://chatwoot.madygraf.com; style-src 'self' 'unsafe-inline' https://accounts.google.com https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https: http://localhost:5173; connect-src 'self' https://accounts.google.com https://api.mercadopago.com https://www.mercadolibre.com https://api.mercadolibre.com https://*.chatwoot.com https://chatwoot.madygraf.com http://localhost:5000 http://127.0.0.1:5000; frame-src 'self' https://accounts.google.com https://www.mercadopago.com.ar https://www.mercadolibre.com https://*.chatwoot.com https://chatwoot.madygraf.com; object-src 'none'; base-uri 'self'; form-action 'self' https://www.mercadopago.com.ar; upgrade-insecure-requests;"
+
+  # Additional security headers
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  Header always set X-Content-Type-Options "nosniff"
+  # Do NOT set X-Frame-Options; CSP frame-src handles allowed frames
+  # Permissions-Policy: disable unused features
+  Header always set Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=()"
+</IfModule>
+
+# Ensure mod_headers is enabled in Apache
+# On Windows AppServ, enable via httpd.conf: LoadModule headers_module modules/mod_headers.so

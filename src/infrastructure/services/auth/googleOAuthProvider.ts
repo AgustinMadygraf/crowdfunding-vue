@@ -22,6 +22,15 @@ export class DefaultGoogleOAuthProvider implements GoogleOAuthProvider {
       script.src = 'https://accounts.google.com/gsi/client'
       script.async = true
       script.defer = true
+      // Optional SRI support if hash provided via env
+      try {
+        const integrity = (import.meta as any)?.env?.VITE_GOOGLE_GSI_INTEGRITY
+        if (integrity && typeof integrity === 'string' && integrity.length > 10) {
+          (script as any).integrity = integrity
+          ;(script as any).crossOrigin = 'anonymous'
+        }
+        // NO establecer crossOrigin si no hay integrity; Google GSI no lo soporta
+      } catch {}
       document.head.appendChild(script)
     } catch {
       // swallow

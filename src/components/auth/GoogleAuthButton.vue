@@ -59,10 +59,30 @@ const isLoading = ref(false)
 const auth = useAuthService()
 const isAuthenticated = computed(() => auth.isAuthenticated())
 
+// Debounce/throttle state para prevenir múltiples llamadas simultáneas
+let authInProgress = false
+let lastAuthAttempt = 0
+const MIN_AUTH_INTERVAL_MS = 2000 // Mínimo 2 segundos entre intentos
+
 /**
- * Maneja el callback de Google Sign-In
+ * Maneja el callback de Google Sign-In con throttling
  */
 const handleGoogleCallback = async (token: string) => {
+  // Throttle: prevenir llamadas muy rápidas
+  const now = Date.now()
+  if (now - lastAuthAttempt < MIN_AUTH_INTERVAL_MS) {
+    console.warn('[GoogleAuthButton] ⏱️ Throttle activo: intento muy rápido, ignorando')
+    return
+  }
+  
+  // Prevenir autenticación concurrente
+  if (authInProgress) {
+    console.warn('[GoogleAuthButton] ⏳ Autenticación ya en progreso, ignorando callback duplicado')
+    return
+  }
+  
+  authInProgress = true
+  lastAuthAttempt = now
   console.log('[GoogleAuthButton] Callback recibido de Google')
   isLoading.value = true
   error.value = null
@@ -94,13 +114,20 @@ const handleGoogleCallback = async (token: string) => {
     emit('auth-error', err instanceof Error ? err : new Error(errorMessage))
   } finally {
     isLoading.value = false
+    authInProgress = false
   }
 }
 
 /**
- * Maneja el logout
+ * Maneja el logout con validación
  */
 const handleLogout = () => {
+  // Prevenir logout durante autenticación
+  if (authInProgress) {
+    console.warn('[GoogleAuthButton] ⚠️ No se puede cerrar sesión durante autenticación en progreso')
+    return
+  }
+  
   console.log('[GoogleAuthButton] Iniciando cierre de sesión')
   try {
     try {

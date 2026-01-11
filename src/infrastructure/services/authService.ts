@@ -5,8 +5,8 @@
 
 import type { User } from '@/domain/user'
 import type { IAuthService, AuthState, MutableAuthState, GoogleAuthConfig, AuthServiceConfig } from './IAuthService'
-import { DefaultTokenStorage } from './auth/tokenStorage'
-import { DefaultGoogleOAuthProvider } from './auth/googleOAuthProvider'
+import { DefaultTokenStorage, type TokenStorage } from './auth/tokenStorage'
+import { DefaultGoogleOAuthProvider, type GoogleOAuthProvider } from './auth/googleOAuthProvider'
 
 interface GoogleAuthResponse {
   user_id: string
@@ -32,15 +32,22 @@ export class AuthService implements IAuthService {
   private loginAttempts: { timestamp: number }[] = []
   private readonly MAX_LOGIN_ATTEMPTS = 5
   private readonly LOGIN_TIMEOUT_MS = 60000 // 1 minuto
-  private readonly storage = new DefaultTokenStorage('auth_token', 'auth_user')
-  private readonly provider = new DefaultGoogleOAuthProvider()
+  private readonly storage: TokenStorage
+  private readonly provider: GoogleOAuthProvider
 
-  constructor(config?: AuthServiceConfig) {
+  constructor(config?: AuthServiceConfig, deps?: { storage?: TokenStorage; provider?: GoogleOAuthProvider }) {
     // Aplicar configuración con fallback a variables de entorno
     this.API_BASE_URL = config?.apiBaseUrl || import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'
     this.GOOGLE_CLIENT_ID = config?.googleClientId || import.meta.env.VITE_GOOGLE_CLIENT_ID || ''
     this.TOKEN_STORAGE_KEY = config?.tokenStorageKey || 'auth_token'
     this.USER_STORAGE_KEY = config?.userStorageKey || 'auth_user'
+
+    // Inicializar dependencias
+    this.storage = deps?.storage ?? new DefaultTokenStorage(
+      config?.tokenStorageKey || 'auth_token',
+      config?.userStorageKey || 'auth_user'
+    )
+    this.provider = deps?.provider ?? new DefaultGoogleOAuthProvider()
 
     // Validar que el client_id esté configurado
     if (!this.GOOGLE_CLIENT_ID) {
@@ -66,8 +73,6 @@ export class AuthService implements IAuthService {
       throw new Error('API must use HTTPS in production')
     }
 
-    // Reconfigurar storage con claves del config
-    ;(this as any).storage = new DefaultTokenStorage(this.TOKEN_STORAGE_KEY, this.USER_STORAGE_KEY)
     this.loadStoredAuth()
     this.loadGoogleScript()
   }
