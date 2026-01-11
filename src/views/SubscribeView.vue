@@ -16,10 +16,6 @@ const { levels, selectedLevel, selectLevel, benefitAmount } = useContributionLev
 const user = ref<User | null>(null)
 const isAuthenticationModalOpen = ref(false)
 
-// MODO TESTING: Bypass de Google Auth para probar Mercado Pago
-const isTestingMode = ref(false)
-const testUser = ref<User | null>(null)
-
 // Form data removed; user info comes from Google Auth
 
 // Form validation removed
@@ -31,28 +27,7 @@ const contributionCreated = ref(false)
 const contributionToken = ref<string | null>(null)
 const isProcessingPayment = ref(false)
 
-const isAuthenticated = computed(() => {
-  // ✅ Autenticado por Google
-  if (authService.isAuthenticated()) return true
-  // ✅ O en modo testing
-  if (isTestingMode.value && testUser.value) return true
-  return false
-})
-
-// Función para habilitar modo testing
-const enableTestingMode = () => {
-  console.log('[Subscribe] 🧪 Habilitando modo testing...')
-  isTestingMode.value = true
-  testUser.value = {
-    id: 'test-user-' + Date.now(),
-    email: 'test@example.com',
-    nombre: 'Test User',
-    avatar_url: undefined
-  }
-  user.value = testUser.value
-  console.log('[Subscribe] ✅ Modo testing habilitado')
-  console.log('[Subscribe] 👤 Usuario:', testUser.value.email)
-}
+const isAuthenticated = computed(() => authService.isAuthenticated())
 
 // Cargar usuario actual y UTM params al montar
 onMounted(async () => {
@@ -130,18 +105,7 @@ const createContribution = async (): Promise<{ token: string; preference_id: str
   console.log('[Subscribe] 💰 Nivel:', selectedLevel.value.name, `($${selectedLevel.value.amount})`)
 
   const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'
-  
-  // En modo testing, usar headers sin token
-  let headers: any
-  if (isTestingMode.value) {
-    console.log('[Subscribe] 🧪 Modo testing: usando headers sin auth')
-    headers = {
-      'Content-Type': 'application/json',
-      'X-Test-Mode': 'true'
-    }
-  } else {
-    headers = authService.getAuthHeaders()
-  }
+  const headers = authService.getAuthHeaders()
 
   console.log(`[Subscribe] 📤 Enviando a: ${apiBaseUrl}/api/contributions`)
 
@@ -306,25 +270,6 @@ const handlePayment = async () => {
 
     <section class="form-section">
       <div class="container-narrow">
-        <!-- Testing Mode Indicator & Button -->
-        <div v-if="!isAuthenticated" class="testing-mode-section">
-          <div class="testing-mode-banner">
-            <p>⚙️ Modo Testing: Prueba Mercado Pago sin necesidad de Google Auth</p>
-            <button 
-              v-if="!isTestingMode" 
-              type="button" 
-              class="testing-mode-button"
-              @click="enableTestingMode"
-            >
-              🧪 Habilitar Modo Testing
-            </button>
-            <div v-else class="testing-mode-active">
-              <span class="badge">🧪 Testing Mode Activo</span>
-              <p>Usuario: {{ testUser?.email }}</p>
-            </div>
-          </div>
-        </div>
-
         <div v-if="isAuthenticated && user" class="auth-header">
           <div class="user-badge">
             <img v-if="user.avatar_url" :src="user.avatar_url" :alt="user.nombre" class="avatar-sm">
