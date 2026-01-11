@@ -143,6 +143,12 @@ onMounted(() => {
       console.warn('[GoogleAuthButton] ⚠️ Continuando sin usuario previo')
     }
 
+    // Si ya está autenticado, no inicializamos el botón para evitar warnings innecesarios
+    if (isAuthenticated.value) {
+      console.log('[GoogleAuthButton] Usuario ya autenticado; se omite la inicialización de Google Sign-In')
+      return
+    }
+
     // Verificar configuración de Google
     let configInfo: ReturnType<typeof authService.getConfigInfo>
     try {

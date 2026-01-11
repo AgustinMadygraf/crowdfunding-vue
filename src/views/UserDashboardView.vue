@@ -171,7 +171,22 @@ const loadContributions = async () => {
       throw new Error('No se pudieron cargar las contribuciones')
     }
 
-    contributions.value = await response.json()
+    const data = await response.json()
+
+    const list = Array.isArray(data)
+      ? data
+      : Array.isArray(data?.contributions)
+        ? data.contributions
+        : Array.isArray(data?.items)
+          ? data.items
+          : null
+
+    if (!list) {
+      console.error('[Dashboard] Respuesta cruda de contribuciones:', data)
+      throw new Error('Formato de respuesta inválido para contribuciones')
+    }
+
+    contributions.value = list
     // Ordenar por fecha más reciente primero
     contributions.value.sort((a, b) => 
       new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
