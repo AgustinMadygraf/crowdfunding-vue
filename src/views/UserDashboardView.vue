@@ -5,7 +5,7 @@
       <div class="header-content">
         <img 
           v-if="user?.avatar_url"
-          :src="user.avatar_url"
+          :src="sanitizeAvatarUrl(user.avatar_url)"
           :alt="user?.nombre"
           class="avatar"
         >
@@ -129,6 +129,7 @@ import { useRouter } from 'vue-router'
 import { useAuthService } from '@/application/useAuthService'
 import { contributionsRepository, ContributionRepositoryError, type UserContribution } from '@/infrastructure/repositories/ContributionsRepository'
 import type { User } from '@/domain/user'
+import { sanitizeAvatarUrl } from '@/utils/urlSanitizer'
 
 const router = useRouter()
 

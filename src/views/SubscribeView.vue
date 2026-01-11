@@ -8,6 +8,7 @@ import { useAuthService } from '@/application/useAuthService'
 import { contributionsRepository, ContributionRepositoryError } from '@/infrastructure/repositories/ContributionsRepository'
 import GoogleAuthButton from '@/components/auth/GoogleAuthButton.vue'
 import type { User } from '@/domain/user'
+import { sanitizeAvatarUrl } from '@/utils/urlSanitizer'
 
 const router = useRouter()
 const { levels, selectedLevel, selectLevel, benefitAmount } = useContributionLevels()
@@ -230,7 +231,7 @@ const handlePayment = async () => {
       <div class="container-narrow">
         <div v-if="isAuthenticated && user" class="auth-header">
           <div class="user-badge">
-            <img v-if="user.avatar_url" :src="user.avatar_url" :alt="user.nombre" class="avatar-sm">
+            <img v-if="user.avatar_url" :src="sanitizeAvatarUrl(user.avatar_url)" :alt="user.nombre" class="avatar-sm">
             <div>
               <p class="greeting">Hola, {{ user.nombre }}</p>
               <p class="email">{{ user.email }}</p>

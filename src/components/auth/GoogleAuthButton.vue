@@ -12,7 +12,7 @@
     >
       <img 
         v-if="user?.avatar_url"
-        :src="user.avatar_url"
+        :src="sanitizeAvatarUrl(user.avatar_url)"
         :alt="user.nombre"
         class="avatar"
       >
@@ -38,6 +38,7 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { useAuthService } from '@/application/useAuthService'
 import type { User } from '@/domain/user'
+import { sanitizeAvatarUrl } from '@/utils/urlSanitizer'
 
 const props = defineProps({
   buttonContainerId: {
