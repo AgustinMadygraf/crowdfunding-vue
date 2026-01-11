@@ -50,6 +50,57 @@ class AuthService {
 
     this.loadStoredAuth()
     this.loadGoogleScript()
+    this.setupGoogleErrorInterceptor()
+  }
+
+  /**
+   * Intercepta errores de Google (GSI_LOGGER) para mostrar instrucciones
+   */
+  private setupGoogleErrorInterceptor(): void {
+    // Interceptar console.error
+    const originalError = console.error
+    const originalWarn = console.warn
+    const self = this
+    
+    const detectGoogleOriginError = function(...args: any[]) {
+      const message = args.join(' ')
+      
+      // Detectar mensaje específico de Google sobre origen no autorizado
+      if ((message.includes('GSI_LOGGER') || message.includes('gsi')) && 
+          (message.includes('origin is not allowed') || message.includes('origin') && message.includes('not allowed'))) {
+        
+        // Mostrar el error original primero
+        originalError.apply(console, args)
+        
+        // Luego mostrar instrucciones
+        setTimeout(() => {
+          console.error('[Auth] ')
+          console.error('[Auth] ❌❌❌ DETECTADO: Google bloqueó el origen')
+          console.error('[Auth] 🌐 Origen bloqueado:', window.location.origin)
+          console.error('[Auth] 🔑 Client ID:', self.GOOGLE_CLIENT_ID.substring(0, 30) + '...')
+          console.error('[Auth] ')
+          console.error('[Auth] 🔧 SOLUCIÓN INMEDIATA (5 min):')
+          console.error('[Auth] 1. Abre: https://console.cloud.google.com/apis/credentials')
+          console.error('[Auth] 2. Busca el Client ID de arriba')
+          console.error('[Auth] 3. Click en editar > "Authorized JavaScript origins"')
+          console.error('[Auth] 4. Agrega:', window.location.origin)
+          console.error('[Auth] 5. Agrega también: http://127.0.0.1:5173')
+          console.error('[Auth] 6. Guarda y espera 1-2 minutos')
+          console.error('[Auth] 7. Recarga con Ctrl+Shift+R')
+          console.error('[Auth] ')
+          console.error('[Auth] 📚 Guía completa: docs/GOOGLE_ORIGIN_NOT_AUTHORIZED_FIX.md')
+        }, 100)
+        return
+      }
+      
+      originalError.apply(console, args)
+    }
+    
+    console.error = detectGoogleOriginError as any
+    console.warn = function(...args: any[]) {
+      detectGoogleOriginError.apply(console, args)
+      originalWarn.apply(console, args)
+    } as any
   }
 
   /**
@@ -412,6 +463,16 @@ class AuthService {
           }
         })
         console.log('[Auth] ✅ Google Sign-In inicializado')
+        console.log('[Auth] 🔍 Esperando respuesta de Google... (el error 403 puede aparecer ahora)')
+        
+        // Monitorear errores de red de Google después de inicializar
+        setTimeout(() => {
+          if (this.authState.error && this.authState.error.includes('no autorizado')) {
+            console.error('[Auth] ⚠️ Si ves error 403 en Network tab:')
+            console.error('[Auth] → El origen NO está en Google Cloud Console')
+            console.error('[Auth] → Ver docs/GOOGLE_ORIGIN_NOT_AUTHORIZED_FIX.md para solución')
+          }
+        }, 2000)
       } catch (initError) {
         console.error('[Auth] ❌ Error al inicializar Google Sign-In:', initError)
         console.error('[Auth] Stack:', initError instanceof Error ? initError.stack : 'No disponible')
@@ -441,6 +502,108 @@ class AuthService {
         )
         console.log('[Auth] ✅ Botón de Google Sign-In renderizado exitosamente')
         console.log(`[Auth] 📍 Contenedor: #${containerId}`)
+        console.log('[Auth] 🔎 Verificando iframe de Google... (revisar Network tab para 403)')
+        
+        // Variable para rastrear si se detectó el error 403
+        let error403Detected = false
+        let gsiLoggerDetected = false
+        
+        // Capturar mensajes de error específicos de GSI
+        const originalConsoleError = console.error
+        const checkForGSIError = (...args: any[]) => {
+          const msg = args.join(' ')
+          if (msg.includes('GSI') || msg.includes('gsi')) {
+            if (msg.includes('origin') && msg.includes('not allowed')) {
+              gsiLoggerDetected = true
+            }
+          }
+        }
+        
+        // Monitorear errores de red en el Performance API
+        const observer = new PerformanceObserver((list) => {
+          for (const entry of list.getEntries()) {
+            if (entry.name.includes('accounts.google.com') && 
+                (entry as any).responseStatus === 403) {
+              error403Detected = true
+            }
+          }
+        })
+        
+        try {
+          observer.observe({ entryTypes: ['resource'] })
+        } catch (e) {
+          // Performance API no disponible o no soportado
+        }
+        
+        // Detectar estado después de renderizar
+        setTimeout(() => {
+          observer.disconnect()
+          
+          // Buscar iframes de Google en el DOM (incluyendo ocultos)
+          const googleIframes = document.querySelectorAll('iframe[src*="accounts.google.com"], iframe[id*="gsi"]')
+          const hasButton = container.querySelector('iframe, div[role="button"]')
+          
+          // Buscar en Performance API manualmente si no se detectó con observer
+          try {
+            const resources = performance.getEntriesByType('resource') as PerformanceResourceTiming[]
+            const googleResources = resources.filter(r => r.name.includes('accounts.google.com'))
+            googleResources.forEach(r => {
+              if ((r as any).responseStatus === 403 || r.name.includes('/gsi/button')) {
+                // Verificar si el recurso falló (transferSize = 0 generalmente indica error)
+                if (r.transferSize === 0 && r.decodedBodySize === 0) {
+                  error403Detected = true
+                }
+              }
+            })
+          } catch (e) {
+            // Performance API error
+          }
+          
+          console.log('[Auth] 🔍 Resultados de verificación:')
+          console.log('[Auth]   - Iframes de Google encontrados:', googleIframes.length)
+          console.log('[Auth]   - Botón en contenedor:', !!hasButton)
+          console.log('[Auth]   - Error 403 detectado:', error403Detected)
+          console.log('[Auth]   - GSI_LOGGER detectado:', gsiLoggerDetected)
+          
+          // Condiciones para mostrar diagnóstico:
+          // 1. No hay iframe en absoluto
+          // 2. Se detectó error 403 en Performance API
+          // 3. Se detectó mensaje GSI_LOGGER
+          const shouldShowDiagnostic = googleIframes.length === 0 || error403Detected || gsiLoggerDetected
+          
+          if (shouldShowDiagnostic) {
+            console.error('[Auth] ')
+            console.error('[Auth] ❌❌❌ DIAGNÓSTICO: Origen NO autorizado en Google Cloud')
+            console.error('[Auth] 🌐 Origen actual:', window.location.origin)
+            console.error('[Auth] 🔑 Client ID:', this.GOOGLE_CLIENT_ID.substring(0, 30) + '...')
+            console.error('[Auth] ')
+            console.error('[Auth] 📋 EVIDENCIA DEL ERROR:')
+            if (error403Detected) {
+              console.error('[Auth]   ✓ HTTP 403 Forbidden detectado en Network tab')
+            }
+            if (gsiLoggerDetected) {
+              console.error('[Auth]   ✓ GSI_LOGGER: origin is not allowed')
+            }
+            console.error('[Auth] ')
+            console.error('[Auth] 🔧 SOLUCIÓN (5 minutos):')
+            console.error('[Auth] ')
+            console.error('[Auth] 1️⃣ Abre: https://console.cloud.google.com/apis/credentials')
+            console.error('[Auth] 2️⃣ Inicia sesión con Google')
+            console.error('[Auth] 3️⃣ Busca el Client ID:', this.GOOGLE_CLIENT_ID.substring(0, 30) + '...')
+            console.error('[Auth] 4️⃣ Click en el Client ID')
+            console.error('[Auth] 5️⃣ Busca "Authorized JavaScript origins"')
+            console.error('[Auth] 6️⃣ Click "ADD URI" y agrega:', window.location.origin)
+            console.error('[Auth] 7️⃣ También agrega: http://127.0.0.1:5173')
+            console.error('[Auth] 8️⃣ Click "SAVE"')
+            console.error('[Auth] 9️⃣ Espera 1-2 minutos')
+            console.error('[Auth] 🔟 Recarga con Ctrl+Shift+R')
+            console.error('[Auth] ')
+            console.error('[Auth] 📚 Guía: docs/GOOGLE_ORIGIN_NOT_AUTHORIZED_FIX.md')
+            console.error('[Auth] 🔗 https://console.cloud.google.com/apis/credentials')
+          } else {
+            console.log('[Auth] ✅ Iframe de Google cargado correctamente')
+          }
+        }, 3000)
       } catch (renderError) {
         console.error('[Auth] ❌ Error al renderizar botón de Google Sign-In:', renderError)
         console.error('[Auth] Stack:', renderError instanceof Error ? renderError.stack : 'No disponible')
