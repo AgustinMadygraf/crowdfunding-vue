@@ -5,6 +5,7 @@
 
 import { ref, computed, type Ref } from 'vue'
 import { contributionsRepository, ContributionRepositoryError, type UserContribution } from '@/infrastructure/repositories/ContributionsRepository'
+import { getApiBaseUrl } from '@/config/api'
 import type { User } from '@/domain/user'
 
 export interface CreateContributionData {
@@ -102,7 +103,7 @@ export function useSubscription() {
       // Se hace fetch directo en SubscribePaymentView
       // TODO: Implementar contributionsRepository.getByToken() cuando esté disponible
       
-      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'
+      const apiBaseUrl = getApiBaseUrl()
       const response = await fetch(`${apiBaseUrl}/api/contributions/${contributionToken}`, {
         method: 'GET',
         headers: {

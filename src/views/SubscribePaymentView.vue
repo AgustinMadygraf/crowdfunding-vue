@@ -146,6 +146,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useAuthService } from '@/application/useAuthService'
+import { getApiBaseUrl } from '@/config/api'
 import type { User } from '@/domain/user'
 
 interface Contribution {
@@ -184,7 +185,7 @@ const loadContribution = async () => {
   error.value = null
 
   try {
-    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'
+    const apiBaseUrl = getApiBaseUrl()
     const auth = useAuthService()
     const headers = auth.getAuthHeaders()
     // Evitar preflight CORS en GET: eliminar Content-Type

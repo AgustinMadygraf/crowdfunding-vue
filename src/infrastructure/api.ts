@@ -3,7 +3,7 @@
  * Base HTTP client para todas las llamadas al backend
  */
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000'
+import { API_BASE_URL, DEFAULT_TIMEOUT_MS } from '@/config/api'
 
 export interface ApiResponse<T> {
   data: T
@@ -89,10 +89,13 @@ class ApiClient {
       })
     }
 
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT_MS)
     const response = await fetch(url.toString(), {
       method: 'GET',
-      headers: this.getDefaultHeaders()
-    })
+      headers: this.getDefaultHeaders(),
+      signal: controller.signal
+    }).finally(() => clearTimeout(timeout))
 
     return this.handleResponse<T>(response)
   }
@@ -101,11 +104,14 @@ class ApiClient {
    * POST request
    */
   async post<T>(endpoint: string, data?: unknown): Promise<T> {
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT_MS)
     const response = await fetch(`${this.baseUrl}${endpoint}`, {
       method: 'POST',
       headers: this.getDefaultHeaders(),
-      body: data ? JSON.stringify(data) : undefined
-    })
+      body: data ? JSON.stringify(data) : undefined,
+      signal: controller.signal
+    }).finally(() => clearTimeout(timeout))
 
     return this.handleResponse<T>(response)
   }
@@ -114,11 +120,14 @@ class ApiClient {
    * PUT request
    */
   async put<T>(endpoint: string, data?: unknown): Promise<T> {
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT_MS)
     const response = await fetch(`${this.baseUrl}${endpoint}`, {
       method: 'PUT',
       headers: this.getDefaultHeaders(),
-      body: data ? JSON.stringify(data) : undefined
-    })
+      body: data ? JSON.stringify(data) : undefined,
+      signal: controller.signal
+    }).finally(() => clearTimeout(timeout))
 
     return this.handleResponse<T>(response)
   }
@@ -127,11 +136,14 @@ class ApiClient {
    * PATCH request
    */
   async patch<T>(endpoint: string, data?: unknown): Promise<T> {
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT_MS)
     const response = await fetch(`${this.baseUrl}${endpoint}`, {
       method: 'PATCH',
       headers: this.getDefaultHeaders(),
-      body: data ? JSON.stringify(data) : undefined
-    })
+      body: data ? JSON.stringify(data) : undefined,
+      signal: controller.signal
+    }).finally(() => clearTimeout(timeout))
 
     return this.handleResponse<T>(response)
   }
@@ -140,10 +152,13 @@ class ApiClient {
    * DELETE request
    */
   async delete<T>(endpoint: string): Promise<T> {
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT_MS)
     const response = await fetch(`${this.baseUrl}${endpoint}`, {
       method: 'DELETE',
-      headers: this.getDefaultHeaders()
-    })
+      headers: this.getDefaultHeaders(),
+      signal: controller.signal
+    }).finally(() => clearTimeout(timeout))
 
     return this.handleResponse<T>(response)
   }

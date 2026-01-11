@@ -4,6 +4,7 @@
  */
 
 import { authService } from '@/infrastructure/services/authServiceFactory'
+import { getApiBaseUrl } from '@/config/api'
 
 export interface CreateContributionDTO {
   user_id: string
@@ -59,7 +60,7 @@ export class ContributionsRepository {
   private readonly apiBaseUrl: string
 
   constructor(apiBaseUrl?: string) {
-    this.apiBaseUrl = apiBaseUrl || import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'
+    this.apiBaseUrl = apiBaseUrl || getApiBaseUrl()
   }
 
   /**

@@ -4,6 +4,7 @@
  */
 
 import type { DocumentDTO } from '@/infrastructure/dto'
+import { getApiBaseUrl } from '@/config/api'
 
 export interface GetDocumentsParams {
   category?: string
@@ -31,7 +32,7 @@ export class DocumentsRepository {
   private readonly apiBaseUrl: string
 
   constructor(apiBaseUrl?: string) {
-    this.apiBaseUrl = apiBaseUrl || import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'
+    this.apiBaseUrl = apiBaseUrl || getApiBaseUrl()
   }
 
   /**

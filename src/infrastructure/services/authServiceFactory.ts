@@ -4,6 +4,7 @@
  */
 
 import { AuthService } from './authService'
+import { getApiBaseUrl } from '@/config/api'
 import type { IAuthService, AuthServiceConfig } from './IAuthService'
 import { DefaultTokenStorage } from './auth/tokenStorage'
 import { DefaultGoogleOAuthProvider } from './auth/googleOAuthProvider'
@@ -12,7 +13,7 @@ import { DefaultGoogleOAuthProvider } from './auth/googleOAuthProvider'
  * Configuración por defecto del servicio de autenticación
  */
 const defaultConfig: AuthServiceConfig = {
-  apiBaseUrl: import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000',
+  apiBaseUrl: getApiBaseUrl(),
   googleClientId: import.meta.env.VITE_GOOGLE_CLIENT_ID || '',
   tokenStorageKey: 'auth_token',
   userStorageKey: 'auth_user'
@@ -64,4 +65,7 @@ export function createAuthService(config?: Partial<AuthServiceConfig>): IAuthSer
  * Usa variables de entorno (VITE_*) para configuración
  * Se recomienda usar createAuthService() directamente para testing
  */
-export const authService = createAuthService()
+export const authService = new AuthService({
+  apiBaseUrl: getApiBaseUrl(),
+  googleClientId: import.meta.env.VITE_GOOGLE_CLIENT_ID
+})

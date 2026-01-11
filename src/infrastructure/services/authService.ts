@@ -5,6 +5,7 @@
 
 import type { User } from '@/domain/user'
 import type { IAuthService, AuthState, MutableAuthState, GoogleAuthConfig, AuthServiceConfig } from './IAuthService'
+import { getApiBaseUrl } from '@/config/api'
 import { DefaultTokenStorage, type TokenStorage } from './auth/tokenStorage'
 import { DefaultGoogleOAuthProvider, type GoogleOAuthProvider } from './auth/googleOAuthProvider'
 
@@ -37,7 +38,7 @@ export class AuthService implements IAuthService {
 
   constructor(config?: AuthServiceConfig, deps?: { storage?: TokenStorage; provider?: GoogleOAuthProvider }) {
     // Aplicar configuración con fallback a variables de entorno
-    this.API_BASE_URL = config?.apiBaseUrl || import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'
+    this.API_BASE_URL = config?.apiBaseUrl || getApiBaseUrl()
     this.GOOGLE_CLIENT_ID = config?.googleClientId || import.meta.env.VITE_GOOGLE_CLIENT_ID || ''
     this.TOKEN_STORAGE_KEY = config?.tokenStorageKey || 'auth_token'
     this.USER_STORAGE_KEY = config?.userStorageKey || 'auth_user'

@@ -4,6 +4,7 @@
  */
 
 import { loadMercadoPago } from '@mercadopago/sdk-js'
+import { getApiBaseUrl } from '@/config/api'
 
 // MercadoPago SDK instance (loaded asynchronously)
 let mp: any = null
@@ -93,7 +94,7 @@ export async function createPaymentPreference(data: {
   payer_email: string
   payer_name: string
 }): Promise<{ preference_id: string }> {
-  const apiUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'
+  const apiUrl = getApiBaseUrl()
   
   console.log('[MercadoPago] 📝 Creando preferencia de pago...')
   console.log('[MercadoPago] 💰 Datos:', {
