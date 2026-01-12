@@ -215,7 +215,7 @@ onMounted(() => {
         if (window.google?.accounts?.id) {
           clearInterval(checkGoogleReady)
           console.log(`[GoogleAuthButton] ✅ Google SDK listo en intento ${attempts}`)
-          console.log('[GoogleAuthButton] Inicializando Google Sign-In...')
+          console.log('[GoogleAuthButton] Inicializando Google Sign-In ...')
           
           try {
             auth.initGoogleSignIn(
