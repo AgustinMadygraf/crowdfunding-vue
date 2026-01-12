@@ -1,3 +1,8 @@
+// Credenciales para login
+export interface Credentials {
+  email: string;
+  password: string;
+}
 /**
  * Dominio: Usuario
  * Define la estructura de datos de un usuario en la aplicación

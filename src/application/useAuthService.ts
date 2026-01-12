@@ -1,7 +1,9 @@
+
 import { inject } from 'vue'
 import type { IAuthService } from '@/infrastructure/services/IAuthService'
 import { authService as defaultAuthService } from '@/infrastructure/services/authServiceFactory'
 import { Logger } from '@/infrastructure/logger'
+import type { Credentials } from '@/domain/user'
 
 export const AUTH_SERVICE_KEY = 'authService' as const
 
