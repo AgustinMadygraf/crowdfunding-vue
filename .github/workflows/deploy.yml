@@ -100,6 +100,7 @@ jobs:
           VITE_CHATWOOT_BASE_URL: ${{ secrets.VITE_CHATWOOT_BASE_URL }}
           VITE_CHATWOOT_INBOX_IDENTIFIER: ${{ secrets.VITE_CHATWOOT_INBOX_IDENTIFIER }}
           VITE_CHATWOOT_HMAC_TOKEN: ${{ secrets.VITE_CHATWOOT_HMAC_TOKEN }}
+          VITE_CHATWOOT_SDK_INTEGRITY: ${{ secrets.VITE_CHATWOOT_SDK_INTEGRITY }}
         run: npm run build
 
       - name: Ensure dist/assets folder exists

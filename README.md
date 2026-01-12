@@ -1,45 +1,82 @@
 
+
 # crowdfunding-vue
 
-Proyecto base para desarrollo de aplicaciones Vue 3 con Vite.
+Plataforma de crowdfunding desarrollada en Vue 3 y Vite.
 
-## Requisitos recomendados para el entorno de desarrollo
+## Descripción
 
-- [VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (se recomienda desactivar Vetur).
+Este proyecto es una aplicación web de crowdfunding que permite a usuarios contribuir a campañas, seguir el progreso de los hitos (milestones), recibir actualizaciones y gestionar su perfil. Está orientado a organizaciones, ONGs o iniciativas que buscan financiamiento colectivo de manera transparente y moderna.
 
-## Soporte de Tipos para `.vue` en TypeScript
+## Funcionalidades principales
 
-TypeScript no soporta tipos de archivos `.vue` por defecto. Por eso, se utiliza `vue-tsc` para el chequeo de tipos. En el editor, se recomienda usar Volar para que el servicio de TypeScript reconozca los tipos de Vue.
+- Registro e inicio de sesión de usuarios (incluye autenticación con Google)
+- Visualización de niveles de contribución y selección de monto
+- Seguimiento de hitos (milestones) y actualizaciones del proyecto
+- Integración con Chatwoot para soporte y chat en tiempo real
+- Procesamiento de pagos (MercadoPago)
+- Panel de usuario con historial de contribuciones y suscripciones
+- Gestión y visualización de documentos relevantes
+- Sección de preguntas frecuentes (FAQ)
+- Panel de administración (AdminView)
 
-## Configuración del proyecto
+## Tecnologías utilizadas
 
-Instala las dependencias:
+- Vue 3
+- Vite
+- Pinia (state management)
+- Vue Router
+- TypeScript
+- MercadoPago SDK
+- Chatwoot SDK
+- Sentry (monitorización de errores)
+- ESLint + Volar (calidad de código y soporte TS)
 
-```sh
-npm install
-```
+## Estructura de carpetas relevante
 
-### Desarrollo (compilación y recarga en caliente)
+- `src/components/` — Componentes reutilizables (auth, layout, milestones, updates, etc.)
+- `src/views/` — Vistas principales de la app (Home, Admin, Dashboard, etc.)
+- `src/application/` — Lógica de negocio y hooks personalizados
+- `src/infrastructure/` — Servicios, repositorios y utilidades de integración
+- `src/stores/` — Pinia stores para manejo de estado
+- `src/assets/` — Estilos y recursos estáticos
+- `src/router/` — Definición de rutas
 
-```sh
-npm run dev
-```
+## Instalación y uso
 
-### Chequeo de tipos, compilación y minificación para producción
+1. Instala las dependencias:
+	```sh
+	npm install
+	```
+2. Ejecuta el entorno de desarrollo:
+	```sh
+	npm run dev
+	```
+3. Para compilar y minificar para producción:
+	```sh
+	npm run build
+	```
+4. Para analizar el código (lint):
+	```sh
+	npm run lint
+	```
 
-```sh
-npm run build
-```
+## Variables de entorno
 
-### Lint (análisis de estilo y errores)
+Debes definir las siguientes variables en un archivo `.env` o en el entorno de CI/CD:
 
-```sh
-npm run lint
-```
+- VITE_CHATWOOT_TOKEN
+- VITE_CHATWOOT_BASE_URL
+- VITE_CHATWOOT_INBOX_IDENTIFIER
+- VITE_CHATWOOT_HMAC_TOKEN (opcional, si aplica)
 
-## Personalización de configuración
+## Contribuir
 
-Consulta la [documentación de Vite](https://vite.dev/config/) para personalizar la configuración.
+¡Las contribuciones son bienvenidas! Puedes abrir issues o pull requests para sugerir mejoras, reportar bugs o proponer nuevas funcionalidades.
+
+## Contacto
+
+Para dudas o soporte, utiliza el chat integrado (Chatwoot) o abre un issue en el repositorio.
 
 ---
-Si tienes dudas o sugerencias, ¡no dudes en contribuir o abrir un issue!
+Este proyecto busca facilitar la recaudación de fondos de manera transparente, segura y colaborativa.
