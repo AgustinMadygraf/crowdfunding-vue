@@ -1,7 +1,6 @@
-/**
- * Composable: useUpdates
- * Gestiona el estado y operaciones de actualizaciones del proyecto
- */
+/*
+Path: src/application/useUpdates.ts
+*/
 
 import { computed, ref, onMounted } from 'vue'
 import type { Update, UpdateCategory } from '@/domain/update'
@@ -9,6 +8,17 @@ import { mockUpdates } from '@/infrastructure/mockData'
 import { updatesRepository, UpdateRepositoryError, type GetUpdatesParams } from '@/infrastructure/repositories/UpdatesRepository'
 import type { UpdateDTO } from '@/infrastructure/dto'
 import { Logger } from '@/infrastructure/logger'
+
+// Transforma un mock Update a modelo de dominio Update
+const transformMockUpdate = (mock: typeof mockUpdates[number]): Update => ({
+  id: mock.id,
+  category: mock.category as UpdateCategory,
+  title: mock.title,
+  excerpt: mock.excerpt ?? mock.content.substring(0, 200) + (mock.content.length > 200 ? '...' : ''),
+  content: mock.content,
+  status: mock.status as 'draft' | 'published',
+  publishedAt: mock.publishedAt ?? ''
+})
 
 /**
  * Transforma UpdateDTO del API a modelo de dominio Update
@@ -24,7 +34,11 @@ const transformUpdate = (dto: UpdateDTO): Update => ({
 })
 
 export function useUpdates(useApi = false, params?: GetUpdatesParams) {
-  const updates = ref<Update[]>([...mockUpdates.filter(u => u.status === 'published')])
+  const updates = ref<Update[]>(
+    mockUpdates
+      .filter(u => u.status === 'published' && u.category !== 'general')
+      .map(transformMockUpdate)
+  )
   const isLoading = ref(false)
   const error = ref<string | null>(null)
 
@@ -48,7 +62,9 @@ export function useUpdates(useApi = false, params?: GetUpdatesParams) {
         error.value = 'Error al cargar las actualizaciones'
       }
       // Fallback a datos mock en caso de error
-      updates.value = [...mockUpdates.filter(u => u.status === 'published')]
+      updates.value = mockUpdates
+        .filter(u => u.status === 'published' && u.category !== 'general')
+        .map(transformMockUpdate)
     } finally {
       isLoading.value = false
     }

@@ -101,9 +101,6 @@ const router = createRouter({
         roles: ['admin'] // Solo usuarios con rol 'admin' pueden acceder
       }
     },
-    // Para agregar más roles, usa meta: { roles: ['admin', 'superuser'] }
-    // NOTE: v1.0 Sin backoffice admin. Para editar contenido, modificá src/infrastructure/mockData.ts y git push.
-    // v2.0+ Implementar backoffice cuando sea necesario (20+ cambios/mes o contratar admin).
     {
       path: '/:pathMatch(.*)*',
       name: 'not-found',

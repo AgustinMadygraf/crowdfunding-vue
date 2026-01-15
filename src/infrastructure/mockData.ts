@@ -1,3 +1,7 @@
+/*
+Path: src/infrastructure/mockData.ts
+*/
+
 // ==================== TIPOS ====================
 export interface FooterLogo {
   src: string;
