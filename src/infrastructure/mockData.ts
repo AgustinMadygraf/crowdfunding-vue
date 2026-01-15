@@ -109,7 +109,7 @@ export interface HeroSectionData {
 // ==================== DATOS DEL FOOTER ====================
 export const appFooterData: FooterData = {
   logo: {
-    src: '@/assets/logo.svg',
+    src: 'src/assets/logo.svg',
     alt: 'Madygraf logo',
     width: 80,
     text: 'Cooperativa de Trabajo Madygraf',
