@@ -1,21 +1,18 @@
+<!--
+Path: src/components/sections/FaqSection.vue
+-->
+
+<script setup lang="ts">
+import { faqSectionData } from '@/infrastructure/mockData';
+</script>
+
 <template>
   <section class="faq section-padding" id="faq">
     <div class="container-narrow">
-      <h2>Preguntas frecuentes</h2>
-      <div class="faq-item">
-        <h3>¿Qué es un bono con beneficio en especie?</h3>
-        <p>
-          Es un instrumento que permite apoyar el proyecto recibiendo a cambio un crédito de compra aplicable a productos y
-          servicios de Madygraf.
-        </p>
-      </div>
-      <div class="faq-item">
-        <h3>¿Cuál es la vigencia del beneficio?</h3>
-        <p>El crédito de compra tiene una vigencia de 12 meses desde la confirmación del aporte.</p>
-      </div>
-      <div class="faq-item">
-        <h3>¿Puedo transferir mi beneficio?</h3>
-        <p>Sí, el crédito de compra es transferible a terceros.</p>
+      <h2>{{ faqSectionData.title }}</h2>
+      <div v-for="(item, idx) in faqSectionData.items" :key="idx" class="faq-item">
+        <h3>{{ item.question }}</h3>
+        <p>{{ item.answer }}</p>
       </div>
     </div>
   </section>

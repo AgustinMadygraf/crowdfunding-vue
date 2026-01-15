@@ -1,3 +1,7 @@
+<!-- 
+ Path: src/views/HomeView.vue
+ -->
+
 <script setup lang="ts">
 import HeroSection from '@/components/sections/HeroSection.vue'
 import MilestonesSection from '@/components/sections/MilestonesSection.vue'
@@ -7,6 +11,8 @@ import FaqSection from '@/components/sections/FaqSection.vue'
 import { useContributionLevels } from '@/application/useContributionLevels'
 import { useMilestones } from '@/application/useMilestones'
 import { useRouter } from 'vue-router'
+
+import { homeViewHeroSection } from '@/infrastructure/mockData'
 
 const router = useRouter()
 const { milestones, totalTargetAmount, totalRaisedAmount, progressPercentage } = useMilestones()
@@ -20,11 +26,11 @@ const startContribution = () => {
 <template>
   <div class="home-view">
     <HeroSection
-      title="Financiemos juntxs la nueva capacidad productiva de Madygraf"
-      subtitle="Tu aporte acelera la RKHA190. Seguís cada hito, ves el avance, recibís tu beneficio."
-      primary-label="Quiero aportar"
-      secondary-label="Ver avance"
-      secondary-href="#milestones"
+      :title="homeViewHeroSection.title"
+      :subtitle="homeViewHeroSection.subtitle"
+      :primary-label="homeViewHeroSection.primaryLabel"
+      :secondary-label="homeViewHeroSection.secondaryLabel"
+      :secondary-href="homeViewHeroSection.secondaryHref"
       @start="startContribution"
     />
 

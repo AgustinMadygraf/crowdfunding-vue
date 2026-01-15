@@ -1,26 +1,168 @@
-/*
-Path: src/infrastructure/mockData.ts
+// ==================== TIPOS ====================
+export interface FooterLogo {
+  src: string;
+  alt: string;
+  width: number;
+  text: string;
+}
 
-Este archivo YA está alineado al proyecto real (Madypack): incorporación de una
-máquina de pegado automático de manijas GRANDES para bolsas de papel.
+export interface FooterLink {
+  label: string;
+  href: string;
+}
 
-Notas importantes:
-- Montos/fechas/URLs: dejé valores razonables como placeholders para que completes.
-- El objetivo industrial (claridad) está en los "details" y en las evidencias sugeridas.
-- KPI central: hoy la máquina confeccionadora de bolsas está en producción ~2,5% del tiempo calendario.
-*/
+export interface FooterLinksSection {
+  title: string;
+  items: FooterLink[];
+}
 
-import type { Milestone } from '@/domain/milestone';
-import type { ContributionLevel } from '@/domain/contribution-level';
-import type { Update } from '@/domain/update';
-import { Logger } from '@/infrastructure/logger'
+export interface SocialLink {
+  label: string;
+  short: string;
+  href: string;
+  aria: string;
+}
 
+export interface ContactSection {
+  title: string;
+  email: string;
+  social: SocialLink[];
+}
+
+export interface FooterData {
+  logo: FooterLogo;
+  links: FooterLinksSection;
+  contact: ContactSection;
+  copyright: string;
+}
+
+export interface FAQItem {
+  question: string;
+  answer: string;
+}
+
+export interface FAQSectionData {
+  title: string;
+  items: FAQItem[];
+}
+
+export interface Evidence {
+  id: number;
+  title: string;
+  type: 'document' | 'image' | 'video' | 'link';
+  url: string;
+  version: string;
+  publishedAt: string;
+}
+
+export interface TimelineEvent {
+  date: string;
+  title: string;
+  description: string;
+  status: 'completed' | 'in-progress' | 'pending';
+}
+
+export interface Milestone {
+  id: number;
+  name: string;
+  description: string;
+  details: string;
+  targetAmount: number;
+  raisedAmount: number;
+  targetDate: string;
+  status: 'active' | 'pending' | 'completed' | 'delayed';
+  dependencies?: number[];
+  responsible: string;
+  published: boolean;
+  evidences: Evidence[];
+  timeline: TimelineEvent[];
+}
+
+export interface ContributionLevel {
+  amount: number;
+  benefit: number;
+  name: string;
+}
+
+export interface Update {
+  id: number;
+  category: 'comercial' | 'tecnico' | 'logistica' | 'legal' | 'general';
+  title: string;
+  excerpt: string;
+  content: string;
+  status: 'published' | 'draft' | 'archived';
+  publishedAt: string;
+}
+
+export interface HeroSectionData {
+  title: string;
+  subtitle: string;
+  primaryLabel: string;
+  secondaryLabel: string;
+  secondaryHref: string;
+}
+
+// ==================== DATOS DEL FOOTER ====================
+export const appFooterData: FooterData = {
+  logo: {
+    src: '@/assets/logo.svg',
+    alt: 'Madygraf logo',
+    width: 80,
+    text: 'Cooperativa de Trabajo Madygraf',
+  },
+  links: {
+    title: 'Documentos',
+    items: [
+      { label: 'Términos y Condiciones', href: '#' },
+      { label: 'Política de Privacidad', href: '#' },
+      { label: 'Contacto', href: '#' },
+    ],
+  },
+  contact: {
+    title: 'Contacto',
+    email: 'info@madypack.com.ar',
+    social: [
+      { label: 'Instagram', short: 'IG', href: '#', aria: 'Instagram' },
+      { label: 'LinkedIn', short: 'LI', href: '#', aria: 'LinkedIn' },
+    ],
+  },
+  copyright: '© 2025 Cooperativa de Trabajo Madygraf. Todos los derechos reservados.',
+};
+
+// ==================== FAQ SECTION ====================
+export const faqSectionData: FAQSectionData = {
+  title: 'Preguntas frecuentes',
+  items: [
+    {
+      question: '¿Qué es un bono con beneficio en especie?',
+      answer: 'Es un instrumento que permite apoyar el proyecto recibiendo a cambio un crédito de compra aplicable a productos y servicios de Madygraf.'
+    },
+    {
+      question: '¿Cuál es la vigencia del beneficio?',
+      answer: 'El crédito de compra tiene una vigencia de 12 meses desde la confirmación del aporte.'
+    },
+    {
+      question: '¿Puedo transferir mi beneficio?',
+      answer: 'Sí, el crédito de compra es transferible a terceros.'
+    }
+  ]
+};
+
+// ==================== HERO SECTION ====================
+export const homeViewHeroSection: HeroSectionData = {
+  title: 'Financiemos juntxs la nueva capacidad productiva de Madygraf',
+  subtitle: 'Tu aporte acelera la RKHA190. Seguís cada hito, ves el avance, recibís tu beneficio.',
+  primaryLabel: 'Quiero aportar',
+  secondaryLabel: 'Ver avance',
+  secondaryHref: '#milestones',
+};
+
+// ==================== MILESTONES ====================
 export const mockMilestones: Milestone[] = [
   {
     id: 1,
     name: 'Fortalecimiento comercial + línea base operativa',
-    description:
-      'Cerrar demanda y preparar el modelo operativo que libera horas de pegado manual y las convierte en más tiempo de máquina en producción.',
+    description: 'Cerrar demanda y preparar el modelo operativo que libera horas de pegado manual y las convierte en más tiempo de máquina en producción.',
     details: `Propósito industrial
 - El cuello de botella NO es confección de manijas (la máquina de manijas responde si se le exige).
 - El cuello de botella ES el pegado MANUAL de manijas GRANDES.
@@ -52,11 +194,9 @@ Modelo de cálculo (dejar armado para completar)
 Entregables de esta etapa (evidencias públicas):
 - Relevamiento de horas (planilla resumen)
 - Proyección comercial (cartera/turnos/volúmenes) en versión pública
-- Documento “criterios de avance” por etapa y qué evidencia se publica`,
-    // TODO: completar moneda y monto real (ideal: USD o ARS + criterio de actualización)
+- Documento "criterios de avance" por etapa y qué evidencia se publica`,
     targetAmount: 0,
     raisedAmount: 0,
-    // Proyecto 6 meses (desde enero 2026) → ajustar a tu cronograma real
     targetDate: '2026-02-05',
     status: 'active',
     responsible: 'Comercial + Producción',
@@ -91,22 +231,19 @@ Entregables de esta etapa (evidencias públicas):
       {
         date: '2026-01-10',
         title: 'Definición del cuello de botella',
-        description:
-          'Se documenta que la restricción principal es el pegado manual de manijas GRANDES.',
+        description: 'Se documenta que la restricción principal es el pegado manual de manijas GRANDES.',
         status: 'completed',
       },
       {
         date: '2026-01-20',
         title: 'Relevamiento de horas (baseline)',
-        description:
-          'Planilla de horas/mes por proceso: bolsas, manijas, pegado manual grande, pegado manual med/peq.',
+        description: 'Planilla de horas/mes por proceso: bolsas, manijas, pegado manual grande, pegado manual med/peq.',
         status: 'in-progress',
       },
       {
         date: '2026-02-05',
         title: 'Cierre de estrategia comercial + plan por turnos',
-        description:
-          'Se publican supuestos de demanda, plan de turnos y objetivos de disponibilidad para sostener el repago.',
+        description: 'Se publican supuestos de demanda, plan de turnos y objetivos de disponibilidad para sostener el repago.',
         status: 'pending',
       },
     ],
@@ -114,8 +251,7 @@ Entregables de esta etapa (evidencias públicas):
   {
     id: 2,
     name: 'Anticipo 30% máquina de pegado automático (manija grande)',
-    description:
-      'Pago de anticipo para iniciar fabricación/reserva de unidad de la máquina de pegado automático de manijas GRANDES.',
+    description: 'Pago de anticipo para iniciar fabricación/reserva de unidad de la máquina de pegado automático de manijas GRANDES.',
     details: `Qué se compra (describir con precisión técnica)
 - Máquina: pegado automático de manijas GRANDES para bolsas de papel.
 - Velocidad objetivo de operación: ~30–40 bolsas/min (según set-up / formato).
@@ -129,7 +265,6 @@ Criterio objetivo de etapa completada
 Riesgos típicos y mitigación
 - Riesgo: plazos del proveedor → Mitigación: contrato con hitos y penalidades/condiciones claras
 - Riesgo: cambios de especificación → Mitigación: anexo técnico cerrado + aprobación interna`,
-    // TODO: completar monto real (30% del valor total de máquina)
     targetAmount: 0,
     raisedAmount: 0,
     targetDate: '2026-02-20',
@@ -181,8 +316,7 @@ Riesgos típicos y mitigación
   {
     id: 3,
     name: 'Saldo 70% máquina + inspección final (FAT)',
-    description:
-      'Pago del 70% restante antes del embarque y validación técnica final del equipo.',
+    description: 'Pago del 70% restante antes del embarque y validación técnica final del equipo.',
     details: `Criterio objetivo de etapa completada
 - Informe de inspección FAT (Factory Acceptance Test) o evidencia equivalente
 - Packing List + documentación de embarque preparada
@@ -191,7 +325,6 @@ Riesgos típicos y mitigación
 Riesgos típicos y mitigación
 - Riesgo: diferencias entre especificación y máquina real → Mitigación: checklist FAT + evidencia fotográfica/video
 - Riesgo: plazos de fabricación → Mitigación: seguimiento semanal + hitos contractuales`,
-    // TODO: completar monto real (70% del valor total de máquina)
     targetAmount: 0,
     raisedAmount: 0,
     targetDate: '2026-03-20',
@@ -243,8 +376,7 @@ Riesgos típicos y mitigación
   {
     id: 4,
     name: 'Flete oceánico + seguro',
-    description:
-      'Contratación de transporte marítimo y seguro de carga hasta el puerto de destino.',
+    description: 'Contratación de transporte marítimo y seguro de carga hasta el puerto de destino.',
     details: `Criterio objetivo de etapa completada
 - Booking confirmado
 - Bill of Lading (BL) / documento de transporte (redactado)
@@ -253,7 +385,6 @@ Riesgos típicos y mitigación
 Riesgos y mitigación
 - Riesgo: demora en tránsito / conexiones → Mitigación: forwarder con experiencia + buffer de cronograma
 - Riesgo: daños de carga → Mitigación: embalaje + seguro cobertura adecuada`,
-    // TODO: completar monto real de flete + seguro
     targetAmount: 0,
     raisedAmount: 0,
     targetDate: '2026-04-10',
@@ -305,8 +436,7 @@ Riesgos y mitigación
   {
     id: 5,
     name: 'Aduana + desaduanamiento',
-    description:
-      'Gestión aduanera, documentación y liberación de la máquina en el país.',
+    description: 'Gestión aduanera, documentación y liberación de la máquina en el país.',
     details: `Criterio objetivo de etapa completada
 - Documentación requerida completa (resumen público)
 - Estado de despacho / liberación (resumen público)
@@ -315,7 +445,6 @@ Riesgos y mitigación
 Riesgos y mitigación
 - Riesgo: demoras aduaneras → Mitigación: despachante con experiencia + documentación completa desde origen
 - Riesgo: clasificación / costos inesperados → Mitigación: preclasificación + provisión de contingencia`,
-    // TODO: completar monto real aduana + despachante + tasas
     targetAmount: 0,
     raisedAmount: 0,
     targetDate: '2026-05-05',
@@ -359,8 +488,7 @@ Riesgos y mitigación
   {
     id: 6,
     name: 'Instalación, montaje y puesta en marcha',
-    description:
-      'Montaje en planta, pruebas operativas, capacitación y arranque productivo del pegado automático de manija grande.',
+    description: 'Montaje en planta, pruebas operativas, capacitación y arranque productivo del pegado automático de manija grande.',
     details: `Alcance industrial
 - Instalación mecánica/eléctrica (y servicios industriales necesarios).
 - Puesta en marcha con pruebas y parámetros base.
@@ -375,7 +503,6 @@ Criterio objetivo de etapa completada
 Riesgos y mitigación
 - Riesgo: servicios industriales insuficientes → Mitigación: checklist de preinstalación y obra previa
 - Riesgo: curva de aprendizaje → Mitigación: capacitación + SOP + acompañamiento inicial`,
-    // TODO: completar monto real instalación/obra/servicios/capacitación
     targetAmount: 0,
     raisedAmount: 0,
     targetDate: '2026-06-10',
@@ -426,12 +553,8 @@ Riesgos y mitigación
   },
 ];
 
+// ==================== CONTRIBUTION LEVELS ====================
 export const mockContributionLevels: ContributionLevel[] = [
-  /*
-    Denominaciones sugeridas (preestablecidas).
-    TODO: confirmar moneda/denominación final (ARS, USD o indexado).
-    benefit: podés usarlo como “tasa/beneficio” o como “prioridad/información”; ajustalo a tu lógica real.
-  */
   { amount: 50_000, benefit: 0, name: 'Aporte 50k' },
   { amount: 100_000, benefit: 0, name: 'Aporte 100k' },
   { amount: 250_000, benefit: 0, name: 'Aporte 250k' },
@@ -439,13 +562,13 @@ export const mockContributionLevels: ContributionLevel[] = [
   { amount: 1_000_000, benefit: 0, name: 'Aporte 1M' },
 ];
 
+// ==================== UPDATES ====================
 export const mockUpdates: Update[] = [
   {
     id: 1,
     category: 'comercial',
     title: 'Inicio del proyecto: automatizar el pegado de manijas GRANDES',
-    excerpt:
-      'El foco del proyecto es eliminar el cuello de botella del pegado manual de manijas grandes y aumentar el tiempo real de máquina en producción.',
+    excerpt: 'El foco del proyecto es eliminar el cuello de botella del pegado manual de manijas grandes y aumentar el tiempo real de máquina en producción.',
     content: `Este proyecto incorpora una máquina de pegado automático de manijas GRANDES para bolsas de papel.
 
 Hoy la restricción productiva no está en la confección de manijas (la máquina responde), sino en el pegado manual de manijas GRANDES, que consume horas críticas del proceso.
@@ -464,8 +587,7 @@ Publicaremos evidencias por etapa: documentos redactados (sin datos sensibles), 
     id: 2,
     category: 'tecnico',
     title: 'KPI y modelo de cálculo: cómo convertir horas liberadas en más producción',
-    excerpt:
-      'Publicamos el modelo de relevamiento de horas y el mecanismo de reasignación que explica el aumento de disponibilidad.',
+    excerpt: 'Publicamos el modelo de relevamiento de horas y el mecanismo de reasignación que explica el aumento de disponibilidad.',
     content: `Publicamos el modelo base para entender el impacto real de la automatización.
 
 Variables a relevar (mensuales):
@@ -482,8 +604,7 @@ La nueva máquina reduce el tiempo de pegado manual de manija grande y permite r
     id: 3,
     category: 'logistica',
     title: 'Plan de importación por etapas: pagos, flete, aduana y montaje',
-    excerpt:
-      'El proyecto se ejecuta en etapas para que los desembolsos se alineen a hitos verificables y a evidencias públicas.',
+    excerpt: 'El proyecto se ejecuta en etapas para que los desembolsos se alineen a hitos verificables y a evidencias públicas.',
     content: `Estructuramos el plan en 6 etapas:
 1) Fortalecimiento comercial + línea base operativa
 2) Anticipo 30% máquina
@@ -500,8 +621,7 @@ Cada etapa tendrá criterio de avance y evidencias públicas (documentos redacta
     id: 4,
     category: 'legal',
     title: 'Política de evidencias públicas: qué publicamos y qué datos se ocultan',
-    excerpt:
-      'Publicaremos comprobantes y documentación técnica redactada para transparencia sin exponer información sensible.',
+    excerpt: 'Publicaremos comprobantes y documentación técnica redactada para transparencia sin exponer información sensible.',
     content: `Publicaremos evidencias por etapa (redactadas):
 - Proformas, anexos técnicos, checklists FAT
 - Documentos logísticos (BL/seguro) con datos sensibles omitidos
@@ -514,6 +634,7 @@ No publicaremos datos sensibles (cuentas, datos personales, números completos d
   },
 ];
 
+// ==================== FUNCIONES ====================
 export function getMockData() {
   try {
     return {
@@ -522,7 +643,18 @@ export function getMockData() {
       updates: mockUpdates,
     };
   } catch (error) {
-    Logger.error('Error obteniendo mock data', error)
-    throw error
+    console.error('Error obteniendo mock data', error);
+    throw error;
   }
 }
+
+// Exportar todo como un objeto si se necesita
+export const mockData = {
+  footer: appFooterData,
+  faq: faqSectionData,
+  hero: homeViewHeroSection,
+  milestones: mockMilestones,
+  contributionLevels: mockContributionLevels,
+  updates: mockUpdates,
+  getMockData,
+};

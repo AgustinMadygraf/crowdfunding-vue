@@ -1,30 +1,37 @@
+<!--
+Path: src/components/layout/AppFooter.vue
+-->
+
+<script setup lang="ts">
+import { appFooterData } from '@/infrastructure/mockData';
+</script>
+
 <template>
   <footer class="app-footer">
     <div class="container">
       <div class="footer-info">
         <div class="footer-logo">
-          <img alt="Madygraf logo" src="@/assets/logo.svg" width="80" />
-          <p>Cooperativa de Trabajo Madygraf</p>
+          <img :alt="appFooterData.logo.alt" :src="appFooterData.logo.src" :width="appFooterData.logo.width" />
+          <p>{{ appFooterData.logo.text }}</p>
         </div>
         <div class="footer-links">
-          <h4>Documentos</h4>
+          <h4>{{ appFooterData.links.title }}</h4>
           <ul>
-            <li><a href="#">Términos y Condiciones</a></li>
-            <li><a href="#">Política de Privacidad</a></li>
-            <li><a href="#">Contacto</a></li>
+            <li v-for="(item, idx) in appFooterData.links.items" :key="idx">
+              <a :href="item.href">{{ item.label }}</a>
+            </li>
           </ul>
         </div>
         <div class="footer-contact">
-          <h4>Contacto</h4>
-          <p>Email: info@madypack.com.ar</p>
+          <h4>{{ appFooterData.contact.title }}</h4>
+          <p>Email: {{ appFooterData.contact.email }}</p>
           <div class="social-links">
-            <a href="#" aria-label="Instagram">IG</a>
-            <a href="#" aria-label="LinkedIn">LI</a>
+            <a v-for="(social, idx) in appFooterData.contact.social" :key="idx" :href="social.href" :aria-label="social.aria">{{ social.short }}</a>
           </div>
         </div>
       </div>
       <div class="copyright">
-        <p>&copy; 2025 Cooperativa de Trabajo Madygraf. Todos los derechos reservados.</p>
+        <p>{{ appFooterData.copyright }}</p>
       </div>
     </div>
   </footer>
