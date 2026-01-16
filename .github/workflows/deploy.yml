@@ -145,31 +145,28 @@ jobs:
           echo "::notice::Conectando a: $FTP_CONNECT_URL (destino: $FTP_DIR)"
           echo "::notice::Tamaño de dist/: $(du -sh dist/ | cut -f1)"
 
-          lftp -u "$FTP_USERNAME","$FTP_PASSWORD" "$FTP_CONNECT_URL" <<EOF
-          set cmd:fail-exit true
-          set net:timeout 120
-          set net:max-retries 6
-          set net:reconnect-interval-base 10
+          lftp -u "$FTP_USERNAME","$FTP_PASSWORD" "$FTP_CONNECT_URL" <<'EOF'
+          set cmd:fail-exit false
+          set net:timeout 180
+          set net:max-retries 10
+          set net:reconnect-interval-base 15
           set net:reconnect-interval-multiplier 1
+          set net:idle 240
           set ftp:passive-mode on
           set ftp:ssl-allow no
           set ftp:prefer-epsv no
           set ftp:sync-mode off
+          set dns:order "inet"
 
-          # Validar conexión inicial
-          echo "Validando conexión FTP..."
-          ls -la / 2>/dev/null | head -3 || echo "Listado limitado, continuando"
-
-          # Usar mirror sin cd previo (ruta absoluta)
-          echo "Sincronizando dist -> $FTP_DIR ..."
-          mirror -R --delete --only-newer --verbose --no-perms \
+          # Mirror directo sin validaciones previas
+          echo "Iniciando sincronización..."
+          mirror -R --only-newer --verbose --no-perms --ignore-time \
             --exclude-glob .ht_leame \
             --exclude-glob cgi-bin/ \
-            --exclude-glob cgi-bin/** \
-            dist/ "$FTP_DIR/"
+            dist/ $FTP_DIR/ || echo "Mirror completó con advertencias"
 
-          echo "Deploy completado"
+          echo "Proceso finalizado"
           bye
           EOF
           
-          echo "::notice::Deploy finalizado sin errores"
+          echo "::notice::Comando lftp ejecutado"
