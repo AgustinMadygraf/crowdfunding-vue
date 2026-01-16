@@ -3,6 +3,17 @@ import { authService } from '@/infrastructure/services/authServiceFactory'
 import { useAuthStore } from '@/stores/authStore'
 import { Logger } from '@/infrastructure/logger'
 
+const getSiteOrigin = () => {
+  const env = (import.meta.env.VITE_SITE_URL as string | undefined)?.trim()
+  if (env) {
+    return env.replace(/\/$/, '')
+  }
+  if (typeof window !== 'undefined') {
+    return window.location.origin.replace(/\/$/, '')
+  }
+  return 'https://madypack.com.ar'
+}
+
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -127,6 +138,7 @@ const router = createRouter({
 
 // Navigation guard para meta tags y OpenGraph
 router.beforeEach((to, _from, next) => {
+  const siteOrigin = getSiteOrigin()
   // Update document title
   const title = (to.meta.title as string) || 'Madypack'
   document.title = title
@@ -151,7 +163,7 @@ router.beforeEach((to, _from, next) => {
   
   const ogUrl = document.querySelector('meta[property="og:url"]')
   if (ogUrl) {
-    ogUrl.setAttribute('content', `https://madypack.com.ar${to.path}`)
+    ogUrl.setAttribute('content', `${siteOrigin}${to.path}`)
   }
   
   // Update Twitter tags
@@ -167,7 +179,7 @@ router.beforeEach((to, _from, next) => {
   
   const twitterUrl = document.querySelector('meta[property="twitter:url"]')
   if (twitterUrl) {
-    twitterUrl.setAttribute('content', `https://madypack.com.ar${to.path}`)
+    twitterUrl.setAttribute('content', `${siteOrigin}${to.path}`)
   }
   
   // Update canonical URL
@@ -177,7 +189,7 @@ router.beforeEach((to, _from, next) => {
     canonical.setAttribute('rel', 'canonical')
     document.head.appendChild(canonical)
   }
-  canonical.setAttribute('href', `https://madypack.com.ar${to.path}`)
+  canonical.setAttribute('href', `${siteOrigin}${to.path}`)
   
 
   // Auth guard centralizado: protege rutas con requiresAuth y roles

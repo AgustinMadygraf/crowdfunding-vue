@@ -4,7 +4,7 @@
  */
 
 import { authService } from '@/infrastructure/services/authServiceFactory'
-import { getApiBaseUrl } from '@/config/api'
+import { getApiBaseUrl, DEFAULT_TIMEOUT_MS } from '@/config/api'
 
 export interface CreateContributionDTO {
   user_id: string
@@ -64,6 +64,32 @@ export class ContributionsRepository {
   }
 
   /**
+   * Wrapper de fetch con timeout y guardia de content-type
+   */
+  private async fetchWithGuard(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT_MS)
+    try {
+      const response = await fetch(input, { ...init, signal: controller.signal })
+      const contentType = response.headers.get('content-type') || ''
+
+      if (contentType.includes('text/html')) {
+        // Probable misconfig: el frontend sirvió HTML (index.html) en vez de JSON
+        const body = await response.text().catch(() => '')
+        throw new ContributionRepositoryError(
+          'Respuesta HTML recibida del endpoint. Revisa VITE_API_BASE_URL o el proxy.',
+          response.status,
+          { contentType, body: body.slice(0, 500) }
+        )
+      }
+
+      return response
+    } finally {
+      clearTimeout(timeout)
+    }
+  }
+
+  /**
    * Crea una nueva contribución
    */
   async create(data: CreateContributionDTO): Promise<ContributionResponse> {
@@ -100,7 +126,7 @@ export class ContributionsRepository {
     }
 
     try {
-      const response = await fetch(url, {
+      const response = await this.fetchWithGuard(url, {
         method: 'POST',
         credentials: 'include',
         headers,
@@ -154,7 +180,7 @@ export class ContributionsRepository {
     console.log('[ContributionsRepository] 📥 GET', url)
 
     try {
-      const response = await fetch(url, { headers })
+      const response = await this.fetchWithGuard(url, { headers })
 
       if (!response.ok) {
         throw new ContributionRepositoryError(
@@ -211,7 +237,7 @@ export class ContributionsRepository {
     }
 
     try {
-      const response = await fetch(url, { headers })
+      const response = await this.fetchWithGuard(url, { headers })
 
       if (!response.ok) {
         throw new ContributionRepositoryError(

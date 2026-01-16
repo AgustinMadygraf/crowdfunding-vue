@@ -51,12 +51,7 @@ export class DefaultCsrfService implements ICsrfService {
   private token: string | null = null
   private readonly CSRF_COOKIE_NAME = 'XSRF-TOKEN'
   private readonly CSRF_HEADER_NAME = 'X-CSRF-Token'
-  private readonly CSRF_STORAGE_KEY = 'csrf_token'
-
-  constructor() {
-    // Intentar leer token de localStorage al inicializar
-    this.restoreFromStorage()
-  }
+  constructor() {}
 
   /**
    * Obtiene el token CSRF
@@ -67,18 +62,10 @@ export class DefaultCsrfService implements ICsrfService {
       return this.token
     }
 
-    // Intentar leer de localStorage
-    const storedToken = this.readFromStorage()
-    if (storedToken) {
-      this.token = storedToken
-      return storedToken
-    }
-
     // Intentar leer de cookie
     const cookieToken = this.readFromCookie()
     if (cookieToken) {
       this.token = cookieToken
-      this.saveToStorage(cookieToken)
       return cookieToken
     }
 
@@ -127,7 +114,6 @@ export class DefaultCsrfService implements ICsrfService {
    */
   setToken(token: string): void {
     this.token = token
-    this.saveToStorage(token)
   }
 
   /**
@@ -146,53 +132,6 @@ export class DefaultCsrfService implements ICsrfService {
     }
   }
 
-  /**
-   * Lee el token de localStorage
-   */
-  private readFromStorage(): string | null {
-    if (typeof localStorage === 'undefined') {
-      return null
-    }
-
-    try {
-      return localStorage.getItem(this.CSRF_STORAGE_KEY)
-    } catch {
-      // localStorage puede no estar disponible en ciertos contextos
-      return null
-    }
-  }
-
-  /**
-   * Guarda el token en localStorage
-   */
-  private saveToStorage(token: string): void {
-    if (typeof localStorage === 'undefined') {
-      return
-    }
-
-    try {
-      localStorage.setItem(this.CSRF_STORAGE_KEY, token)
-    } catch {
-      // localStorage puede no estar disponible en ciertos contextos
-      if (import.meta.env.DEV) {
-        console.warn('[CsrfService] No se pudo guardar token en localStorage')
-      }
-    }
-  }
-
-  /**
-   * Restaura el token desde localStorage al inicializar
-   */
-  private restoreFromStorage(): void {
-    try {
-      const stored = this.readFromStorage()
-      if (stored) {
-        this.token = stored
-      }
-    } catch {
-      // Ignorar errores de localStorage
-    }
-  }
 }
 
 /**
