@@ -38,15 +38,20 @@ jobs:
           VITE_CHATWOOT_TOKEN: ${{ secrets.VITE_CHATWOOT_TOKEN }}
           VITE_CHATWOOT_BASE_URL: ${{ secrets.VITE_CHATWOOT_BASE_URL }}
           VITE_CHATWOOT_INBOX_IDENTIFIER: ${{ secrets.VITE_CHATWOOT_INBOX_IDENTIFIER }}
+          VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL }}
+          VITE_GOOGLE_CLIENT_ID: ${{ secrets.VITE_GOOGLE_CLIENT_ID }}
         run: |
           set -euo pipefail
 
-          for v in FTP_DIR FTP_USERNAME FTP_PASSWORD VITE_CHATWOOT_TOKEN VITE_CHATWOOT_BASE_URL VITE_CHATWOOT_INBOX_IDENTIFIER; do
+          # Validar variables obligatorias
+          for v in FTP_DIR FTP_USERNAME FTP_PASSWORD VITE_CHATWOOT_TOKEN VITE_CHATWOOT_BASE_URL VITE_CHATWOOT_INBOX_IDENTIFIER VITE_API_BASE_URL VITE_GOOGLE_CLIENT_ID; do
             if [ -z "${!v:-}" ]; then
-              echo "::error::Falta $v"
+              echo "::error::Falta $v (requerido para producción)"
               exit 1
             fi
           done
+
+          echo "::notice::Variables obligatorias validadas ✓"
 
           if [ -z "${FTP_SERVER:-}" ]; then
             echo "::error::Falta FTP_SERVER (var). Ej: vps-5455262-x.dattaweb.com"
@@ -103,6 +108,7 @@ jobs:
           VITE_CHATWOOT_SDK_INTEGRITY: ${{ secrets.VITE_CHATWOOT_SDK_INTEGRITY }}
           VITE_GOOGLE_CLIENT_ID: ${{ secrets.VITE_GOOGLE_CLIENT_ID }}
           VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL }}
+          VITE_SITE_URL: ${{ secrets.VITE_SITE_URL }}
           VITE_MERCADOPAGO_PUBLIC_KEY: ${{ secrets.VITE_MERCADOPAGO_PUBLIC_KEY }}
           VITE_SENTRY_DSN: ${{ secrets.VITE_SENTRY_DSN }}
         run: npm run build
@@ -135,21 +141,33 @@ jobs:
           sudo apt-get update -y
           sudo apt-get install -y lftp
 
+          # Debug: muestra la URL de conexión (sin credenciales)
+          echo "::notice::Conectando a: $FTP_CONNECT_URL (destino: $FTP_DIR)"
+
           lftp -u "$FTP_USERNAME","$FTP_PASSWORD" "$FTP_CONNECT_URL" <<EOF
           set cmd:fail-exit true
-          set net:timeout 30
-          set net:max-retries 2
+          set net:timeout 60
+          set net:max-retries 3
           set ftp:passive-mode on
           set ftp:ssl-allow no
+          set ftp:prefer-epsv no
 
-          mkdir -p "$FTP_DIR"
+          # Intentar listar primero para validar conexión
+          echo "Validando conexión FTP..."
+          pwd
+
+          # Crear directorio destino si no existe (sin -p para ser explícito)
+          echo "Accediendo a directorio: $FTP_DIR"
+          cd "$FTP_DIR" 2>/dev/null || echo "Directorio destino no existe; mirror lo creará"
 
           # Sync completo, PERO sin intentar borrar paths protegidos por Ferozo
+          echo "Sincronizando dist -> $FTP_DIR ..."
           mirror -R --delete --only-newer --verbose --no-perms --parallel=2 \
             --exclude-glob .ht_leame \
             --exclude-glob cgi-bin/ \
             --exclude-glob cgi-bin/** \
             dist/ "$FTP_DIR/"
 
+          echo "Deploy completado"
           bye
           EOF
