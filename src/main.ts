@@ -8,6 +8,7 @@ import router from './router'
 import { authService } from '@/infrastructure/services/authServiceFactory'
 import { AUTH_SERVICE_KEY } from '@/application/useAuthService'
 import { Logger } from '@/infrastructure/logger'
+import { getApiBaseUrl } from '@/config/api'
 
 // Inicializar Sentry solo en producción
 if (import.meta.env.PROD) {
@@ -17,6 +18,27 @@ if (import.meta.env.PROD) {
     tracesSampleRate: 1.0,
   })
 }
+
+// ============================================================
+// DIAGNÓSTICO DE CONFIGURACIÓN - Crítico para debugging
+// ============================================================
+const diagnosticInfo = {
+  environment: import.meta.env.MODE,
+  prod: import.meta.env.PROD,
+  dev: import.meta.env.DEV,
+  apiBaseUrl: getApiBaseUrl(),
+  siteUrl: (import.meta.env.VITE_SITE_URL as string) || 'dinámico (window.location.origin)',
+  timestamp: new Date().toISOString(),
+  userAgent: navigator.userAgent
+}
+
+console.group('🚀 CROWDFUNDING FRONTEND - Diagnostic Info')
+console.log('Environment:', diagnosticInfo.environment)
+console.log('Mode:', diagnosticInfo.prod ? 'PRODUCTION' : 'DEVELOPMENT')
+console.log('API Base URL:', diagnosticInfo.apiBaseUrl)
+console.log('Site URL:', diagnosticInfo.siteUrl)
+console.log('Loaded at:', diagnosticInfo.timestamp)
+console.groupEnd()
 
 // Captura UTM parameters en la carga inicial (NFR-MKT-001)
 const captureUTMParameters = () => {

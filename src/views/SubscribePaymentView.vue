@@ -181,6 +181,7 @@ const loadContribution = async () => {
   // Validar token antes de fetch
   if (!token.value?.trim()) {
     error.value = 'Token de contribución inválido o vacío'
+    console.error('[SubscribePayment] ❌ Token vacío')
     return
   }
 
@@ -188,20 +189,31 @@ const loadContribution = async () => {
   error.value = null
 
   try {
-    if (import.meta.env.DEV) {
-      console.log('[SubscribePayment] 🔄 Cargando contribución por token:', token.value)
-    }
+    console.log('[SubscribePayment] 🔄 Cargando contribución por token:', token.value)
+    console.log('[SubscribePayment] 📍 Ruta actual:', route.fullPath)
+    console.log('[SubscribePayment] 🕐 Hora:', new Date().toISOString())
 
     const result = await subscriptionService.loadContributionByToken(token.value)
     
     if (result) {
       contribution.value = result as Contribution
+      console.log('[SubscribePayment] ✅ Contribución cargada:')
+      console.log('[SubscribePayment]   ID:', contribution.value?.id)
+      console.log('[SubscribePayment]   Monto:', contribution.value?.monto)
+      console.log('[SubscribePayment]   Estado:', contribution.value?.estado_pago)
+      console.log('[SubscribePayment]   Nivel:', contribution.value?.nivel_nombre)
     } else {
       error.value = subscriptionService.error.value || 'No se pudo cargar la contribución'
+      console.error('[SubscribePayment] ❌ Contribución null o error en service:')
+      console.error('[SubscribePayment]   Service error:', subscriptionService.error.value)
     }
   } catch (err) {
-    error.value = err instanceof Error ? err.message : 'Error desconocido'
-    console.error('[SubscribePayment] ❌ Error cargando contribución:', err)
+    const errMsg = err instanceof Error ? err.message : 'Error desconocido'
+    error.value = errMsg
+    console.error('[SubscribePayment] ❌ Exception cargando contribución:')
+    console.error('[SubscribePayment]   Mensaje:', errMsg)
+    console.error('[SubscribePayment]   Error completo:', err)
+    console.error('[SubscribePayment]   Stack:', err instanceof Error ? err.stack : 'N/A')
   } finally {
     isLoading.value = false
   }

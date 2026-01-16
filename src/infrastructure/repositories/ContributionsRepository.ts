@@ -65,10 +65,13 @@ export class ContributionsRepository {
 
   /**
    * Wrapper de fetch con timeout y guardia de content-type
+   * Captura detalles de error para diagnóstico en producción
    */
   private async fetchWithGuard(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
     const controller = new AbortController()
     const timeout = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT_MS)
+    const urlStr = typeof input === 'string' ? input : input.toString()
+    
     try {
       const response = await fetch(input, { ...init, signal: controller.signal })
       const contentType = response.headers.get('content-type') || ''
@@ -76,14 +79,47 @@ export class ContributionsRepository {
       if (contentType.includes('text/html')) {
         // Probable misconfig: el frontend sirvió HTML (index.html) en vez de JSON
         const body = await response.text().catch(() => '')
+        const errorDetails = {
+          urlRequested: urlStr,
+          apiBaseUrl: this.apiBaseUrl,
+          contentType,
+          statusCode: response.status,
+          bodyPreview: body.slice(0, 500),
+          fullBodyLength: body.length
+        }
+        
+        console.error('[ContributionsRepository] 🚨 CRITICAL - HTML response when JSON expected')
+        console.error('[ContributionsRepository] Requested URL:', urlStr)
+        console.error('[ContributionsRepository] API Base URL:', this.apiBaseUrl)
+        console.error('[ContributionsRepository] Content-Type:', contentType)
+        console.error('[ContributionsRepository] Status:', response.status)
+        console.error('[ContributionsRepository] Response preview:', body.slice(0, 200))
+        
         throw new ContributionRepositoryError(
           'Respuesta HTML recibida del endpoint. Revisa VITE_API_BASE_URL o el proxy.',
           response.status,
-          { contentType, body: body.slice(0, 500) }
+          errorDetails
         )
       }
 
       return response
+    } catch (error) {
+      if (error instanceof ContributionRepositoryError) {
+        throw error
+      }
+
+      // Timeout u otro error de fetch
+      if (error instanceof TypeError && error.message.includes('abort')) {
+        console.error('[ContributionsRepository] ⏱️ TIMEOUT en request:', urlStr)
+        throw new ContributionRepositoryError(
+          `Timeout después de ${DEFAULT_TIMEOUT_MS}ms en ${urlStr}`,
+          undefined,
+          { url: urlStr, timeout: DEFAULT_TIMEOUT_MS }
+        )
+      }
+
+      console.error('[ContributionsRepository] 🔌 Fetch error:', error)
+      throw error
     } finally {
       clearTimeout(timeout)
     }
@@ -120,8 +156,12 @@ export class ContributionsRepository {
     }
     const url = `${this.apiBaseUrl}/api/contributions`
 
+    console.log('[ContributionsRepository] 📤 POST request initialized')
+    console.log('[ContributionsRepository] API Base URL:', this.apiBaseUrl)
+    console.log('[ContributionsRepository] Full URL:', url)
+    console.log('[ContributionsRepository] Email:', data.user_id)
+    console.log('[ContributionsRepository] Monto:', data.monto)
     if (import.meta.env.DEV) {
-      console.log('[ContributionsRepository] 📤 POST', url)
       console.log('[ContributionsRepository] Headers:', headers)
     }
 
@@ -143,7 +183,7 @@ export class ContributionsRepository {
         }
 
         console.error('[ContributionsRepository] ❌ Error HTTP', response.status)
-        console.error('[ContributionsRepository] Respuesta:', errorData)
+        console.error('[ContributionsRepository] Error response:', errorData)
 
         throw new ContributionRepositoryError(
           errorData.message || `HTTP ${response.status}`,
@@ -161,11 +201,13 @@ export class ContributionsRepository {
         throw error
       }
 
-      console.error('[ContributionsRepository] ❌ Error de conexión:', error)
+      const errMsg = error instanceof Error ? error.message : 'Error desconocido'
+      console.error('[ContributionsRepository] ❌ Conexión o parsing error:', errMsg)
+      console.error('[ContributionsRepository] Error details:', error)
       throw new ContributionRepositoryError(
-        `No se pudo conectar: ${error instanceof Error ? error.message : 'Error desconocido'}`,
+        `No se pudo conectar a ${url}: ${errMsg}`,
         undefined,
-        error
+        { originalError: error, url }
       )
     }
   }
@@ -222,9 +264,11 @@ export class ContributionsRepository {
   /**
    * Obtiene una contribución por su token
    */
-  async getByToken(token: string): Promise<UserContribution> {    // Refrescar token si es necesario antes de la operación
+  async getByToken(token: string): Promise<UserContribution> {
+    // Refrescar token si es necesario antes de la operación
     await authService.refreshTokenIfNeeded()
-        // Validar token antes de fetch
+    
+    // Validar token antes de fetch
     if (!token?.trim()) {
       throw new ContributionRepositoryError('Token de contribución inválido o vacío')
     }
@@ -232,24 +276,28 @@ export class ContributionsRepository {
     const headers = authService.getAuthHeaders()
     const url = `${this.apiBaseUrl}/api/contributions/${token}`
 
-    if (import.meta.env.DEV) {
-      console.log('[ContributionsRepository] 📥 GET', url)
-    }
+    console.log('[ContributionsRepository] 📥 GET request initialized')
+    console.log('[ContributionsRepository] API Base URL:', this.apiBaseUrl)
+    console.log('[ContributionsRepository] Full URL:', url)
+    console.log('[ContributionsRepository] Token:', token)
 
     try {
       const response = await this.fetchWithGuard(url, { headers })
 
       if (!response.ok) {
+        const statusText = response.statusText || 'Unknown error'
+        console.error('[ContributionsRepository] ❌ HTTP Error:', response.status, statusText)
         throw new ContributionRepositoryError(
-          'No se pudo cargar la contribución',
-          response.status
+          `Error ${response.status}: No se pudo cargar la contribución`,
+          response.status,
+          { url, token, status: response.status }
         )
       }
 
       const contribution: UserContribution = await response.json()
-      if (import.meta.env.DEV) {
-        console.log('[ContributionsRepository] ✅ Contribución obtenida:', contribution.id)
-      }
+      console.log('[ContributionsRepository] ✅ Contribución obtenida:', contribution.id)
+      console.log('[ContributionsRepository] Monto:', contribution.monto)
+      console.log('[ContributionsRepository] Estado:', contribution.estado_pago)
       
       return contribution
     } catch (error) {
@@ -257,9 +305,15 @@ export class ContributionsRepository {
         throw error
       }
 
-      console.error('[ContributionsRepository] ❌ Error al obtener contribución:', error)
+      const errMsg = error instanceof Error ? error.message : 'Error desconocido'
+      console.error('[ContributionsRepository] ❌ Conexión o parsing error:', errMsg)
+      console.error('[ContributionsRepository] Error details:', error)
+      console.error('[ContributionsRepository] URL:', url)
+      
       throw new ContributionRepositoryError(
-        error instanceof Error ? error.message : 'Error desconocido'
+        `No se pudo obtener la contribución desde ${url}: ${errMsg}`,
+        undefined,
+        { originalError: error, url, token }
       )
     }
   }
