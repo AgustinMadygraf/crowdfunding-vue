@@ -143,26 +143,25 @@ jobs:
 
           # Debug: muestra la URL de conexión (sin credenciales)
           echo "::notice::Conectando a: $FTP_CONNECT_URL (destino: $FTP_DIR)"
+          echo "::notice::Tamaño de dist/: $(du -sh dist/ | cut -f1)"
 
           lftp -u "$FTP_USERNAME","$FTP_PASSWORD" "$FTP_CONNECT_URL" <<EOF
           set cmd:fail-exit true
-          set net:timeout 60
-          set net:max-retries 3
+          set net:timeout 90
+          set net:max-retries 5
+          set net:reconnect-delay 5
           set ftp:passive-mode on
           set ftp:ssl-allow no
           set ftp:prefer-epsv no
+          set mirror:use-pget-n 4
 
-          # Intentar listar primero para validar conexión
+          # Validar conexión inicial
           echo "Validando conexión FTP..."
-          pwd
+          ls -la / 2>/dev/null | head -5 || echo "Listado fallido pero continuando"
 
-          # Crear directorio destino si no existe (sin -p para ser explícito)
-          echo "Accediendo a directorio: $FTP_DIR"
-          cd "$FTP_DIR" 2>/dev/null || echo "Directorio destino no existe; mirror lo creará"
-
-          # Sync completo, PERO sin intentar borrar paths protegidos por Ferozo
+          # Usar mirror sin cd previo (ruta absoluta)
           echo "Sincronizando dist -> $FTP_DIR ..."
-          mirror -R --delete --only-newer --verbose --no-perms --parallel=2 \
+          mirror -R --delete --only-newer --verbose --skip-nlist \
             --exclude-glob .ht_leame \
             --exclude-glob cgi-bin/ \
             --exclude-glob cgi-bin/** \
@@ -171,3 +170,5 @@ jobs:
           echo "Deploy completado"
           bye
           EOF
+          
+          echo "::notice::Deploy finalizado sin errores"
