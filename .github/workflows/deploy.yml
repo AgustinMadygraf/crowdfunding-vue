@@ -147,21 +147,22 @@ jobs:
 
           lftp -u "$FTP_USERNAME","$FTP_PASSWORD" "$FTP_CONNECT_URL" <<EOF
           set cmd:fail-exit true
-          set net:timeout 90
-          set net:max-retries 5
-          set net:reconnect-delay 5
+          set net:timeout 120
+          set net:max-retries 6
+          set net:reconnect-interval-base 10
+          set net:reconnect-interval-multiplier 1
           set ftp:passive-mode on
           set ftp:ssl-allow no
           set ftp:prefer-epsv no
-          set mirror:use-pget-n 4
+          set ftp:sync-mode off
 
           # Validar conexión inicial
           echo "Validando conexión FTP..."
-          ls -la / 2>/dev/null | head -5 || echo "Listado fallido pero continuando"
+          ls -la / 2>/dev/null | head -3 || echo "Listado limitado, continuando"
 
           # Usar mirror sin cd previo (ruta absoluta)
           echo "Sincronizando dist -> $FTP_DIR ..."
-          mirror -R --delete --only-newer --verbose --skip-nlist \
+          mirror -R --delete --only-newer --verbose --no-perms \
             --exclude-glob .ht_leame \
             --exclude-glob cgi-bin/ \
             --exclude-glob cgi-bin/** \
