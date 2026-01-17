@@ -1,7 +1,7 @@
 import { computed, ref } from 'vue';
 import type { ContributionLevel } from '@/domain/contribution-level';
 import { mockContributionLevels } from '@/infrastructure/mockData';
-import { Logger } from '@/infrastructure/logger'
+
 
 export function useContributionLevels() {
   const levels = ref<ContributionLevel[]>([...mockContributionLevels]);
@@ -19,7 +19,7 @@ export function useContributionLevels() {
     try {
       // ...existing code...
     } catch (error) {
-      Logger.error('Error fetching contribution levels', error)
+      console.error('Error fetching contribution levels', error)
       throw error
     }
   }

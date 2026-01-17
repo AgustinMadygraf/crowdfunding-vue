@@ -6,7 +6,7 @@
  */
 
 import { ref, onMounted } from 'vue'
-import { Logger } from '@/infrastructure/logger'
+
 
 /**
  * Estado de disponibilidad del widget Chatwoot
@@ -258,7 +258,7 @@ export function useChatwoot() {
       state.value.isError = false
       return true
     } catch (error) {
-      Logger.error('Error enviando mensaje a Chatwoot (composable)', error)
+      console.error('Error enviando mensaje a Chatwoot (composable)', error)
       state.value.isError = true
       state.value.errorMessage = `Error en sendChatwootMessage: ${(error as Error).message}`
       console.error('Error calling sendChatwootMessage:', error)

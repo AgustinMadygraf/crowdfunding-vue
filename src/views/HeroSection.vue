@@ -5,11 +5,11 @@
 </template>
 
 <script lang="ts">
-import { Logger } from '@/infrastructure/logger'
+
 // ...existing imports...
 
 const handleHeroError = (error: unknown) => {
-  Logger.error('Error en sección Hero', error)
+  console.error('Error en sección Hero', error)
 }
 
 // ...existing script code...

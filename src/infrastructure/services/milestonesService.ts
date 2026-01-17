@@ -5,7 +5,7 @@
  */
 
 import { apiClient } from '@/infrastructure/api'
-import { Logger } from '@/infrastructure/logger'
+
 import type { MilestoneDTO, EvidenceDTO, ListResponse } from '@/infrastructure/dto'
 
 export const milestonesService = {
@@ -18,7 +18,7 @@ export const milestonesService = {
       const response = await apiClient.get<ListResponse<MilestoneDTO>>('/api/milestones')
       return response.data
     } catch (error) {
-      Logger.error('Error obteniendo milestones', error)
+      console.error('Error obteniendo milestones', error)
       throw error
     }
   },

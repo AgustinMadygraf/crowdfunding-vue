@@ -1,5 +1,5 @@
 import type { User } from '@/domain/user'
-import { Logger } from '@/infrastructure/logger'
+
 
 export interface TokenStorage {
   load(): { user: User | null; token: string | null }
@@ -30,7 +30,7 @@ export class DefaultTokenStorage implements TokenStorage {
       localStorage.setItem(this.tokenKey, token)
       localStorage.setItem(this.userKey, JSON.stringify(user))
     } catch (e) {
-      Logger.error('Error guardando token', e)
+      console.error('Error guardando token', e)
       // Ignore storage errors; session becomes non-persistent
     }
   }
@@ -71,10 +71,9 @@ export class SessionStorageTokenStorage implements TokenStorage {
       sessionStorage.setItem(this.tokenKey, token)
       sessionStorage.setItem(this.userKey, JSON.stringify(user))
       if (import.meta.env.DEV) {
-        console.log('[SessionStorageTokenStorage] ✅ Token guardado en sessionStorage')
       }
     } catch (e) {
-      Logger.error('Error guardando token en sessionStorage', e)
+      console.error('Error guardando token en sessionStorage', e)
       // Ignore storage errors; session becomes non-persistent
       if (import.meta.env.DEV) {
         console.warn('[SessionStorageTokenStorage] ⚠️ No se pudo guardar en sessionStorage')
@@ -87,7 +86,6 @@ export class SessionStorageTokenStorage implements TokenStorage {
       sessionStorage.removeItem(this.tokenKey)
       sessionStorage.removeItem(this.userKey)
       if (import.meta.env.DEV) {
-        console.log('[SessionStorageTokenStorage] ✅ Token eliminado de sessionStorage')
       }
     } catch (e) {
       // Ignore
@@ -114,7 +112,6 @@ export class MemoryOnlyTokenStorage implements TokenStorage {
     this.user = user
     this.token = token
     if (import.meta.env.DEV) {
-      console.log('[MemoryOnlyTokenStorage] ✅ Token en memoria (no persiste)')
     }
   }
 
@@ -122,7 +119,6 @@ export class MemoryOnlyTokenStorage implements TokenStorage {
     this.user = null
     this.token = null
     if (import.meta.env.DEV) {
-      console.log('[MemoryOnlyTokenStorage] ✅ Token eliminado de memoria')
     }
   }
 }
@@ -131,7 +127,7 @@ export function saveToken(token: string) {
   try {
     // ...existing code...
   } catch (error) {
-    Logger.error('Error guardando token', error)
+    console.error('Error guardando token', error)
     throw error
   }
 }

@@ -5,7 +5,7 @@ import { useAuthStore } from '@/stores/authStore'
 import { milestonesRepository, MilestoneRepositoryError } from '@/infrastructure/repositories/MilestonesRepository'
 import { updatesRepository, UpdateRepositoryError } from '@/infrastructure/repositories/UpdatesRepository'
 import type { MilestoneDTO, UpdateDTO } from '@/infrastructure/dto'
-import { Logger } from '@/infrastructure/logger'
+
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -33,14 +33,12 @@ const loadData = async () => {
   
   try {
     if (import.meta.env.DEV) {
-      console.log('[AdminView] Cargando datos administrativos...')
     }
     
     // Cargar milestones
     try {
       milestones.value = await milestonesRepository.getAll()
       if (import.meta.env.DEV) {
-        console.log('[AdminView] ✅ Milestones cargados:', milestones.value.length)
       }
     } catch (err) {
       console.warn('[AdminView] ⚠️ Error cargando milestones:', err)
@@ -50,7 +48,6 @@ const loadData = async () => {
     try {
       updates.value = await updatesRepository.getAll()
       if (import.meta.env.DEV) {
-        console.log('[AdminView] ✅ Updates cargados:', updates.value.length)
       }
     } catch (err) {
       console.warn('[AdminView] ⚠️ Error cargando updates:', err)
@@ -74,7 +71,7 @@ const fetchAdminData = async () => {
     // Cargar updates
     updates.value = await updatesRepository.getAll()
   } catch (err) {
-    Logger.error('Error obteniendo datos de admin', err)
+    console.error('Error obteniendo datos de admin', err)
     error.value = err instanceof Error ? err.message : 'Error al obtener datos administrativos'
   } finally {
     isLoading.value = false

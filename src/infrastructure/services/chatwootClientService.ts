@@ -6,7 +6,7 @@
  */
 
 import type { UTMParams } from '@/utils/utm'
-import { Logger } from '@/infrastructure/logger'
+
 
 /**
  * Request para crear contacto en Chatwoot
@@ -98,19 +98,15 @@ export const chatwootClientService = {
       accepted_at: string
     }
   ): Promise<ChatwootContactResponse> {
-    console.info('[Chatwoot] Creating contact:', { email: lead.email, name: lead.name })
     
     try {
       const baseUrl = this.getBaseUrl()
       const inboxIdentifier = this.getInboxIdentifier()
-      console.info('[Chatwoot] Config:', { baseUrl, inboxIdentifier })
 
       // Generar identifier único
       const timestamp = Date.now()
       const uuid = crypto.randomUUID()
       const identifier = `lead_${uuid}_${timestamp}`
-
-      console.info('[Chatwoot] Generated identifier:', identifier)
 
       // Construir custom attributes (aplanados) - solo valores no vacíos
       const customAttributes: Record<string, string | number | boolean> = {}
@@ -153,11 +149,8 @@ export const chatwootClientService = {
         request.custom_attributes = customAttributes
       }
 
-      console.info('[Chatwoot] Request payload:', JSON.stringify(request, null, 2))
-
       // Hacer petición a Chatwoot
       const endpoint = `${baseUrl}/public/api/v1/inboxes/${inboxIdentifier}/contacts`
-      console.info('[Chatwoot] Sending POST to:', endpoint)
       
       const response = await fetch(endpoint, {
         method: 'POST',
@@ -166,8 +159,6 @@ export const chatwootClientService = {
         },
         body: JSON.stringify(request)
       })
-
-      console.info('[Chatwoot] Response status:', response.status, response.statusText)
 
       if (!response.ok) {
         let error
@@ -184,7 +175,6 @@ export const chatwootClientService = {
       let data: ChatwootContactResponse
       try {
         data = await response.json()
-        console.info('[Chatwoot] Raw response data:', JSON.stringify(data, null, 2))
       } catch (parseError) {
         console.error('[Chatwoot] Failed to parse success response:', parseError)
         throw new ChatwootException(500, {}, 'Invalid JSON response from Chatwoot')
@@ -206,13 +196,6 @@ export const chatwootClientService = {
       }
 
       // Loguear éxito
-      console.info('[Chatwoot] ✅ Contact created successfully:', {
-        contact_id: contact.id,
-        source_id: contact.source_id || contact.identifier,
-        identifier,
-        full_contact: contact
-      })
-
       // Normalizar respuesta
       return {
         contact: {
@@ -301,7 +284,7 @@ export const chatwootClientService = {
 
       return await response.json()
     } catch (error) {
-      Logger.error('Error enviando mensaje a Chatwoot', error)
+      console.error('Error enviando mensaje a Chatwoot', error)
       throw error
     }
   }

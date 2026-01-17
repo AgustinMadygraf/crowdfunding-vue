@@ -5,7 +5,7 @@
  */
 
 import { apiClient } from '@/infrastructure/api'
-import { Logger } from '@/infrastructure/logger'
+
 import type { DocumentDTO, ListResponse } from '@/infrastructure/dto'
 
 export const documentsService = {
@@ -21,7 +21,7 @@ export const documentsService = {
       const response = await apiClient.get<ListResponse<DocumentDTO>>('/api/documents', queryParams)
       return response.data
     } catch (error) {
-      Logger.error('Error obteniendo documentos', error)
+      console.error('Error obteniendo documentos', error)
       throw error
     }
   },

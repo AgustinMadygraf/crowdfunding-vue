@@ -10,7 +10,7 @@ import {
 } from '@/application/ports/ContributionsRepository'
 import { getContributionsRepository } from '@/application/ports/contributionsRepositoryProvider'
 import type { User } from '@/domain/user'
-import { Logger } from '@/infrastructure/logger'
+
 
 export interface CreateContributionData {
   user_id: string
@@ -46,13 +46,7 @@ export function useSubscription() {
     isLoading.value = true
     error.value = null
 
-    try {
-      console.log('[useSubscription] Creando contribución...', {
-        nivel: data.nivel_nombre,
-        monto: data.monto
-      })
-
-      const result = await contributionsRepository.create({
+    try {      const result = await contributionsRepository.create({
         user_id: data.user_id,
         monto: data.monto,
         nivel_id: data.nivel_id,
@@ -62,7 +56,6 @@ export function useSubscription() {
       
       // El repositorio devuelve ContributionResponse con token, no UserContribution completa
       token.value = result.token
-      console.log('[useSubscription] Contribucion creada')
       return result.token
     } catch (err) {
       console.error('[useSubscription] ❌ Error al crear contribución:', err)
@@ -103,7 +96,6 @@ export function useSubscription() {
 
     try {
       if (import.meta.env.DEV) {
-        console.log('[useSubscription] Cargando contribución por token:', contributionToken.substring(0, 20) + '...')
       }
 
       const result = await contributionsRepository.getByToken(contributionToken)
@@ -111,7 +103,6 @@ export function useSubscription() {
       token.value = contributionToken
 
       if (import.meta.env.DEV) {
-        console.log('[useSubscription] ✅ Contribución cargada:', result.id)
       }
       return result
     } catch (err) {
@@ -143,11 +134,7 @@ export function useSubscription() {
     error.value = null
 
     try {
-      console.log('[useSubscription] Cargando contribuciones del usuario:', userId)
-      
       const list = await contributionsRepository.getByUserId(userId)
-      
-      console.log('[useSubscription] ✅ Contribuciones cargadas:', list.length)
       return list
     } catch (err) {
       console.error('[useSubscription] ❌ Error al cargar contribuciones:', err)
@@ -187,7 +174,7 @@ export function useSubscription() {
     try {
       // ...existing code...
     } catch (error) {
-      Logger.error('Error fetching subscription', error)
+      console.error('Error fetching subscription', error)
       throw error
     }
   }

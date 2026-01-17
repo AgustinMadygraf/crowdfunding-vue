@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { documentsRepository, DocumentRepositoryError } from '@/infrastructure/repositories/DocumentsRepository'
-import { Logger } from '@/infrastructure/logger'
+
 import type { DocumentDTO } from '@/infrastructure/dto'
 
 // State
@@ -48,15 +48,13 @@ const loadDocuments = async () => {
   
   try {
     if (import.meta.env.DEV) {
-      console.log('[DocumentsView] Cargando documentos...')
     }
     documents.value = await documentsRepository.getAll()
     if (import.meta.env.DEV) {
-      console.log('[DocumentsView] ✅ Documentos cargados:', documents.value.length)
     }
   } catch (err) {
     console.error('[DocumentsView] ❌ Error al cargar documentos:', err)
-    Logger.error('Error obteniendo documentos (vista)', err)
+    console.error('Error obteniendo documentos (vista)', err)
     
     if (err instanceof DocumentRepositoryError) {
       error.value = err.message || 'Error al cargar documentos'

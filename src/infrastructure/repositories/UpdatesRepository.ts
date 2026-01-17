@@ -47,8 +47,6 @@ export class UpdatesRepository {
     const queryString = queryParams.toString()
     const url = `${this.apiBaseUrl}/api/updates${queryString ? `?${queryString}` : ''}`
 
-    console.log('[UpdatesRepository] 📥 GET', url)
-
     try {
       const response = await fetch(url, {
         headers: {
@@ -84,8 +82,6 @@ export class UpdatesRepository {
         console.error('[UpdatesRepository] ❌ Formato de respuesta inválido:', data)
         throw new UpdateRepositoryError('Formato de respuesta inválido para updates')
       }
-
-      console.log('[UpdatesRepository] ✅ Updates obtenidos:', list.length)
       return list
     } catch (error) {
       if (error instanceof UpdateRepositoryError) {
@@ -107,8 +103,6 @@ export class UpdatesRepository {
   async getById(id: number): Promise<UpdateDTO> {
     const url = `${this.apiBaseUrl}/api/updates/${id}`
 
-    console.log('[UpdatesRepository] 📥 GET', url)
-
     try {
       const response = await fetch(url, {
         headers: {
@@ -128,7 +122,6 @@ export class UpdatesRepository {
       }
 
       const update: UpdateDTO = await response.json()
-      console.log('[UpdatesRepository] ✅ Update obtenido:', update.id)
 
       return update
     } catch (error) {

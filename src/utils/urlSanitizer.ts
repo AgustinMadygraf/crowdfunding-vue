@@ -1,4 +1,4 @@
-import { Logger } from '@/infrastructure/logger' /**
+ /**
  * URL Sanitizer
  * Previene XSS validando y sanitizando URLs de recursos externos
  */
@@ -141,7 +141,7 @@ export function sanitizeUrl(url: string | undefined | null): string | null {
 
     return null
   } catch (error) {
-    Logger.error('Error sanitizando URL', error)
+    console.error('Error sanitizando URL', error)
     throw error
   }
 }

@@ -1,4 +1,4 @@
-import { Logger } from '@/infrastructure/logger'
+
 
 export interface GoogleOAuthProvider {
   loadScript(): void
@@ -81,7 +81,7 @@ export async function getGoogleOAuthToken() {
   try {
     // ...existing code...
   } catch (error) {
-    Logger.error('Error obteniendo token de Google OAuth', error)
+    console.error('Error obteniendo token de Google OAuth', error)
     throw error
   }
 }

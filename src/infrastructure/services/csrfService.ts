@@ -1,4 +1,4 @@
-import { Logger } from '@/infrastructure/logger'
+
 
 /**
  * CSRF Protection Service
@@ -143,7 +143,7 @@ export async function fetchCsrfToken() {
   try {
     // ...existing code...
   } catch (error) {
-    Logger.error('Error obteniendo CSRF token', error)
+    console.error('Error obteniendo CSRF token', error)
     throw error
   }
 }

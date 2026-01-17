@@ -29,13 +29,7 @@ export class ContributionsRepository implements ContributionsRepositoryPort {
     const url = `${this.apiBaseUrl}/api/health`
     try {
       const response = await this.fetchWithGuard(url, { method: 'GET' })
-      const contentType = response.headers.get('content-type') || ''
-      console.log('[ContributionsRepository] Health check:', {
-        url,
-        status: response.status,
-        contentType
-      })
-    } catch (error) {
+      const contentType = response.headers.get('content-type') || ''    } catch (error) {
       console.warn('[ContributionsRepository] Health check failed:', url, error)
     }
   }
@@ -58,15 +52,7 @@ export class ContributionsRepository implements ContributionsRepositoryPort {
       const contentType = response.headers.get('content-type') || ''
       const elapsedMs = Date.now() - startedAt
 
-      if (this.debugHttp) {
-        console.log('[ContributionsRepository] Response meta:', {
-          requestId,
-          status: response.status,
-          contentType,
-          elapsedMs,
-          url: urlStr
-        })
-      }
+      if (this.debugHttp) {      }
 
       if (contentType.includes('text/html')) {
         // Probable misconfig: el frontend sirvió HTML (index.html) en vez de JSON
@@ -150,11 +136,6 @@ export class ContributionsRepository implements ContributionsRepositoryPort {
     }
     const url = `${this.apiBaseUrl}/api/contributions`
 
-    console.log('[ContributionsRepository] 📤 POST request initialized')
-    console.log('[ContributionsRepository] API Base URL:', this.apiBaseUrl)
-    console.log('[ContributionsRepository] Full URL:', url)
-    console.log('[ContributionsRepository] Monto:', data.monto)
-
     try {
       const response = await this.fetchWithGuard(url, {
         method: 'POST',
@@ -183,7 +164,6 @@ export class ContributionsRepository implements ContributionsRepositoryPort {
       }
 
       const result: ContributionResponse = await response.json()
-      console.log('[ContributionsRepository] ✅ Contribución creada:', result.contribution_id || 'sin-id')
       
       return result
     } catch (error) {
@@ -208,8 +188,6 @@ export class ContributionsRepository implements ContributionsRepositoryPort {
   async getByUserId(userId: string): Promise<UserContribution[]> {
     const headers = authService.getAuthHeaders()
     const url = `${this.apiBaseUrl}/api/users/${userId}/contributions`
-
-    console.log('[ContributionsRepository] 📥 GET', url)
 
     try {
       const response = await this.fetchWithGuard(url, { headers })
@@ -236,8 +214,6 @@ export class ContributionsRepository implements ContributionsRepositoryPort {
         console.error('[ContributionsRepository] ❌ Formato de respuesta inválido:', data)
         throw new ContributionRepositoryError('Formato de respuesta inválido para contribuciones')
       }
-
-      console.log('[ContributionsRepository] ✅ Contribuciones obtenidas:', list.length)
       return list
     } catch (error) {
       if (error instanceof ContributionRepositoryError) {
@@ -265,10 +241,6 @@ export class ContributionsRepository implements ContributionsRepositoryPort {
 
     const headers = authService.getAuthHeaders()
     const url = `${this.apiBaseUrl}/api/contributions/${token}`
-
-    console.log('[ContributionsRepository] 📥 GET request initialized')
-    console.log('[ContributionsRepository] API Base URL:', this.apiBaseUrl)
-    console.log('[ContributionsRepository] Full URL:', url)
     try {
       const response = await this.fetchWithGuard(url, { headers })
 
@@ -283,9 +255,6 @@ export class ContributionsRepository implements ContributionsRepositoryPort {
       }
 
       const contribution: UserContribution = await response.json()
-      console.log('[ContributionsRepository] ✅ Contribución obtenida:', contribution.id)
-      console.log('[ContributionsRepository] Monto:', contribution.monto)
-      console.log('[ContributionsRepository] Estado:', contribution.estado_pago)
       
       return contribution
     } catch (error) {

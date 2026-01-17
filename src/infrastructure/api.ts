@@ -5,7 +5,7 @@
 
 import { API_BASE_URL, DEFAULT_TIMEOUT_MS } from '@/config/api'
 import { csrfService } from './services/csrfService'
-import { Logger } from '@/infrastructure/logger'
+
 
 export interface ApiResponse<T> {
   data: T
@@ -96,7 +96,6 @@ class ApiClient {
     if (csrfToken) {
       Object.assign(headers, csrfService.getTokenHeader(csrfToken, 'X-CSRF-Token'))
       if (import.meta.env.DEV) {
-        console.log('[ApiClient] 🔐 Token CSRF adjuntado a request')
       }
     } else if (import.meta.env.DEV) {
       console.warn('[ApiClient] ⚠️ Token CSRF no disponible para operación de mutación')
@@ -138,7 +137,6 @@ class ApiClient {
         // Esperar con backoff exponencial: 1s, 2s, 4s
         const delayMs = Math.pow(2, attempt) * 1000
         if (import.meta.env.DEV) {
-          console.log(`[ApiClient] 🔄 Reintentando (intento ${attempt + 1}/${maxAttempts}) después de ${delayMs}ms...`)
         }
         await new Promise(resolve => setTimeout(resolve, delayMs))
       }

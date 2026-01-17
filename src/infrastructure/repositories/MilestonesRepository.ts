@@ -41,8 +41,6 @@ export class MilestonesRepository {
   async getAll(): Promise<MilestoneDTO[]> {
     const url = `${this.apiBaseUrl}/api/milestones`
 
-    console.log('[MilestonesRepository] 📥 GET', url)
-
     try {
       const response = await fetch(url, {
         headers: {
@@ -78,8 +76,6 @@ export class MilestonesRepository {
         console.error('[MilestonesRepository] ❌ Formato de respuesta inválido:', data)
         throw new MilestoneRepositoryError('Formato de respuesta inválido para milestones')
       }
-
-      console.log('[MilestonesRepository] ✅ Milestones obtenidos:', list.length)
       return list
     } catch (error) {
       if (error instanceof MilestoneRepositoryError) {
@@ -101,8 +97,6 @@ export class MilestonesRepository {
   async getById(id: number): Promise<MilestoneWithEvidences> {
     const url = `${this.apiBaseUrl}/api/milestones/${id}`
 
-    console.log('[MilestonesRepository] 📥 GET', url)
-
     try {
       const response = await fetch(url, {
         headers: {
@@ -122,7 +116,6 @@ export class MilestonesRepository {
       }
 
       const milestone: MilestoneWithEvidences = await response.json()
-      console.log('[MilestonesRepository] ✅ Milestone obtenido:', milestone.id)
 
       return milestone
     } catch (error) {
@@ -142,8 +135,6 @@ export class MilestonesRepository {
    */
   async getEvidences(milestoneId: number): Promise<EvidenceDTO[]> {
     const url = `${this.apiBaseUrl}/api/milestones/${milestoneId}/evidences`
-
-    console.log('[MilestonesRepository] 📥 GET', url)
 
     try {
       const response = await fetch(url, {
@@ -168,8 +159,6 @@ export class MilestonesRepository {
         console.error('[MilestonesRepository] ❌ Formato de respuesta inválido:', data)
         throw new MilestoneRepositoryError('Formato de respuesta inválido para evidencias')
       }
-
-      console.log('[MilestonesRepository] ✅ Evidencias obtenidas:', list.length)
       return list
     } catch (error) {
       if (error instanceof MilestoneRepositoryError) {

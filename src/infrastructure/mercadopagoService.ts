@@ -17,14 +17,10 @@ let mpInitialized = false
  */
 export async function initMercadoPago(): Promise<void> {
   if (mpInitialized) {
-    console.log('[MercadoPago] ✅ SDK ya está inicializado, saltando inicialización')
     return
   }
 
   const publicKey = import.meta.env.VITE_MERCADOPAGO_PUBLIC_KEY
-  
-  console.log('[MercadoPago] 🔧 Iniciando configuración de Mercado Pago...')
-  console.log(`[MercadoPago] 🔑 Public Key: ${publicKey ? publicKey.substring(0, 15) + '...' : 'NO CONFIGURADA'}`)
 
   // Validar que la clave pública esté configurada
   if (!publicKey) {
@@ -50,18 +46,13 @@ export async function initMercadoPago(): Promise<void> {
   }
 
   try {
-    console.log('[MercadoPago] 📥 Cargando SDK de Mercado Pago...')
     await loadMercadoPago()
-    console.log('[MercadoPago] ✅ SDK cargado exitosamente')
 
     try {
-      console.log('[MercadoPago] 🔐 Inicializando instancia de Mercado Pago...')
       mp = new (window as any).MercadoPago(publicKey, {
         locale: 'es-AR'
       })
       mpInitialized = true
-      console.log('[MercadoPago] ✅ SDK inicializado correctamente')
-      console.log('[MercadoPago] 🌐 Locale: es-AR')
     } catch (initError) {
       console.error('[MercadoPago] ❌ Error al inicializar instancia:', initError)
       console.error('[MercadoPago] Stack:', initError instanceof Error ? initError.stack : 'No disponible')
@@ -97,22 +88,11 @@ export async function createPaymentPreference(data: {
 }): Promise<{ preference_id: string }> {
   const apiUrl = getApiBaseUrl()
   const csrfToken = csrfService.getToken()
-  
-  console.log('[MercadoPago] 📝 Creando preferencia de pago...')
-  console.log('[MercadoPago] 💰 Datos:', {
-    monto: `$${data.amount}`,
-    nivel: data.level_name,
-    email: data.payer_email
-  })
-  console.log(`[MercadoPago] 📍 Endpoint: ${apiUrl}/api/payments/mercadopago/preference`)
-
   try {
     // Validar que contacto_id esté disponible
     if (!data.contact_id) {
       throw new Error('contact_id es requerido para crear la preferencia')
     }
-
-    console.log('[MercadoPago] 📤 Enviando solicitud al backend...')
     
     const response = await fetch(`${apiUrl}/api/payments/mercadopago/preference`, {
       method: 'POST',
@@ -170,8 +150,6 @@ export async function createPaymentPreference(data: {
       if (result && !result.preference_id && result.preferenceId) {
         result.preference_id = result.preferenceId
       }
-      console.log('[MercadoPago] ✅ Preferencia creada exitosamente')
-      console.log('[MercadoPago] 🎫 Preference ID:', result.preference_id)
     } catch (parseError) {
       console.error('[MercadoPago] ❌ Error al parsear respuesta JSON:', parseError)
       console.error('[MercadoPago] Stack:', parseError instanceof Error ? parseError.stack : 'No disponible')
@@ -192,8 +170,6 @@ export async function createPaymentPreference(data: {
  * @param preferenceId - Preference ID returned by createPaymentPreference
  */
 export async function openCheckout(preferenceId: string): Promise<void> {
-  console.log('[MercadoPago] 🛒 Abriendo Mercado Pago Checkout Pro...')
-  console.log(`[MercadoPago] 🎫 Preference ID: ${preferenceId}`)
 
   if (!mpInitialized || !mp) {
     const errorMsg = 'SDK de Mercado Pago no está inicializado'
@@ -205,7 +181,6 @@ export async function openCheckout(preferenceId: string): Promise<void> {
   }
 
   try {
-    console.log('[MercadoPago] 🔧 Creando instancia de checkout...')
     
     // Create checkout instance
     const checkout = mp.checkout({
@@ -215,14 +190,10 @@ export async function openCheckout(preferenceId: string): Promise<void> {
       autoOpen: true // Open modal automatically
     })
 
-    console.log('[MercadoPago] ✅ Checkout abierto exitosamente')
-
     // Optional: listen to checkout events
     try {
       checkout.on('submit', () => {
-        console.log('[MercadoPago] 💳 Formulario de pago enviado')
       })
-      console.log('[MercadoPago] 🎧 Event listeners configurados')
     } catch (eventError) {
       console.warn('[MercadoPago] ⚠️ Error al configurar event listeners:', eventError)
       // No es crítico, continuamos
@@ -251,25 +222,20 @@ export async function initiatePayment(data: {
   payer_email: string
   payer_name: string
 }): Promise<void> {
-  console.log('[MercadoPago] 🚀 Iniciando flujo de pago completo...')
   
   try {
     // Ensure SDK is initialized
-    console.log('[MercadoPago] 1️⃣ Verificando inicialización de SDK...')
     try {
       await initMercadoPago()
-      console.log('[MercadoPago] ✅ SDK inicializado')
     } catch (initError) {
       console.error('[MercadoPago] ❌ Error al inicializar SDK:', initError)
       throw new Error(`No se pudo inicializar Mercado Pago: ${initError instanceof Error ? initError.message : 'Error desconocido'}`)
     }
     
     // Create preference
-    console.log('[MercadoPago] 2️⃣ Creando preferencia de pago...')
     let preferenceResult: any
     try {
       preferenceResult = await createPaymentPreference(data)
-      console.log('[MercadoPago] ✅ Preferencia creada')
     } catch (prefError) {
       console.error('[MercadoPago] ❌ Error al crear preferencia:', prefError)
       throw new Error(`No se pudo crear la preferencia: ${prefError instanceof Error ? prefError.message : 'Error desconocido'}`)
@@ -283,16 +249,12 @@ export async function initiatePayment(data: {
     }
     
     // Open checkout modal
-    console.log('[MercadoPago] 3️⃣ Abriendo modal de pago...')
     try {
       await openCheckout(preferenceResult.preference_id)
-      console.log('[MercadoPago] ✅ Modal abierto')
     } catch (checkoutError) {
       console.error('[MercadoPago] ❌ Error al abrir checkout:', checkoutError)
       throw new Error(`No se pudo abrir el checkout: ${checkoutError instanceof Error ? checkoutError.message : 'Error desconocido'}`)
     }
-    
-    console.log('[MercadoPago] 🎉 Flujo de pago iniciado exitosamente')
   } catch (error) {
     console.error('[MercadoPago] ❌ Error en flujo de pago:', error)
     console.error('[MercadoPago] Tipo:', typeof error)
@@ -319,21 +281,14 @@ export function getPaymentStatusFromUrl(): {
     const preference_id = params.get('preference_id')
     
     if (!collection_status) {
-      console.log('[MercadoPago] ℹ️ Sin parámetros de pago en URL')
       return null
     }
-
-    console.log('[MercadoPago] 📍 Parámetros de pago detectados:')
-    console.log('[MercadoPago] collection_status:', collection_status)
-    console.log('[MercadoPago] payment_id:', payment_id)
-    console.log('[MercadoPago] preference_id:', preference_id)
 
     // Map MercadoPago status to our simplified status
     let status: 'success' | 'failure' | 'pending' | null = null
     
     if (collection_status === 'approved') {
       status = 'success'
-      console.log('[MercadoPago] ✅ Pago aprobado')
     } else if (collection_status === 'rejected') {
       status = 'failure'
       console.error('[MercadoPago] ❌ Pago rechazado')

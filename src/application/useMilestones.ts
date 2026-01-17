@@ -7,7 +7,7 @@ import type { Milestone } from '@/domain/milestone'
 import { mockMilestones } from '@/infrastructure/mockData'
 import { milestonesRepository, MilestoneRepositoryError } from '@/infrastructure/repositories/MilestonesRepository'
 import type { MilestoneDTO } from '@/infrastructure/dto'
-import { Logger } from '@/infrastructure/logger'
+
 
 // Transforma un mock Milestone a modelo de dominio Milestone
 const transformMockMilestone = (mock: typeof mockMilestones[number]): Milestone => ({
@@ -74,7 +74,7 @@ export function useMilestones(useApi = false) {
       const data = await milestonesRepository.getAll()
       milestones.value = data.map(transformMilestone)
     } catch (error) {
-      Logger.error('Error fetching milestones', error)
+      console.error('Error fetching milestones', error)
       throw error
     }
   }

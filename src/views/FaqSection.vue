@@ -9,7 +9,7 @@
 </template>
 
 <script lang="ts">
-import { Logger } from '@/infrastructure/logger'
+
 
 export default {
   name: 'FaqSection',
@@ -27,7 +27,7 @@ export default {
       this.faqs[index].showAnswer = !this.faqs[index].showAnswer
     },
     handleFaqError(error: unknown) {
-      Logger.error('Error en sección FAQ', error)
+      console.error('Error en sección FAQ', error)
     },
   },
 }

@@ -9,7 +9,7 @@ import type { IAuthService, AuthState, MutableAuthState, GoogleAuthConfig, AuthS
 import { getApiBaseUrl } from '@/config/api'
 import { DefaultTokenStorage, type TokenStorage } from './auth/tokenStorage'
 import { DefaultGoogleOAuthProvider, type GoogleOAuthProvider } from './auth/googleOAuthProvider'
-import { Logger } from '@/infrastructure/logger'
+
 
 interface GoogleAuthResponse {
   user_id: string
@@ -62,10 +62,7 @@ export class AuthService implements IAuthService {
     } else {
       // Solo loguear client ID en desarrollo por seguridad
       if (import.meta.env.DEV) {
-        console.log('[Auth] ✅ Google Client ID configurado correctamente')
-        console.log('[Auth] 🔑 Client ID:', this.GOOGLE_CLIENT_ID.substring(0, 20) + '...')
       } else {
-        console.log('[Auth] ✅ Google Client ID configurado correctamente')
       }
     }
 
@@ -142,7 +139,6 @@ export class AuthService implements IAuthService {
     } else {
       const expiresIn = payload.exp - now
       const minutesLeft = Math.floor(expiresIn / 60)
-      console.log(`[Auth] ✅ Token válido (expira en ${minutesLeft} minutos)`)
     }
 
     return !isExpired
@@ -188,8 +184,6 @@ export class AuthService implements IAuthService {
       }
 
       if (import.meta.env.DEV) {
-        console.log(`[Auth] 📤 Enviando solicitud de autenticación a ${this.API_BASE_URL}/api/auth/google`)
-        console.log(`[Auth] 🌐 Token length: ${token.length} caracteres`)
       }
       
       // Enviar token a backend para validación
@@ -233,7 +227,6 @@ export class AuthService implements IAuthService {
       let data: GoogleAuthResponse
       try {
         data = await response.json()
-        console.log('[Auth] ✅ Respuesta JSON recibida del servidor')
       } catch (parseError) {
         console.error('[Auth] ❌ Error al parsear respuesta JSON:', parseError)
         console.error('[Auth] Stack:', parseError instanceof Error ? parseError.stack : 'No disponible')
@@ -265,7 +258,6 @@ export class AuthService implements IAuthService {
 
         this.storage.save(user, data.auth_token)
         if (import.meta.env.DEV) {
-        console.log('[Auth] 💾 Sesión guardada')
       }
       } catch (storageError) {
         console.warn('[Auth] ⚠️ Error al guardar en localStorage:', storageError)
@@ -273,7 +265,6 @@ export class AuthService implements IAuthService {
       }
 
       if (import.meta.env.DEV) {
-        console.log('[Auth] ✅ Usuario autenticado correctamente:', user.email)
       }
 
       return user
@@ -294,7 +285,6 @@ export class AuthService implements IAuthService {
    */
   logout(): void {
     try {
-      console.log('[Auth] 🚪 Iniciando cierre de sesión...')
       
       this.authState.user = null
       this.authState.token = null
@@ -302,7 +292,6 @@ export class AuthService implements IAuthService {
       this.authState.error = null
 
       this.storage.clear()
-      console.log('[Auth] ✅ Sesión limpiada')
 
       // Revocar sesión de Google si está disponible
       try {
@@ -310,8 +299,6 @@ export class AuthService implements IAuthService {
       } catch (googleError) {
         console.warn('[Auth] ⚠️ Error al revocar sesión de Google:', googleError)
       }
-
-      console.log('[Auth] ✅ Sesión cerrada exitosamente')
     } catch (error) {
       console.error('[Auth] ❌ Error inesperado al cerrar sesión:', error)
       console.error('[Auth] Stack:', error instanceof Error ? error.stack : 'No disponible')
@@ -335,11 +322,8 @@ export class AuthService implements IAuthService {
         this.authState.token = token
         this.authState.isAuthenticated = true
         if (import.meta.env.DEV) {
-          console.log('[Auth] ✅ Sesión restaurada')
-          console.log('[Auth] 👤 Usuario:', this.authState.user?.email)
         }
       } else {
-        console.log('[Auth] ℹ️ No hay sesión previa almacenada')
       }
     } catch (error) {
       console.error('[Auth] ❌ Error al cargar autenticación almacenada:', error)
@@ -404,7 +388,6 @@ export class AuthService implements IAuthService {
 
     try {
       if (import.meta.env.DEV) {
-        console.log('[Auth] 🔄 Iniciando refresh silencioso de token...')
       }
 
       const response = await fetch(`${this.API_BASE_URL}/api/auth/refresh`, {
@@ -441,7 +424,6 @@ export class AuthService implements IAuthService {
         const payload = this.decodeJWT(newToken)
         const expiresIn = payload?.exp ? payload.exp - Math.floor(Date.now() / 1000) : 0
         const minutesLeft = Math.floor(expiresIn / 60)
-        console.log(`[Auth] ✅ Token refrescado (expira en ${minutesLeft} minutos)`)
       }
 
       return true
@@ -474,7 +456,6 @@ export class AuthService implements IAuthService {
     if (expiresIn < REFRESH_THRESHOLD) {
       if (import.meta.env.DEV) {
         const minutesLeft = Math.floor(expiresIn / 60)
-        console.log(`[Auth] ⏰ Token expirará en ${minutesLeft}m, refrescando...`)
       }
       return await this.silentRefresh()
     }
@@ -509,7 +490,6 @@ export class AuthService implements IAuthService {
     callback: (token: string) => void
   ): void {
     try {
-      console.log(`[Auth] 🌐 Iniciando Google Sign-In desde origen: ${window.location.origin}`)
       
       // Validar que Google SDK esté cargado
       if (!this.provider.isReady()) {
@@ -535,16 +515,11 @@ export class AuthService implements IAuthService {
         return
       }
 
-      console.log('[Auth] ✅ Validaciones previas correctas')
-      console.log('[Auth] 🔧 Configurando Google Sign-In...')
-
       try {
         this.provider.initialize(
           this.GOOGLE_CLIENT_ID,
           (cred) => {
             try {
-              console.log('[Auth] ✅ Usuario autenticado con Google')
-              console.log('[Auth] 📝 Procesando credential...')
               callback(cred)
             } catch (callbackError) {
               console.error('[Auth] ❌ Error en callback de autenticación:', callbackError)
@@ -571,8 +546,6 @@ export class AuthService implements IAuthService {
             this.authState.error = `Origen ${window.location.origin} no autorizado en Google Cloud Console. Ver consola para instrucciones.`
           }
         )
-        console.log('[Auth] ✅ Google Sign-In inicializado')
-        console.log('[Auth] 🔍 Esperando respuesta de Google... (el error 403 puede aparecer ahora)')
         
         // Monitorear errores de red de Google después de inicializar
         setTimeout(() => {
@@ -601,9 +574,6 @@ export class AuthService implements IAuthService {
 
       try {
         this.provider.renderButton(container)
-        console.log('[Auth] ✅ Botón de Google Sign-In renderizado exitosamente')
-        console.log(`[Auth] 📍 Contenedor: #${containerId}`)
-        console.log('[Auth] 🔎 Verificando iframe de Google... (revisar Network tab para 403)')
         
         // Variable para rastrear si se detectó el error 403
         let error403Detected = false
@@ -644,11 +614,6 @@ export class AuthService implements IAuthService {
           const googleIframes = document.querySelectorAll('iframe[src*="accounts.google.com"], iframe[id*="gsi"]')
           const hasButton = container.querySelector('iframe, div[role="button"]')
           
-          console.log('[Auth] 🔍 Estado del Google Sign-In:')
-          console.log('[Auth]   - Iframes encontrados:', googleIframes.length)
-          console.log('[Auth]   - Botón renderizado:', !!hasButton)
-          console.log('[Auth]   - GSI_LOGGER detectó error:', gsiLoggerDetected)
-          
           // Solo mostrar diagnóstico si:
           // 1. No hay iframe en absoluto O
           // 2. Se detectó GSI_LOGGER con error de origin
@@ -688,11 +653,6 @@ export class AuthService implements IAuthService {
             console.error('[Auth] ')
             console.error('[Auth] 📚 Guía completa: docs/GOOGLE_403_TROUBLESHOOTING_COMPLETE.md')
           } else {
-            console.log('[Auth] ✅ Google Sign-In iframe cargado exitosamente')
-            console.log('[Auth] 💡 Si el login no funciona, revisa:')
-            console.log('[Auth]    - ¿Está Google OAuth Consent Screen en "Testing"?')
-            console.log('[Auth]    - ¿Tu cuenta de Gmail está como "Test user"?')
-            console.log('[Auth]    - ¿El popup de login se abre al clickear?')
           }
         }, 3000)
       } catch (renderError) {
@@ -740,7 +700,7 @@ export async function authenticateUser(credentials: any) {
   try {
     // ...existing code...
   } catch (error) {
-    Logger.error('Error autenticando usuario', error)
+    console.error('Error autenticando usuario', error)
     throw error
   }
 }

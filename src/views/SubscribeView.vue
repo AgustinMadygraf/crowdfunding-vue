@@ -11,7 +11,7 @@ import GoogleAuthButton from '@/components/auth/GoogleAuthButton.vue'
 import type { User } from '@/domain/user'
 import { sanitizeAvatarUrl } from '@/utils/urlSanitizer'
 import { useAuthStore } from '@/stores/authStore'
-import { Logger } from '@/infrastructure/logger'
+
 
 const router = useRouter()
 const { levels, selectedLevel, selectLevel, benefitAmount } = useContributionLevels()
@@ -39,18 +39,15 @@ const { createContribution } = useSubscription()
 // Cargar usuario actual y UTM params al montar
 onMounted(async () => {
   if (import.meta.env.DEV) {
-    console.log('[Subscribe] 📋 Montando SubscribeView...')
   }
   authStore.hydrateFromService()
   
   try {
     if (user.value) {
       if (import.meta.env.DEV) {
-        console.log('[Subscribe] 👤 Usuario actual:', user.value.email)
       }
     } else {
       if (import.meta.env.DEV) {
-        console.log('[Subscribe] ⚠️ Sin usuario autenticado')
       }
     }
   } catch (userError) {
@@ -61,7 +58,6 @@ onMounted(async () => {
     utmParams.value = getUTMFromSessionStorage()
     if (utmParams.value) {
       if (import.meta.env.DEV) {
-        console.log('[Subscribe] 📊 UTM params cargados:', utmParams.value)
       }
     }
   } catch (utmError) {
@@ -70,12 +66,10 @@ onMounted(async () => {
   
   // Inicializar MercadoPago SDK
   if (import.meta.env.DEV) {
-    console.log('[Subscribe] 💳 Inicializando MercadoPago...')
   }
   try {
     await initMercadoPago()
     if (import.meta.env.DEV) {
-      console.log('[Subscribe] ✅ MercadoPago inicializado')
     }
   } catch (error) {
     console.error('[Subscribe] ❌ Error en inicialización de MercadoPago:', error)
@@ -95,15 +89,12 @@ onMounted(async () => {
  */
 const handleAuthSuccess = (authenticatedUser: User) => {
   isAuthenticationModalOpen.value = false
-
-  console.log('[Subscribe] ✅ Auth exitoso, actualizando UI sin recargar')
 }
 
 /**
  * Maneja el submit del formulario
  */
 const handleSubmit = async () => {
-  console.log('[Subscribe] 🔄 handleSubmit iniciado')
   
   if (!selectedLevel.value) {
     submitError.value = 'Seleccioná un nivel de contribución para continuar'
@@ -113,7 +104,6 @@ const handleSubmit = async () => {
 
   // Si no está autenticado, abrir modal de Google Auth
   if (!isAuthenticated.value) {
-    console.log('[Subscribe] ℹ️ Usuario no autenticado, abriendo modal de auth')
     isAuthenticationModalOpen.value = true
     return
   }
@@ -123,15 +113,11 @@ const handleSubmit = async () => {
     return
   }
 
-  console.log('[Subscribe] 📝 Creando contribución...')
-  console.log('[Subscribe] 💰 Nivel:', selectedLevel.value.name, `($${selectedLevel.value.amount})`)
-
   submitError.value = null
   isSubmitting.value = true
 
   try {
     // Validar datos antes de enviar (Zod)
-    console.log('[Subscribe] ✔️ Validando datos de contribución...')
     const validationResult = validateContribution({
       user_id: user.value.id,
       monto: selectedLevel.value.amount,
@@ -149,7 +135,6 @@ const handleSubmit = async () => {
     }
 
     // Crear contribución usando repository
-    console.log('[Subscribe] 1️⃣ Creando contribución en backend...')
     const token = await createContribution({
       user_id: user.value.id,
       monto: selectedLevel.value.amount,
@@ -158,15 +143,11 @@ const handleSubmit = async () => {
       utm_params: utmParams.value || {}
     })
 
-    console.log('[Subscribe] ✅ Contribución creada')
-
     contributionToken.value = token
     contributionCreated.value = true
-    
-    console.log('[Subscribe] 2️⃣ Preparado para pago')
 
   } catch (error) {
-    Logger.error('Error en submit de contribución', error)
+    console.error('Error en submit de contribución', error)
     // Mostrar errores claros al usuario
     if (error instanceof ContributionRepositoryError) {
       if (error.statusCode === 401) {
@@ -191,7 +172,6 @@ const handleSubmit = async () => {
 }
 
 const handlePayment = async () => {
-  console.log('[Subscribe] 🛒 handlePayment iniciado')
   
   if (!contributionToken.value) {
     const errorMsg = 'Token de contribución no disponible'
@@ -207,19 +187,13 @@ const handlePayment = async () => {
     return
   }
 
-  console.log('[Subscribe] 💳 Iniciando proceso de pago...')
-  console.log('[Subscribe] 💰 Nivel:', selectedLevel.value.name)
-
   isProcessingPayment.value = true
   submitError.value = null
 
   try {
-    console.log('[Subscribe] 📍 Redirigiendo a página de pago...')
     // Redirigir a la página de pago
     const paymentUrl = `/subscribe/${contributionToken.value}`
-    console.log('[Subscribe] 🔗 URL:', paymentUrl)
     router.push(paymentUrl)
-    console.log('[Subscribe] ✅ Redirección iniciada')
   } catch (error) {
     console.error('[Subscribe] ❌ Error al redirigir:', error)
     console.error('[Subscribe] Tipo:', typeof error)

@@ -1,6 +1,6 @@
 import { ref, type Ref } from 'vue'
 import { z, type ZodError, type ZodObject, type ZodRawShape } from 'zod'
-import { Logger } from '@/infrastructure/logger'
+
 
 /**
  * Composable para manejar validación de formularios con Zod
@@ -60,7 +60,7 @@ export function useFormValidation<T extends ZodRawShape>(schema: ZodObject<T>) {
       isValid.value = true
       return true
     } catch (error) {
-      Logger.error('Error validando formulario', error)
+      console.error('Error validando formulario', error)
       
       if (error instanceof z.ZodError && error.issues) {
         // Mapear errores por campo

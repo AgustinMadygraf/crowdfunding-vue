@@ -45,8 +45,6 @@ export class DocumentsRepository {
     const queryString = queryParams.toString()
     const url = `${this.apiBaseUrl}/api/documents${queryString ? `?${queryString}` : ''}`
 
-    console.log('[DocumentsRepository] 📥 GET', url)
-
     try {
       const response = await fetch(url, {
         headers: {
@@ -88,8 +86,6 @@ export class DocumentsRepository {
         console.error('[DocumentsRepository] ❌ Formato de respuesta inválido:', data)
         throw new DocumentRepositoryError('Formato de respuesta inválido para documents')
       }
-
-      console.log('[DocumentsRepository] ✅ Documents obtenidos:', list.length)
       return list
     } catch (error) {
       if (error instanceof DocumentRepositoryError) {
@@ -111,8 +107,6 @@ export class DocumentsRepository {
   async getById(id: number): Promise<DocumentDTO> {
     const url = `${this.apiBaseUrl}/api/documents/${id}`
 
-    console.log('[DocumentsRepository] 📥 GET', url)
-
     try {
       const response = await fetch(url, {
         headers: {
@@ -132,7 +126,6 @@ export class DocumentsRepository {
       }
 
       const document: DocumentDTO = await response.json()
-      console.log('[DocumentsRepository] ✅ Document obtenido:', document.id)
 
       return document
     } catch (error) {

@@ -6,7 +6,7 @@
 import { computed, ref, onMounted } from 'vue'
 import { documentsRepository, DocumentRepositoryError, type GetDocumentsParams } from '@/infrastructure/repositories/DocumentsRepository'
 import type { DocumentDTO } from '@/infrastructure/dto'
-import { Logger } from '@/infrastructure/logger'
+
 
 export interface Document {
   id: number
@@ -63,7 +63,7 @@ export function useDocuments(useApi = false, params?: GetDocumentsParams) {
     try {
       // ...existing code...
     } catch (error) {
-      Logger.error('Error fetching documents', error)
+      console.error('Error fetching documents', error)
       throw error
     }
   }

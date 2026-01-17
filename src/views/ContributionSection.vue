@@ -5,10 +5,10 @@
 </template>
 
 <script lang="ts">
-import { Logger } from '@/infrastructure/logger'
+
 
 const handleContributionSectionError = (error: unknown) => {
-  Logger.error('Error en sección Contribution', error)
+  console.error('Error en sección Contribution', error)
 }
 
 // Resto del código de la sección de contribución

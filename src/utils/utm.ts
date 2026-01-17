@@ -1,4 +1,4 @@
-import { Logger } from '@/infrastructure/logger'
+
 
 /**
  * UTM Parameters Utility
@@ -80,7 +80,7 @@ export function parseUtmParams(url: string) {
     }
     return utmParams
   } catch (error) {
-    Logger.error('Error parseando UTM params', error)
+    console.error('Error parseando UTM params', error)
     throw error
   }
 }

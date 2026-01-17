@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useMilestones } from '@/application/useMilestones'
 import MilestoneCard from '@/components/milestones/MilestoneCard.vue'
-import { Logger } from '@/infrastructure/logger'
+
 
 const { milestones, totalTargetAmount, totalRaisedAmount, progressPercentage } = useMilestones()
 
@@ -9,7 +9,7 @@ const fetchMilestones = async () => {
   try {
     // ...existing code...
   } catch (error) {
-    Logger.error('Error obteniendo milestones (vista)', error)
+    console.error('Error obteniendo milestones (vista)', error)
     // ...existing code...
   }
 }

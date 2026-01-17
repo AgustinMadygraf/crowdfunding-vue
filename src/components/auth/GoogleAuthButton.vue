@@ -86,7 +86,6 @@ const handleGoogleCallback = async (token: string) => {
   
   authInProgress = true
   lastAuthAttempt = now
-  console.log('[GoogleAuthButton] Callback recibido de Google')
   isLoading.value = true
   error.value = null
 
@@ -96,12 +95,9 @@ const handleGoogleCallback = async (token: string) => {
       console.error('[GoogleAuthButton] Token de Google no disponible')
       throw new Error('No se recibió token de Google')
     }
-
-    console.log('[GoogleAuthButton] Intentando autenticar usuario...')
     
     try {
       const authenticatedUser = await authStore.loginWithGoogle(token)
-      console.log('[GoogleAuthButton] Autenticación exitosa:', authenticatedUser.email)
       emit('auth-success', authenticatedUser)
     } catch (authError) {
       console.error('[GoogleAuthButton] Error en loginWithGoogle:', authError)
@@ -129,8 +125,6 @@ const handleLogout = () => {
     console.warn('[GoogleAuthButton] ⚠️ No se puede cerrar sesión durante autenticación en progreso')
     return
   }
-  
-  console.log('[GoogleAuthButton] Iniciando cierre de sesión')
   try {
     try {
       authStore.logout()
@@ -141,7 +135,6 @@ const handleLogout = () => {
     
     error.value = null
     emit('logout')
-    console.log('[GoogleAuthButton] Sesión cerrada exitosamente')
   } catch (err) {
     const errorMessage = 'Error al cerrar sesión'
     console.error('[GoogleAuthButton] Error en logout:', err)
@@ -155,17 +148,12 @@ const handleLogout = () => {
  */
 onMounted(() => {
   try {
-    console.log('[GoogleAuthButton] Montando componente de autenticación')
-    console.log(`[GoogleAuthButton] 🌐 Origen actual: ${window.location.origin}`)
-    console.log(`[GoogleAuthButton] 📍 URL completa: ${window.location.href}`)
     
     // Cargar usuario actual si ya está autenticado
     try {
       authStore.hydrateFromService()
       if (user.value) {
-        console.log('[GoogleAuthButton] ✓ Usuario autenticado encontrado:', user.value.email)
       } else {
-        console.log('[GoogleAuthButton] ⚠️ No hay usuario autenticado previamente')
       }
     } catch (getUserError) {
       console.error('[GoogleAuthButton] ❌ Error al sincronizar estado de auth:', getUserError)
@@ -174,7 +162,6 @@ onMounted(() => {
 
     // Si ya está autenticado, no inicializamos el botón para evitar warnings innecesarios
     if (isAuthenticated.value) {
-      console.log('[GoogleAuthButton] Usuario ya autenticado; se omite la inicialización de Google Sign-In')
       return
     }
 
@@ -182,8 +169,6 @@ onMounted(() => {
     let configInfo: ReturnType<typeof auth.getConfigInfo>
     try {
       configInfo = auth.getConfigInfo()
-      console.log('[GoogleAuthButton] ✅ Configuración de Google:', configInfo)
-      console.log('[GoogleAuthButton] 🌐 Origen:', window.location.origin)
     } catch (configError) {
       console.error('[GoogleAuthButton] ❌ Error al obtener configuración:', configError)
       console.error('[GoogleAuthButton] Stack trace:', configError instanceof Error ? configError.stack : 'No disponible')
@@ -203,10 +188,6 @@ onMounted(() => {
     let attempts = 0
     const maxAttempts = 100 // 10 segundos
 
-    console.log('[GoogleAuthButton] ⏳ Esperando que Google Identity Services esté listo...')
-    console.log('[GoogleAuthButton] window.google disponible:', !!window.google)
-    console.log('[GoogleAuthButton] window.google.accounts disponible:', !!window.google?.accounts)
-
     // Esperar a que Google Identity Services esté listo
     const checkGoogleReady = setInterval(() => {
       attempts++
@@ -214,15 +195,12 @@ onMounted(() => {
       try {
         if (window.google?.accounts?.id) {
           clearInterval(checkGoogleReady)
-          console.log(`[GoogleAuthButton] ✅ Google SDK listo en intento ${attempts}`)
-          console.log('[GoogleAuthButton] Inicializando Google Sign-In ...')
           
           try {
             auth.initGoogleSignIn(
               props.buttonContainerId,
               handleGoogleCallback
             )
-            console.log('[GoogleAuthButton] ✅ Google Sign-In inicializado correctamente')
           } catch (initError) {
             console.error('[GoogleAuthButton] ❌ Error al inicializar Google Sign-In:', initError)
             console.error('[GoogleAuthButton] Mensaje:', initError instanceof Error ? initError.message : 'Error desconocido')

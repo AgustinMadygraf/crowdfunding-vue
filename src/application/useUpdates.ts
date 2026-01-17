@@ -7,7 +7,7 @@ import type { Update, UpdateCategory } from '@/domain/update'
 import { mockUpdates } from '@/infrastructure/mockData'
 import { updatesRepository, UpdateRepositoryError, type GetUpdatesParams } from '@/infrastructure/repositories/UpdatesRepository'
 import type { UpdateDTO } from '@/infrastructure/dto'
-import { Logger } from '@/infrastructure/logger'
+
 
 // Transforma un mock Update a modelo de dominio Update
 const transformMockUpdate = (mock: typeof mockUpdates[number]): Update => ({
@@ -117,7 +117,7 @@ async function fetchUpdates() {
   try {
     // ...existing code...
   } catch (error) {
-    Logger.error('Error fetching updates', error)
+    console.error('Error fetching updates', error)
     throw error
   }
 }

@@ -8,7 +8,7 @@ import { getApiBaseUrl } from '@/config/api'
 import type { IAuthService, AuthServiceConfig } from './IAuthService'
 import { DefaultTokenStorage, SessionStorageTokenStorage, MemoryOnlyTokenStorage } from './auth/tokenStorage'
 import { DefaultGoogleOAuthProvider } from './auth/googleOAuthProvider'
-import { Logger } from '@/infrastructure/logger'
+
 
 /**
  * Configuración por defecto del servicio de autenticación
@@ -59,7 +59,7 @@ export function createAuthService(config?: Partial<AuthServiceConfig>): IAuthSer
 
     return new AuthService(finalConfig, { storage, provider })
   } catch (error) {
-    Logger.error('Error creando AuthService', error)
+    console.error('Error creando AuthService', error)
     throw error
   }
 }

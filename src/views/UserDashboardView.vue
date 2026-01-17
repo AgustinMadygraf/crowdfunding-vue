@@ -131,7 +131,7 @@ import { useSubscription } from '@/application/useSubscription'
 import type { UserContribution } from '@/application/ports/ContributionsRepository'
 import type { User } from '@/domain/user'
 import { sanitizeAvatarUrl } from '@/utils/urlSanitizer'
-import { Logger } from '@/infrastructure/logger'
+
 
 const router = useRouter()
 
@@ -257,7 +257,7 @@ const fetchUserData = async () => {
 
     loadContributions()
   } catch (err) {
-    Logger.error('Error obteniendo datos de usuario', err)
+    console.error('Error obteniendo datos de usuario', err)
     error.value = err instanceof Error ? err.message : 'Error al obtener datos del usuario'
     isLoading.value = false
   }

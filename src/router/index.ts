@@ -1,7 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { authService } from '@/infrastructure/services/authServiceFactory'
 import { useAuthStore } from '@/stores/authStore'
-import { Logger } from '@/infrastructure/logger'
+
 
 const getSiteOrigin = () => {
   const env = (import.meta.env.VITE_SITE_URL as string | undefined)?.trim()
@@ -215,7 +215,7 @@ router.beforeEach((to, _from, next) => {
 })
 
 router.onError((error) => {
-  Logger.error('Router error', error)
+  console.error('Router error', error)
 })
 
 export default router

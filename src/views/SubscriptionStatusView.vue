@@ -2,7 +2,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useSubscription } from '@/application/useSubscription'
-import { Logger } from '@/infrastructure/logger'
+
 
 const route = useRoute()
 const router = useRouter()
@@ -49,11 +49,10 @@ const loadContribution = async () => {
     const result = await loadContributionByToken(contributionId.value)
     contribution.value = result
     if (import.meta.env.DEV && result) {
-      console.log('[SubscriptionStatus] ? Contribuci?n cargada')
     }
   } catch (err) {
     console.error('[SubscriptionStatus] ? Error:', err)
-    Logger.error('Error obteniendo estado de suscripci?n', err)
+    console.error('Error obteniendo estado de suscripci?n', err)
   }
 }
 

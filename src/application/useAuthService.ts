@@ -2,7 +2,6 @@
 import { inject } from 'vue'
 import type { IAuthService } from '@/infrastructure/services/IAuthService'
 import { authService as defaultAuthService } from '@/infrastructure/services/authServiceFactory'
-import { Logger } from '@/infrastructure/logger'
 import type { Credentials } from '@/domain/user'
 
 export const AUTH_SERVICE_KEY = 'authService' as const
@@ -16,7 +15,7 @@ async function login(credentials: Credentials) {
   try {
     // ...existing code...
   } catch (error) {
-    Logger.error('Login error', error)
+    console.error('Login error', error)
     throw error
   }
 }

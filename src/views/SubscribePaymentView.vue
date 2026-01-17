@@ -148,7 +148,7 @@ import { useRoute } from 'vue-router'
 import { useSubscription } from '@/application/useSubscription'
 import { useAuthService } from '@/application/useAuthService'
 import type { User } from '@/domain/user'
-import { Logger } from '@/infrastructure/logger'
+
 
 interface Contribution {
   id: string
@@ -189,19 +189,11 @@ const loadContribution = async () => {
   error.value = null
 
   try {
-    console.log('[SubscribePayment] 🔄 Cargando contribución por token:', token.value)
-    console.log('[SubscribePayment] 📍 Ruta actual:', route.fullPath)
-    console.log('[SubscribePayment] 🕐 Hora:', new Date().toISOString())
 
     const result = await subscriptionService.loadContributionByToken(token.value)
     
     if (result) {
       contribution.value = result as Contribution
-      console.log('[SubscribePayment] ✅ Contribución cargada:')
-      console.log('[SubscribePayment]   ID:', contribution.value?.id)
-      console.log('[SubscribePayment]   Monto:', contribution.value?.monto)
-      console.log('[SubscribePayment]   Estado:', contribution.value?.estado_pago)
-      console.log('[SubscribePayment]   Nivel:', contribution.value?.nivel_nombre)
     } else {
       error.value = subscriptionService.error.value || 'No se pudo cargar la contribución'
       console.error('[SubscribePayment] ❌ Contribución null o error en service:')
