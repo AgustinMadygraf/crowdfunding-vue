@@ -24,6 +24,7 @@ const diagnosticInfo = {
   userAgent: navigator.userAgent
 }
 
+console.info('VITE_DEBUG_HTTP:', import.meta.env.VITE_DEBUG_HTTP === 'true')
 if (import.meta.env.VITE_DEBUG_LOGS === 'true') {
   console.group('🚀 CROWDFUNDING FRONTEND - Diagnostic Info')
   console.info('Environment:', diagnosticInfo.environment)
