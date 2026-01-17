@@ -28,19 +28,34 @@ export class ContributionsRepository implements ContributionsRepositoryPort {
     const controller = new AbortController()
     const timeout = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT_MS)
     const urlStr = typeof input === 'string' ? input : input.toString()
+    const requestId = `req_${Date.now()}_${Math.random().toString(16).slice(2, 8)}`
+    const startedAt = Date.now()
+    const requestHeaders = new Headers(init?.headers || {})
+    requestHeaders.set('X-Request-Id', requestId)
     
     try {
-      const response = await fetch(input, { ...init, signal: controller.signal })
+      const response = await fetch(input, { ...init, headers: requestHeaders, signal: controller.signal })
       const contentType = response.headers.get('content-type') || ''
+      const elapsedMs = Date.now() - startedAt
+
+      console.log('[ContributionsRepository] Response meta:', {
+        requestId,
+        status: response.status,
+        contentType,
+        elapsedMs,
+        url: urlStr
+      })
 
       if (contentType.includes('text/html')) {
         // Probable misconfig: el frontend sirvió HTML (index.html) en vez de JSON
         const body = await response.text().catch(() => '')
         const errorDetails = {
           urlRequested: urlStr,
+          requestId,
           apiBaseUrl: this.apiBaseUrl,
           contentType,
           statusCode: response.status,
+          elapsedMs,
           bodyPreview: body.slice(0, 500),
           fullBodyLength: body.length
         }

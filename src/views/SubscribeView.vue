@@ -124,7 +124,6 @@ const handleSubmit = async () => {
   }
 
   console.log('[Subscribe] 📝 Creando contribución...')
-  console.log('[Subscribe] 👤 Email:', user.value.email)
   console.log('[Subscribe] 💰 Nivel:', selectedLevel.value.name, `($${selectedLevel.value.amount})`)
 
   submitError.value = null
@@ -209,7 +208,6 @@ const handlePayment = async () => {
   }
 
   console.log('[Subscribe] 💳 Iniciando proceso de pago...')
-  console.log('[Subscribe] 🎫 Token:', contributionToken.value.substring(0, 20) + '...')
   console.log('[Subscribe] 💰 Nivel:', selectedLevel.value.name)
 
   isProcessingPayment.value = true
