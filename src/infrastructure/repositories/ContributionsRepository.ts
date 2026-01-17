@@ -18,6 +18,24 @@ export class ContributionsRepository implements ContributionsRepositoryPort {
 
   constructor(apiBaseUrl?: string) {
     this.apiBaseUrl = apiBaseUrl || getApiBaseUrl()
+    if (import.meta.env.DEV) {
+      this.pingHealth().catch(() => {})
+    }
+  }
+
+  private async pingHealth(): Promise<void> {
+    const url = `${this.apiBaseUrl}/api/health`
+    try {
+      const response = await this.fetchWithGuard(url, { method: 'GET' })
+      const contentType = response.headers.get('content-type') || ''
+      console.log('[ContributionsRepository] Health check:', {
+        url,
+        status: response.status,
+        contentType
+      })
+    } catch (error) {
+      console.warn('[ContributionsRepository] Health check failed:', url, error)
+    }
   }
 
   /**
