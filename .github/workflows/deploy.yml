@@ -3,6 +3,7 @@ name: deploy-vue-to-ferozo
 on:
   push:
     branches: [ main ]
+  workflow_dispatch:
 
 concurrency:
   group: deploy-vue
@@ -35,11 +36,11 @@ jobs:
           FTP_PORT: ${{ vars.FTP_PORT }}
           FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
           FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
-          VITE_CHATWOOT_TOKEN: ${{ secrets.VITE_CHATWOOT_TOKEN }}
-          VITE_CHATWOOT_BASE_URL: ${{ secrets.VITE_CHATWOOT_BASE_URL }}
-          VITE_CHATWOOT_INBOX_IDENTIFIER: ${{ secrets.VITE_CHATWOOT_INBOX_IDENTIFIER }}
-          VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL }}
-          VITE_GOOGLE_CLIENT_ID: ${{ secrets.VITE_GOOGLE_CLIENT_ID }}
+          VITE_CHATWOOT_TOKEN: ${{ vars.VITE_CHATWOOT_TOKEN }}
+          VITE_CHATWOOT_BASE_URL: ${{ vars.VITE_CHATWOOT_BASE_URL }}
+          VITE_CHATWOOT_INBOX_IDENTIFIER: ${{ vars.VITE_CHATWOOT_INBOX_IDENTIFIER }}
+          VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL }}
+          VITE_GOOGLE_CLIENT_ID: ${{ vars.VITE_GOOGLE_CLIENT_ID }}
         run: |
           set -euo pipefail
 
@@ -101,15 +102,15 @@ jobs:
 
       - name: Build
         env:
-          VITE_CHATWOOT_TOKEN: ${{ secrets.VITE_CHATWOOT_TOKEN }}
-          VITE_CHATWOOT_BASE_URL: ${{ secrets.VITE_CHATWOOT_BASE_URL }}
-          VITE_CHATWOOT_INBOX_IDENTIFIER: ${{ secrets.VITE_CHATWOOT_INBOX_IDENTIFIER }}
-          VITE_CHATWOOT_SDK_INTEGRITY: ${{ secrets.VITE_CHATWOOT_SDK_INTEGRITY }}
-          VITE_GOOGLE_CLIENT_ID: ${{ secrets.VITE_GOOGLE_CLIENT_ID }}
-          VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL }}
-          VITE_SITE_URL: ${{ secrets.VITE_SITE_URL }}
-          VITE_MERCADOPAGO_PUBLIC_KEY: ${{ secrets.VITE_MERCADOPAGO_PUBLIC_KEY }}
-          VITE_SENTRY_DSN: ${{ secrets.VITE_SENTRY_DSN }}
+          VITE_CHATWOOT_TOKEN: ${{ vars.VITE_CHATWOOT_TOKEN }}
+          VITE_CHATWOOT_BASE_URL: ${{ vars.VITE_CHATWOOT_BASE_URL }}
+          VITE_CHATWOOT_INBOX_IDENTIFIER: ${{ vars.VITE_CHATWOOT_INBOX_IDENTIFIER }}
+          VITE_CHATWOOT_SDK_INTEGRITY: ${{ vars.VITE_CHATWOOT_SDK_INTEGRITY }}
+          VITE_GOOGLE_CLIENT_ID: ${{ vars.VITE_GOOGLE_CLIENT_ID }}
+          VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL }}
+          VITE_SITE_URL: ${{ vars.VITE_SITE_URL }}
+          VITE_MERCADOPAGO_PUBLIC_KEY: ${{ vars.VITE_MERCADOPAGO_PUBLIC_KEY }}
+          VITE_SENTRY_DSN: ${{ vars.VITE_SENTRY_DSN }}
         run: npm run build
 
       - name: Ensure dist/assets folder exists
