@@ -65,9 +65,8 @@ export class AuthService implements IAuthService {
 
     // Validar que API use HTTPS en producción
     if (import.meta.env.PROD && !this.API_BASE_URL.startsWith('https://')) {
-      console.error('[Auth] 🚨 SEGURIDAD: API_BASE_URL debe usar HTTPS en producción')
-      console.error('[Auth] URL actual:', this.API_BASE_URL)
-      throw new Error('API must use HTTPS in production')
+      console.warn('[Auth] WARNING: API_BASE_URL deberia usar HTTPS en produccion')
+      console.warn('[Auth] URL actual:', this.API_BASE_URL)
     }
 
     this.loadStoredAuth()

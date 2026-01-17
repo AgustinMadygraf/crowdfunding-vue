@@ -12,6 +12,9 @@ export const getApiBaseUrl = (): string => {
 	const fromEnv = (import.meta.env.VITE_API_BASE_URL || '').trim()
 	const isProd = import.meta.env.PROD
 
+	console.info('[config/api] VITE_API_BASE_URL:', fromEnv || '(vacio)')
+
+
 	// Permitir rutas relativas tipo "/api" cuando se sirva tras reverse proxy
 	if (fromEnv) {
 		if (fromEnv.startsWith('/')) {
