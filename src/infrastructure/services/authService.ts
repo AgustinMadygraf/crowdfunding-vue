@@ -61,9 +61,6 @@ export class AuthService implements IAuthService {
       this.authState.error = 'Configuración de Google OAuth incompleta'
     } else {
       // Solo loguear client ID en desarrollo por seguridad
-      if (import.meta.env.DEV) {
-      } else {
-      }
     }
 
     // Validar que API use HTTPS en producción
@@ -104,7 +101,7 @@ export class AuthService implements IAuthService {
       return JSON.parse(jsonPayload)
     } catch (error) {
       console.error('[Auth] ❌ Error al decodificar JWT:', error)
-      console.error('[Auth] Token (primeros 20 chars):', token.substring(0, 20) + '...')
+      console.error('[Auth] Token recibido es inválido o no parseable')
       return null
     }
   }
@@ -182,9 +179,6 @@ export class AuthService implements IAuthService {
         console.error('[Auth] El token está vacío o es undefined')
         throw new Error(errorMsg)
       }
-
-      if (import.meta.env.DEV) {
-      }
       
       // Enviar token a backend para validación
       const response = await fetch(`${this.API_BASE_URL}/api/auth/google`, {
@@ -257,14 +251,9 @@ export class AuthService implements IAuthService {
         this.authState.isAuthenticated = true
 
         this.storage.save(user, data.auth_token)
-        if (import.meta.env.DEV) {
-      }
       } catch (storageError) {
         console.warn('[Auth] ⚠️ Error al guardar en localStorage:', storageError)
         console.warn('[Auth] ⚠️ La sesión funcionará pero no será persistida en recarga')
-      }
-
-      if (import.meta.env.DEV) {
       }
 
       return user
@@ -321,8 +310,6 @@ export class AuthService implements IAuthService {
         this.authState.user = user
         this.authState.token = token
         this.authState.isAuthenticated = true
-        if (import.meta.env.DEV) {
-        }
       } else {
       }
     } catch (error) {
@@ -387,8 +374,6 @@ export class AuthService implements IAuthService {
     }
 
     try {
-      if (import.meta.env.DEV) {
-      }
 
       const response = await fetch(`${this.API_BASE_URL}/api/auth/refresh`, {
         method: 'POST',
@@ -530,7 +515,7 @@ export class AuthService implements IAuthService {
           (error: any) => {
             console.error('[Auth] ❌❌❌ ERROR CRÍTICO: Origen NO autorizado en Google Cloud Console')
             console.error('[Auth] 🌐 Origen bloqueado:', window.location.origin)
-            console.error('[Auth] 🔑 Client ID:', this.GOOGLE_CLIENT_ID.substring(0, 20) + '...')
+            console.error('[Auth] Client ID: [redacted]')
             console.error('[Auth] Error details:', error)
             console.error('[Auth] ')
             console.error('[Auth] 🔧 SOLUCIÓN RÁPIDA (5 minutos):')
@@ -559,7 +544,7 @@ export class AuthService implements IAuthService {
         console.error('[Auth] ❌ Error al inicializar Google Sign-In:', initError)
         console.error('[Auth] Stack:', initError instanceof Error ? initError.stack : 'No disponible')
         console.error(`[Auth] 🌐 Origen: ${window.location.origin}`)
-        console.error('[Auth] Client ID:', this.GOOGLE_CLIENT_ID.substring(0, 20) + '...')
+        console.error('[Auth] Client ID: [redacted]')
         console.warn('[Auth] El origen puede no estar permitido en Google Cloud Console')
         throw initError
       }
@@ -623,7 +608,7 @@ export class AuthService implements IAuthService {
             console.error('[Auth] ')
             console.error('[Auth] 📋 INFORMACIÓN:')
             console.error('[Auth]   🌐 Origin actual: ', window.location.origin)
-            console.error('[Auth]   🔑 Client ID: ' + this.GOOGLE_CLIENT_ID)
+            console.error('[Auth] Client ID: [redacted]')
             if (gsiLoggerDetected) {
               console.error('[Auth]   ⚠️  GSI_LOGGER reportó: origin not allowed')
             }
@@ -635,7 +620,7 @@ export class AuthService implements IAuthService {
             console.error('[Auth] ')
             console.error('[Auth] 1️⃣ Confirmar que el origen está en Google Cloud Console')
             console.error('[Auth]    ▪ URL: https://console.cloud.google.com/apis/credentials')
-            console.error('[Auth]    ▪ Busca Client ID: ' + this.GOOGLE_CLIENT_ID)
+            console.error('[Auth]    - Busca Client ID: [redacted]')
             console.error('[Auth]    ▪ Verifica "Authorized JavaScript origins" incluye:')
             console.error('[Auth]       - http://localhost:5173')
             console.error('[Auth]       - http://localhost')

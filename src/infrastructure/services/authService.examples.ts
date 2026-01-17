@@ -21,7 +21,6 @@ import type { IAuthService } from '@/infrastructure/services/IAuthService'
 // import { authService as barrelAuth } from '@/infrastructure/services'
 
 // Ambos son la misma instancia
-console.info(authService === barrelAuth) // true
 
 // ======================
 // 2. TESTING - Mock de AuthService

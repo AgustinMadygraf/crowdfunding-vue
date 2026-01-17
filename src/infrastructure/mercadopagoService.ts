@@ -167,7 +167,6 @@ export async function createPaymentPreference(data: {
 
 /**
  * Open MercadoPago Checkout Pro modal
- * @param preferenceId - Preference ID returned by createPaymentPreference
  */
 export async function openCheckout(preferenceId: string): Promise<void> {
 
@@ -204,7 +203,6 @@ export async function openCheckout(preferenceId: string): Promise<void> {
     console.error('[MercadoPago] Mensaje:', error instanceof Error ? error.message : 'Error desconocido')
     console.error('[MercadoPago] Stack:', error instanceof Error ? error.stack : 'No disponible')
     console.warn('[MercadoPago] ⚠️ Posibles causas:')
-    console.warn('  1️⃣ Preference ID inválido o expirado')
     console.warn('  2️⃣ Problema con la librería de Mercado Pago')
     console.warn('  3️⃣ Ventana emergente bloqueada por navegador')
     throw error
@@ -242,7 +240,6 @@ export async function initiatePayment(data: {
     }
 
     if (!preferenceResult?.preference_id) {
-      const errorMsg = 'Preference ID no recibido del servidor'
       console.error('[MercadoPago] ❌ ' + errorMsg)
       console.error('[MercadoPago] Respuesta del servidor:', preferenceResult)
       throw new Error(errorMsg)
