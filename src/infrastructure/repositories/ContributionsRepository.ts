@@ -1,7 +1,6 @@
-/**
- * Repository: Contribuciones
- * Encapsula toda la lógica de acceso a datos de contribuciones
- */
+/*
+Path: src/infrastructure/repositories/ContributionsRepository.ts
+*/
 
 import { authService } from '@/infrastructure/services/authServiceFactory'
 import { getApiBaseUrl, DEFAULT_TIMEOUT_MS } from '@/config/api'
