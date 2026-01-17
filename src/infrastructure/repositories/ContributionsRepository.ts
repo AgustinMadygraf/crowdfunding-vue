@@ -67,22 +67,34 @@ export class ContributionsRepository implements ContributionsRepositoryPort {
       if (contentType.includes('text/html')) {
         // Probable misconfig: el frontend sirvió HTML (index.html) en vez de JSON
         const body = await response.text().catch(() => '')
+        const titleMatch = body.match(/<title>([^<]*)<\/title>/i)
+        const htmlTitle = titleMatch ? titleMatch[1].trim() : null
+        const pageOrigin = typeof window !== 'undefined' ? window.location.origin : 'unknown'
+        const responseUrl = response.url || urlStr
         const errorDetails = {
           urlRequested: urlStr,
           requestId,
+          responseUrl,
+          pageOrigin,
           apiBaseUrl: this.apiBaseUrl,
           contentType,
           statusCode: response.status,
           elapsedMs,
+          htmlTitle,
           bodyPreview: body.slice(0, 500),
           fullBodyLength: body.length
         }
         
         console.error('[ContributionsRepository] 🚨 CRITICAL - HTML response when JSON expected')
+        console.error('[ContributionsRepository] Response URL:', responseUrl)
+        console.error('[ContributionsRepository] Page origin:', pageOrigin)
         console.error('[ContributionsRepository] Requested URL:', urlStr)
         console.error('[ContributionsRepository] API Base URL:', this.apiBaseUrl)
         console.error('[ContributionsRepository] Content-Type:', contentType)
         console.error('[ContributionsRepository] Status:', response.status)
+        if (htmlTitle) {
+          console.error('[ContributionsRepository] HTML title:', htmlTitle)
+        }
         console.error('[ContributionsRepository] Response preview:', body.slice(0, 200))
         
         throw new ContributionRepositoryError(
