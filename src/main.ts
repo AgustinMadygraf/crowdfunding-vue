@@ -25,15 +25,13 @@ const diagnosticInfo = {
 }
 
 console.info('VITE_DEBUG_HTTP:', import.meta.env.VITE_DEBUG_HTTP === 'true')
-if (import.meta.env.VITE_DEBUG_LOGS === 'true') {
-  console.group('🚀 CROWDFUNDING FRONTEND - Diagnostic Info')
-  console.info('Environment:', diagnosticInfo.environment)
-  console.info('Mode:', diagnosticInfo.prod ? 'PRODUCTION' : 'DEVELOPMENT')
-  console.info('API Base URL:', diagnosticInfo.apiBaseUrl)
-  console.info('Site URL:', diagnosticInfo.siteUrl)
-  console.info('Loaded at:', diagnosticInfo.timestamp)
-  console.groupEnd()
-}
+console.group('🚀 CROWDFUNDING FRONTEND - Diagnostic Info')
+console.info('Environment:', diagnosticInfo.environment)
+console.info('Mode:', diagnosticInfo.prod ? 'PRODUCTION' : 'DEVELOPMENT')
+console.info('API Base URL:', diagnosticInfo.apiBaseUrl)
+console.info('Site URL:', diagnosticInfo.siteUrl)
+console.info('Loaded at:', diagnosticInfo.timestamp)
+console.groupEnd()
 
 // Captura UTM parameters en la carga inicial (NFR-MKT-001)
 const captureUTMParameters = () => {
@@ -61,9 +59,7 @@ const captureUTMParameters = () => {
   if (Object.keys(utmParams).length > 0) {
     sessionStorage.setItem('utm_params', JSON.stringify(utmParams))
     sessionStorage.setItem('utm_captured_at', new Date().toISOString())
-    if (import.meta.env.VITE_DEBUG_LOGS === 'true') {
-      console.info('UTM parameters captured:', utmParams)
-    }
+    console.info('UTM parameters captured:', utmParams)
   }
 }
 
