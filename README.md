@@ -63,11 +63,25 @@ Este proyecto es una aplicación web de crowdfunding que permite a usuarios cont
 
 ## Variables de entorno
 
-Debes definir las siguientes variables en un archivo `.env` o en el entorno de CI/CD:
+Debes definir las siguientes variables en archivos de entorno o en CI/CD segÃºn el entorno.
 
-- VITE_CHATWOOT_TOKEN
+Frontend (public, Vite):
+- VITE_API_BASE_URL
+- VITE_SITE_URL
+- VITE_GOOGLE_CLIENT_ID
+- VITE_MERCADOPAGO_PUBLIC_KEY
 - VITE_CHATWOOT_BASE_URL
+- VITE_CHATWOOT_TOKEN
 - VITE_CHATWOOT_INBOX_IDENTIFIER
+- VITE_CHATWOOT_SDK_INTEGRITY
+- VITE_SENTRY_DSN
+- VITE_SENTRY_ENVIRONMENT
+
+ProducciÃ³n (CI/CD, no Vite):
+- FTP_DIR
+- FTP_PORT
+- FTP_SERVER
+- FTP_SERVER_IP
 
 ## Contribuir
 
