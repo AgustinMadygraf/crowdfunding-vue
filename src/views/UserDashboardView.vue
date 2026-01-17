@@ -134,6 +134,7 @@ import { sanitizeAvatarUrl } from '@/utils/urlSanitizer'
 
 
 const router = useRouter()
+const auth = useAuthService()
 
 // State
 const user = ref<User | null>(null)
@@ -225,7 +226,6 @@ const goToPayment = (token: string) => {
  * Maneja el logout
  */
 const handleLogout = () => {
-  const auth = useAuthService()
   auth.logout()
   router.push('/')
 }
@@ -234,7 +234,6 @@ const handleLogout = () => {
  * Inicializa el dashboard
  */
 onMounted(() => {
-  const auth = useAuthService()
   user.value = auth.getCurrentUser()
   
   if (!user.value) {
@@ -247,7 +246,6 @@ onMounted(() => {
 
 const fetchUserData = async () => {
   try {
-    const auth = useAuthService()
     user.value = auth.getCurrentUser()
     
     if (!user.value) {

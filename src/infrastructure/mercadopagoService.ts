@@ -240,6 +240,7 @@ export async function initiatePayment(data: {
     }
 
     if (!preferenceResult?.preference_id) {
+      const errorMsg = 'No se recibió preference_id del servidor'
       console.error('[MercadoPago] ❌ ' + errorMsg)
       console.error('[MercadoPago] Respuesta del servidor:', preferenceResult)
       throw new Error(errorMsg)
