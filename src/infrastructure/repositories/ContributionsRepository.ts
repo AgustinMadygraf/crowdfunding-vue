@@ -2,60 +2,18 @@
 Path: src/infrastructure/repositories/ContributionsRepository.ts
 */
 
+import type {
+  ContributionsRepositoryPort,
+  CreateContributionDTO,
+  ContributionResponse,
+  UserContribution
+} from '@/application/ports/ContributionsRepository'
+import { ContributionRepositoryError } from '@/application/ports/ContributionsRepository'
 import { authService } from '@/infrastructure/services/authServiceFactory'
+import { csrfService } from '@/infrastructure/services/csrfService'
 import { getApiBaseUrl, DEFAULT_TIMEOUT_MS } from '@/config/api'
 
-export interface CreateContributionDTO {
-  user_id: string
-  monto: number
-  nivel_id: string
-  nivel_nombre: string
-  utm_params: Record<string, string>
-}
-
-export interface ContributionResponse {
-  token: string
-  preference_id: string
-  contribution_id?: string
-}
-
-export interface UserContribution {
-  id: string
-  monto: number
-  nivel_nombre: string
-  estado_pago: 'pendiente' | 'procesando' | 'completado' | 'fallido' | 'cancelado'
-  created_at: string
-  completed_at?: string
-  token: string
-}
-
-export interface PaginatedContributions {
-  items: UserContribution[]
-  total: number
-  limit: number
-  offset: number
-  user_id: string
-}
-
-/**
- * Excepción personalizada para errores del repositorio
- */
-export class ContributionRepositoryError extends Error {
-  constructor(
-    message: string,
-    public statusCode?: number,
-    public details?: any
-  ) {
-    super(message)
-    this.name = 'ContributionRepositoryError'
-  }
-}
-
-/**
- * Repository de contribuciones
- * Abstrae la lógica de acceso al backend
- */
-export class ContributionsRepository {
+export class ContributionsRepository implements ContributionsRepositoryPort {
   private readonly apiBaseUrl: string
 
   constructor(apiBaseUrl?: string) {
@@ -133,19 +91,7 @@ export class ContributionsRepository {
 
     // Obtener JWT y CSRF token
     const jwt = authService.getAuthToken()
-    // Usar el composable para obtener el token CSRF
-    let csrfToken: string | null = null
-    try {
-      // Import dinámico para evitar dependencias circulares
-      const { useCsrfToken } = await import('@/application/composables/useCsrfToken')
-      csrfToken = useCsrfToken().getToken()
-    } catch (e) {
-      // Fallback: intentar leer de csrfService
-      try {
-        const { csrfService } = await import('@/infrastructure/services/csrfService')
-        csrfToken = csrfService.getToken()
-      } catch {}
-    }
+    const csrfToken = csrfService.getToken()
 
     const headers: Record<string, string> = {
       ...authService.getAuthHeaders(),
@@ -158,11 +104,7 @@ export class ContributionsRepository {
     console.log('[ContributionsRepository] 📤 POST request initialized')
     console.log('[ContributionsRepository] API Base URL:', this.apiBaseUrl)
     console.log('[ContributionsRepository] Full URL:', url)
-    console.log('[ContributionsRepository] Email:', data.user_id)
     console.log('[ContributionsRepository] Monto:', data.monto)
-    if (import.meta.env.DEV) {
-      console.log('[ContributionsRepository] Headers:', headers)
-    }
 
     try {
       const response = await this.fetchWithGuard(url, {
@@ -192,7 +134,7 @@ export class ContributionsRepository {
       }
 
       const result: ContributionResponse = await response.json()
-      console.log('[ContributionsRepository] ✅ Contribución creada:', result.contribution_id || result.token)
+      console.log('[ContributionsRepository] ✅ Contribución creada:', result.contribution_id || 'sin-id')
       
       return result
     } catch (error) {
@@ -278,8 +220,6 @@ export class ContributionsRepository {
     console.log('[ContributionsRepository] 📥 GET request initialized')
     console.log('[ContributionsRepository] API Base URL:', this.apiBaseUrl)
     console.log('[ContributionsRepository] Full URL:', url)
-    console.log('[ContributionsRepository] Token:', token)
-
     try {
       const response = await this.fetchWithGuard(url, { headers })
 

@@ -5,13 +5,16 @@
 
 export { 
   ContributionsRepository, 
-  contributionsRepository,
+  contributionsRepository
+} from './ContributionsRepository'
+
+export {
   ContributionRepositoryError,
   type CreateContributionDTO,
   type ContributionResponse,
   type UserContribution,
   type PaginatedContributions
-} from './ContributionsRepository'
+} from '@/application/ports/ContributionsRepository'
 
 export { 
   MilestonesRepository, 

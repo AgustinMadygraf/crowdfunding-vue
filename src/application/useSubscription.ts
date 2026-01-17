@@ -4,7 +4,11 @@
  */
 
 import { ref, computed, type Ref } from 'vue'
-import { contributionsRepository, ContributionRepositoryError, type UserContribution } from '@/infrastructure/repositories/ContributionsRepository'
+import {
+  ContributionRepositoryError,
+  type UserContribution
+} from '@/application/ports/ContributionsRepository'
+import { getContributionsRepository } from '@/application/ports/contributionsRepositoryProvider'
 import type { User } from '@/domain/user'
 import { Logger } from '@/infrastructure/logger'
 
@@ -24,6 +28,7 @@ export interface ContributionState {
 }
 
 export function useSubscription() {
+  const contributionsRepository = getContributionsRepository()
   // Estado reactivo
   const contribution = ref<UserContribution | null>(null)
   const token = ref<string | null>(null)
@@ -57,8 +62,7 @@ export function useSubscription() {
       
       // El repositorio devuelve ContributionResponse con token, no UserContribution completa
       token.value = result.token
-
-      console.log('[useSubscription] ✅ Contribución creada, token:', result.token.substring(0, 20) + '...')
+      console.log('[useSubscription] Contribucion creada')
       return result.token
     } catch (err) {
       console.error('[useSubscription] ❌ Error al crear contribución:', err)

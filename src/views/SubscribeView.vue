@@ -4,7 +4,8 @@ import { useRouter } from 'vue-router'
 import { useContributionLevels } from '@/application/useContributionLevels'
 import { getUTMFromSessionStorage, type UTMParams } from '@/utils/utm'
 import { initMercadoPago } from '@/infrastructure/mercadopagoService'
-import { contributionsRepository, ContributionRepositoryError } from '@/infrastructure/repositories/ContributionsRepository'
+import { useSubscription } from '@/application/useSubscription'
+import { ContributionRepositoryError } from '@/application/ports/ContributionsRepository'
 import { validateContribution } from '@/application/schemas/contributionSchema'
 import GoogleAuthButton from '@/components/auth/GoogleAuthButton.vue'
 import type { User } from '@/domain/user'
@@ -33,6 +34,7 @@ const isProcessingPayment = ref(false)
 const authStore = useAuthStore()
 const user = computed(() => authStore.user)
 const isAuthenticated = computed(() => authStore.isAuthenticated)
+const { createContribution } = useSubscription()
 
 // Cargar usuario actual y UTM params al montar
 onMounted(async () => {
@@ -149,7 +151,7 @@ const handleSubmit = async () => {
 
     // Crear contribución usando repository
     console.log('[Subscribe] 1️⃣ Creando contribución en backend...')
-    const contribution = await contributionsRepository.create({
+    const token = await createContribution({
       user_id: user.value.id,
       monto: selectedLevel.value.amount,
       nivel_id: selectedLevel.value.name,
@@ -158,9 +160,8 @@ const handleSubmit = async () => {
     })
 
     console.log('[Subscribe] ✅ Contribución creada')
-    console.log('[Subscribe] 🎫 Token:', contribution.token.substring(0, 20) + '...')
 
-    contributionToken.value = contribution.token
+    contributionToken.value = token
     contributionCreated.value = true
     
     console.log('[Subscribe] 2️⃣ Preparado para pago')

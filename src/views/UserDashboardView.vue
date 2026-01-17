@@ -127,7 +127,8 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthService } from '@/application/useAuthService'
-import { contributionsRepository, ContributionRepositoryError, type UserContribution } from '@/infrastructure/repositories/ContributionsRepository'
+import { useSubscription } from '@/application/useSubscription'
+import type { UserContribution } from '@/application/ports/ContributionsRepository'
 import type { User } from '@/domain/user'
 import { sanitizeAvatarUrl } from '@/utils/urlSanitizer'
 import { Logger } from '@/infrastructure/logger'
@@ -137,8 +138,7 @@ const router = useRouter()
 // State
 const user = ref<User | null>(null)
 const contributions = ref<UserContribution[]>([])
-const isLoading = ref(false)
-const error = ref<string | null>(null)
+const { isLoading, error, loadUserContributions } = useSubscription()
 
 /**
  * Carga las contribuciones del usuario
@@ -147,30 +147,13 @@ const loadContributions = async () => {
   if (!user.value) {
     return
   }
+  const list = await loadUserContributions(user.value.id)
+  contributions.value = list
 
-  isLoading.value = true
-  error.value = null
-
-  try {
-    const list = await contributionsRepository.getByUserId(user.value.id)
-    contributions.value = list
-    
-    // Ordenar por fecha más reciente primero
-    contributions.value.sort((a, b) => 
-      new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-    )
-  } catch (err) {
-    if (err instanceof ContributionRepositoryError) {
-      error.value = err.message
-      console.error('[Dashboard] Status:', err.statusCode)
-      console.error('[Dashboard] Detalles:', err.details)
-    } else {
-      error.value = err instanceof Error ? err.message : 'Error desconocido'
-    }
-    console.error('[Dashboard] Error loading contributions:', err)
-  } finally {
-    isLoading.value = false
-  }
+  // Ordenar por fecha mas reciente primero
+  contributions.value.sort((a, b) =>
+    new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+  )
 }
 
 /**

@@ -1,15 +1,14 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { contributionsRepository, ContributionRepositoryError } from '@/infrastructure/repositories/ContributionsRepository'
+import { useSubscription } from '@/application/useSubscription'
 import { Logger } from '@/infrastructure/logger'
 
 const route = useRoute()
 const router = useRouter()
 
 const contributionId = computed(() => route.params.id as string)
-const isLoading = ref(false)
-const error = ref<string | null>(null)
+const { isLoading, error, loadContributionByToken } = useSubscription()
 
 // Contribution data
 const contribution = ref<{
@@ -46,36 +45,15 @@ const loadContribution = async () => {
     error.value = 'ID de contribución inválido o vacío'
     return
   }
-
-  isLoading.value = true
-  error.value = null
-
   try {
-    if (import.meta.env.DEV) {
-      console.log('[SubscriptionStatus] Cargando contribución:', contributionId.value)
-    }
-    contribution.value = await contributionsRepository.getByToken(contributionId.value)
-    if (import.meta.env.DEV) {
-      console.log('[SubscriptionStatus] ✅ Contribución cargada')
+    const result = await loadContributionByToken(contributionId.value)
+    contribution.value = result
+    if (import.meta.env.DEV && result) {
+      console.log('[SubscriptionStatus] ? Contribuci?n cargada')
     }
   } catch (err) {
-    console.error('[SubscriptionStatus] ❌ Error:', err)
-    
-    if (err instanceof ContributionRepositoryError) {
-      if (err.statusCode === 404) {
-        error.value = 'No se encontró la contribución solicitada'
-      } else if (err.statusCode === 401) {
-        error.value = 'No tienes permisos para ver esta contribución'
-      } else {
-        error.value = err.message || 'Error al cargar la contribución'
-      }
-    } else {
-      error.value = err instanceof Error ? err.message : 'Error desconocido'
-    }
-
-    Logger.error('Error obteniendo estado de suscripción', err)
-  } finally {
-    isLoading.value = false
+    console.error('[SubscriptionStatus] ? Error:', err)
+    Logger.error('Error obteniendo estado de suscripci?n', err)
   }
 }
 

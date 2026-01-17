@@ -9,6 +9,8 @@ import { authService } from '@/infrastructure/services/authServiceFactory'
 import { AUTH_SERVICE_KEY } from '@/application/useAuthService'
 import { Logger } from '@/infrastructure/logger'
 import { getApiBaseUrl } from '@/config/api'
+import { setContributionsRepository } from '@/application/ports/contributionsRepositoryProvider'
+import { contributionsRepository } from '@/infrastructure/repositories/ContributionsRepository'
 
 // Inicializar Sentry solo en producción
 if (import.meta.env.PROD) {
@@ -79,6 +81,7 @@ const pinia = createPinia()
 app.use(pinia)
 app.use(router)
 app.provide(AUTH_SERVICE_KEY, authService)
+setContributionsRepository(contributionsRepository)
 
 // Captura global de errores no manejados
 type GlobalError = ErrorEvent | PromiseRejectionEvent | Event

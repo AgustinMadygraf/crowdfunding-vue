@@ -4,7 +4,6 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
 import { milestonesRepository, MilestoneRepositoryError } from '@/infrastructure/repositories/MilestonesRepository'
 import { updatesRepository, UpdateRepositoryError } from '@/infrastructure/repositories/UpdatesRepository'
-import { contributionsRepository, ContributionRepositoryError } from '@/infrastructure/repositories/ContributionsRepository'
 import type { MilestoneDTO, UpdateDTO } from '@/infrastructure/dto'
 import { Logger } from '@/infrastructure/logger'
 
