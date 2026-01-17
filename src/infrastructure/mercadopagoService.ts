@@ -5,6 +5,7 @@
 
 import { loadMercadoPago } from '@mercadopago/sdk-js'
 import { getApiBaseUrl } from '@/config/api'
+import { csrfService } from '@/infrastructure/services/csrfService'
 
 // MercadoPago SDK instance (loaded asynchronously)
 let mp: any = null
@@ -95,6 +96,7 @@ export async function createPaymentPreference(data: {
   payer_name: string
 }): Promise<{ preference_id: string }> {
   const apiUrl = getApiBaseUrl()
+  const csrfToken = csrfService.getToken()
   
   console.log('[MercadoPago] 📝 Creando preferencia de pago...')
   console.log('[MercadoPago] 💰 Datos:', {
@@ -102,7 +104,7 @@ export async function createPaymentPreference(data: {
     nivel: data.level_name,
     email: data.payer_email
   })
-  console.log(`[MercadoPago] 📍 Endpoint: ${apiUrl}/api/payments/create`)
+  console.log(`[MercadoPago] 📍 Endpoint: ${apiUrl}/api/payments/mercadopago/preference`)
 
   try {
     // Validar que contacto_id esté disponible
@@ -112,32 +114,22 @@ export async function createPaymentPreference(data: {
 
     console.log('[MercadoPago] 📤 Enviando solicitud al backend...')
     
-    const response = await fetch(`${apiUrl}/api/payments/create`, {
+    const response = await fetch(`${apiUrl}/api/payments/mercadopago/preference`, {
       method: 'POST',
+      credentials: 'include',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        ...(csrfToken ? csrfService.getTokenHeader(csrfToken, 'X-CSRF-Token') : {})
       },
       body: JSON.stringify({
-        contact_id: data.contact_id,
-        level_id: data.level_id,
-        items: [{
-          title: `Contribución ${data.level_name} - Proyecto RKHA190`,
-          description: `Crowdfunding para adquisición de rotativa RKHA190 - Madypack`,
-          quantity: 1,
-          unit_price: data.amount,
-          currency_id: 'ARS'
-        }],
+        amount: data.amount,
+        currency: 'ARS',
+        description: `Contribucion ${data.level_name} - Proyecto RKHA190`,
+        referenceId: `contribution_${data.contact_id}_${data.level_id}`,
         payer: {
           email: data.payer_email,
           name: data.payer_name
-        },
-        back_urls: {
-          success: `${window.location.origin}/suscribir/estado/success`,
-          failure: `${window.location.origin}/suscribir/estado/failure`,
-          pending: `${window.location.origin}/suscribir/estado/pending`
-        },
-        auto_return: 'approved',
-        notification_url: `${apiUrl}/api/webhooks/mercadopago`
+        }
       })
     }).catch((fetchError) => {
       console.error('[MercadoPago] ❌ Error de conexión:', fetchError)
@@ -175,6 +167,9 @@ export async function createPaymentPreference(data: {
     let result: any
     try {
       result = await response.json()
+      if (result && !result.preference_id && result.preferenceId) {
+        result.preference_id = result.preferenceId
+      }
       console.log('[MercadoPago] ✅ Preferencia creada exitosamente')
       console.log('[MercadoPago] 🎫 Preference ID:', result.preference_id)
     } catch (parseError) {

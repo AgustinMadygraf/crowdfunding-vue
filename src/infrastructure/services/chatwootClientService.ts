@@ -13,7 +13,6 @@ import { Logger } from '@/infrastructure/logger'
  */
 interface ChatwootCreateContactRequest {
   identifier: string
-  identifier_hash?: string
   email: string
   name: string
   phone_number?: string
@@ -75,43 +74,6 @@ export const chatwootClientService = {
   },
 
   /**
-   * Calcula el HMAC SHA256 para validación de identidad
-   * @param identifier - ID único del contacto
-   * @param hmacToken - Token HMAC del inbox (opcional)
-   * @returns Hash HMAC SHA256 o undefined si no hay token
-   */
-  async computeIdentifierHash(
-    identifier: string,
-    hmacToken?: string
-  ): Promise<string | undefined> {
-    if (!hmacToken) {
-      console.warn('[Chatwoot] HMAC token not configured - identifier_hash will not be sent')
-      return undefined
-    }
-
-    try {
-      // Usar crypto.subtle para HMAC SHA256 (Web Crypto API)
-      const encoder = new TextEncoder()
-      const data = encoder.encode(identifier)
-      const key = encoder.encode(hmacToken)
-
-      const cryptoKey = await crypto.subtle.importKey('raw', key, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign'])
-      const signature = await crypto.subtle.sign('HMAC', cryptoKey, data)
-
-      // Convertir a hex string
-      const hash = Array.from(new Uint8Array(signature))
-        .map(b => b.toString(16).padStart(2, '0'))
-        .join('')
-      
-      console.info('[Chatwoot] HMAC hash computed successfully')
-      return hash
-    } catch (error) {
-      console.error('[Chatwoot] Error computing HMAC hash:', error)
-      return undefined // No romper el flujo si falla HMAC
-    }
-  },
-
-  /**
    * Crea un contacto en Chatwoot
    * @param lead - Datos del lead (name, email, phone, etc.)
    * @param levelId - ID del nivel de contribución
@@ -141,9 +103,7 @@ export const chatwootClientService = {
     try {
       const baseUrl = this.getBaseUrl()
       const inboxIdentifier = this.getInboxIdentifier()
-      const hmacToken = import.meta.env.VITE_CHATWOOT_HMAC_TOKEN
-
-      console.info('[Chatwoot] Config:', { baseUrl, inboxIdentifier, hasHmacToken: !!hmacToken })
+      console.info('[Chatwoot] Config:', { baseUrl, inboxIdentifier })
 
       // Generar identifier único
       const timestamp = Date.now()
@@ -151,9 +111,6 @@ export const chatwootClientService = {
       const identifier = `lead_${uuid}_${timestamp}`
 
       console.info('[Chatwoot] Generated identifier:', identifier)
-
-      // Calcular identifier_hash si está disponible
-      const identifierHash = await this.computeIdentifierHash(identifier, hmacToken)
 
       // Construir custom attributes (aplanados) - solo valores no vacíos
       const customAttributes: Record<string, string | number | boolean> = {}
@@ -179,7 +136,7 @@ export const chatwootClientService = {
       customAttributes.consent_accepted_at = consent.accepted_at
       customAttributes.form_source = 'web_widget'
 
-      // Construir request (sin identifier_hash primero para debug)
+      // Construir request
       const request: any = {
         source_id: identifier,
         email: lead.email,

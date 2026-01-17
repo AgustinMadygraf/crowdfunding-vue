@@ -68,7 +68,6 @@ Debes definir las siguientes variables en un archivo `.env` o en el entorno de C
 - VITE_CHATWOOT_TOKEN
 - VITE_CHATWOOT_BASE_URL
 - VITE_CHATWOOT_INBOX_IDENTIFIER
-- VITE_CHATWOOT_HMAC_TOKEN (opcional, si aplica)
 
 ## Contribuir
 

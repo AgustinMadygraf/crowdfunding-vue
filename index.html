@@ -48,8 +48,9 @@
           console.warn("[Chatwoot] No configurado - Las variables de entorno VITE_CHATWOOT_BASE_URL y VITE_CHATWOOT_TOKEN no están definidas en el archivo .env");
           return;
         }
+        var normalizedBaseUrl = BASE_URL.trim().replace(/\/+$/, "");
         var g=d.createElement(t),s=d.getElementsByTagName(t)[0];
-        g.src=BASE_URL+"/packs/js/sdk.js";
+        g.src=normalizedBaseUrl+"/packs/js/sdk.js";
         g.async = true;
         // Preparar para SRI si se provee hash
         if (INTEGRITY && !INTEGRITY.includes('%VITE_')) {
@@ -61,7 +62,7 @@
         g.onload=function(){
           window.chatwootSDK.run({
             websiteToken: TOKEN,
-            baseUrl: BASE_URL
+            baseUrl: normalizedBaseUrl
           })
         }
       })(document,"script");

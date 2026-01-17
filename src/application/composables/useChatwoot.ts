@@ -23,7 +23,7 @@ export interface ChatwootState {
 export interface ChatwootUserIdentity {
   name?: string
   email?: string
-  identifier_hash?: string // HMAC SHA256 (recomendado en producción)
+  identifier_hash?: string // Provided by backend (HMAC), not computed in frontend
   phone_number?: string
   avatar_url?: string
 }
@@ -94,7 +94,6 @@ export function useChatwoot() {
   /**
    * Identifica al usuario actual en Chatwoot
    * @param identifier - ID único del usuario (ej: subscription_id)
-   * @param identity - Datos del usuario (name, email, identifier_hash, etc.)
    */
   const setUser = async (identifier: string, identity: ChatwootUserIdentity = {}): Promise<boolean> => {
     try {
