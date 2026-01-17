@@ -4,6 +4,11 @@ on:
   push:
     branches: [ main ]
   workflow_dispatch:
+    inputs:
+      enable_debug_http:
+        description: "Habilitar logs HTTP de depuracion (VITE_DEBUG_HTTP)"
+        required: false
+        default: "false"
 
 concurrency:
   group: deploy-vue
@@ -111,6 +116,7 @@ jobs:
           VITE_SITE_URL: ${{ vars.VITE_SITE_URL }}
           VITE_MERCADOPAGO_PUBLIC_KEY: ${{ vars.VITE_MERCADOPAGO_PUBLIC_KEY }}
           VITE_SENTRY_DSN: ${{ vars.VITE_SENTRY_DSN }}
+          VITE_DEBUG_HTTP: ${{ github.event.inputs.enable_debug_http || 'false' }}
         run: npm run build
 
       - name: Ensure dist/assets folder exists

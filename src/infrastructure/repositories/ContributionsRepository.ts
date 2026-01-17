@@ -15,9 +15,11 @@ import { getApiBaseUrl, DEFAULT_TIMEOUT_MS } from '@/config/api'
 
 export class ContributionsRepository implements ContributionsRepositoryPort {
   private readonly apiBaseUrl: string
+  private readonly debugHttp: boolean
 
   constructor(apiBaseUrl?: string) {
     this.apiBaseUrl = apiBaseUrl || getApiBaseUrl()
+    this.debugHttp = import.meta.env.VITE_DEBUG_HTTP === 'true'
     if (import.meta.env.DEV) {
       this.pingHealth().catch(() => {})
     }
@@ -56,13 +58,15 @@ export class ContributionsRepository implements ContributionsRepositoryPort {
       const contentType = response.headers.get('content-type') || ''
       const elapsedMs = Date.now() - startedAt
 
-      console.log('[ContributionsRepository] Response meta:', {
-        requestId,
-        status: response.status,
-        contentType,
-        elapsedMs,
-        url: urlStr
-      })
+      if (this.debugHttp) {
+        console.log('[ContributionsRepository] Response meta:', {
+          requestId,
+          status: response.status,
+          contentType,
+          elapsedMs,
+          url: urlStr
+        })
+      }
 
       if (contentType.includes('text/html')) {
         // Probable misconfig: el frontend sirvió HTML (index.html) en vez de JSON
