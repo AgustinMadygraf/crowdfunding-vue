@@ -7,19 +7,20 @@ import App from './App.vue'
 import router from './router'
 import { authService } from '@/infrastructure/services/authServiceFactory'
 import { AUTH_SERVICE_KEY } from '@/application/useAuthService'
-import { getApiBaseUrl } from '@/config/api'
+import { getAppConfig } from '@/config/appConfig'
 import { setContributionsRepository } from '@/application/ports/contributionsRepositoryProvider'
 import { contributionsRepository } from '@/infrastructure/repositories/ContributionsRepository'
 
 // ============================================================
 // DIAGNÓSTICO DE CONFIGURACIÓN - Crítico para debugging
 // ============================================================
+const appConfig = getAppConfig()
 const diagnosticInfo = {
   environment: import.meta.env.MODE,
   prod: import.meta.env.PROD,
   dev: import.meta.env.DEV,
-  apiBaseUrl: getApiBaseUrl(),
-  siteUrl: (import.meta.env.VITE_SITE_URL as string) || 'dinámico (window.location.origin)',
+  apiBaseUrl: appConfig.apiBaseUrl,
+  siteUrl: appConfig.siteUrl,
   timestamp: new Date().toISOString(),
   userAgent: navigator.userAgent
 }

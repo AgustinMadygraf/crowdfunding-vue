@@ -4,7 +4,7 @@
  */
 
 import type { DocumentDTO } from '@/infrastructure/dto'
-import { getApiBaseUrl } from '@/config/api'
+import { getAppConfig } from '@/config/appConfig'
 
 export interface GetDocumentsParams {
   category?: string
@@ -32,7 +32,7 @@ export class DocumentsRepository {
   private readonly apiBaseUrl: string
 
   constructor(apiBaseUrl?: string) {
-    this.apiBaseUrl = apiBaseUrl || getApiBaseUrl()
+    this.apiBaseUrl = apiBaseUrl || getAppConfig().apiBaseUrl
   }
 
   /**

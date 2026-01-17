@@ -3,7 +3,8 @@
  * Base HTTP client para todas las llamadas al backend
  */
 
-import { API_BASE_URL, DEFAULT_TIMEOUT_MS } from '@/config/api'
+import { DEFAULT_TIMEOUT_MS } from '@/config/api'
+import { getAppConfig } from '@/config/appConfig'
 import { csrfService } from './services/csrfService'
 
 
@@ -43,13 +44,17 @@ class ApiClient {
     try {
       return await fn();
     } catch (error) {
+      console.error('Error en fetchWithRefresh:', error); // Log the error for debugging
       if (error instanceof ApiException && error.status === 401) {
+        console.log('[ApiClient] Token expired, attempting refresh...')
         // Intentar refresh
         try {
           await this.refreshToken();
+          console.log('[ApiClient] Token refreshed successfully, retrying request...')
           // Reintentar la request original una vez
           return await fn();
         } catch (refreshError) {
+          console.error('[ApiClient] Token refresh failed:', refreshError)
           // Si el refresh falla, propagar el error original
           throw error;
         }
@@ -73,6 +78,7 @@ class ApiClient {
 
   constructor(baseUrl: string) {
     this.baseUrl = baseUrl
+    console.log('[ApiClient] Initialized with baseUrl:', baseUrl)
   }
 
   /**
@@ -96,6 +102,7 @@ class ApiClient {
     if (csrfToken) {
       Object.assign(headers, csrfService.getTokenHeader(csrfToken, 'X-CSRF-Token'))
       if (import.meta.env.DEV) {
+        console.log('[ApiClient] CSRF token added to headers')
       }
     } else if (import.meta.env.DEV) {
       console.warn('[ApiClient] ⚠️ Token CSRF no disponible para operación de mutación')
@@ -126,6 +133,7 @@ class ApiClient {
         
         // Si es el último intento o error no recuperable, lanzar
         if (attempt === maxAttempts - 1) {
+          console.error(`[ApiClient] Retry exhausted after ${maxAttempts} attempts`)
           throw error
         }
 
@@ -137,6 +145,7 @@ class ApiClient {
         // Esperar con backoff exponencial: 1s, 2s, 4s
         const delayMs = Math.pow(2, attempt) * 1000
         if (import.meta.env.DEV) {
+          console.log(`[ApiClient] Retry attempt ${attempt + 1}/${maxAttempts}, waiting ${delayMs}ms...`)
         }
         await new Promise(resolve => setTimeout(resolve, delayMs))
       }
@@ -161,6 +170,7 @@ class ApiClient {
         }
       }
 
+      console.error(`[ApiClient] HTTP ${errorData.status}: ${errorData.message}`)
       throw new ApiException(errorData.status, errorData.message, errorData.errors)
     }
 
@@ -176,6 +186,7 @@ class ApiClient {
    * GET request con retry automático
    */
   async get<T>(endpoint: string, params?: Record<string, string>): Promise<T> {
+    console.log('[ApiClient] GET', endpoint, params)
     return this.fetchWithRefresh(() => this._get<T>(endpoint, params));
   }
 
@@ -199,6 +210,7 @@ class ApiClient {
   }
 
   async post<T>(endpoint: string, data?: unknown): Promise<T> {
+    console.log('[ApiClient] POST', endpoint, data)
     return this.fetchWithRefresh(() => this._post<T>(endpoint, data));
   }
 
@@ -226,6 +238,7 @@ class ApiClient {
   /* Incluye token CSRF automáticamente
    */
   async put<T>(endpoint: string, data?: unknown): Promise<T> {
+    console.log('[ApiClient] PUT', endpoint, data)
     return this.fetchWithRefresh(() => this._put<T>(endpoint, data));
   }
 
@@ -248,6 +261,7 @@ class ApiClient {
   /* Incluye token CSRF automáticamente
    */
   async patch<T>(endpoint: string, data?: unknown): Promise<T> {
+    console.log('[ApiClient] PATCH', endpoint, data)
     return this.fetchWithRefresh(() => this._patch<T>(endpoint, data));
   }
 
@@ -270,6 +284,7 @@ class ApiClient {
   /* Incluye token CSRF automáticamente
    */
   async delete<T>(endpoint: string): Promise<T> {
+    console.log('[ApiClient] DELETE', endpoint)
     return this.fetchWithRefresh(() => this._delete<T>(endpoint));
   }
 
@@ -295,7 +310,8 @@ class ApiClient {
 /**
  * Instancia singleton del cliente API
  */
-export const apiClient = new ApiClient(API_BASE_URL)
+const { apiBaseUrl } = getAppConfig()
+export const apiClient = new ApiClient(apiBaseUrl)
 
 /**
  * Helper para construir query strings

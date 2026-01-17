@@ -4,7 +4,7 @@
 
 import { onMounted } from 'vue'
 import { csrfService } from '@/infrastructure/services/csrfService'
-import { getApiBaseUrl } from '@/config/api'
+import { getAppConfig } from '@/config/appConfig'
 
 
 /**
@@ -17,7 +17,7 @@ export function useCsrfToken() {
    * Intenta primero el endpoint dedicado, luego fallback a contributions
    */
   const fetchCsrfTokenFromBackend = async (): Promise<void> => {
-    const apiBaseUrl = getApiBaseUrl()
+    const apiBaseUrl = getAppConfig().apiBaseUrl
     
     // Estrategia 1: Endpoint dedicado /api/csrf-token (RECOMENDADO)
     // Si backend implementa este endpoint, es la forma más eficiente

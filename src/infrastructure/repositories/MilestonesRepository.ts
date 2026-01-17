@@ -4,7 +4,7 @@
  */
 
 import type { MilestoneDTO, EvidenceDTO } from '@/infrastructure/dto'
-import { getApiBaseUrl } from '@/config/api'
+import { getAppConfig } from '@/config/appConfig'
 
 export interface MilestoneWithEvidences extends MilestoneDTO {
   evidences: EvidenceDTO[]
@@ -32,7 +32,7 @@ export class MilestonesRepository {
   private readonly apiBaseUrl: string
 
   constructor(apiBaseUrl?: string) {
-    this.apiBaseUrl = apiBaseUrl || getApiBaseUrl()
+    this.apiBaseUrl = apiBaseUrl || getAppConfig().apiBaseUrl
   }
 
   /**

@@ -6,7 +6,6 @@
 import type { User } from '@/domain/user'
 // import type { Credentials } from '@/domain/user' // Eliminado: no existe export Credentials
 import type { IAuthService, AuthState, MutableAuthState, GoogleAuthConfig, AuthServiceConfig } from './IAuthService'
-import { getApiBaseUrl } from '@/config/api'
 import { DefaultTokenStorage, type TokenStorage } from './auth/tokenStorage'
 import { DefaultGoogleOAuthProvider, type GoogleOAuthProvider } from './auth/googleOAuthProvider'
 
@@ -40,8 +39,8 @@ export class AuthService implements IAuthService {
 
   constructor(config?: AuthServiceConfig, deps?: { storage?: TokenStorage; provider?: GoogleOAuthProvider }) {
     // Aplicar configuración con fallback a variables de entorno
-    this.API_BASE_URL = config?.apiBaseUrl || getApiBaseUrl()
-    this.GOOGLE_CLIENT_ID = config?.googleClientId || import.meta.env.VITE_GOOGLE_CLIENT_ID || ''
+    this.API_BASE_URL = config?.apiBaseUrl || ''
+    this.GOOGLE_CLIENT_ID = config?.googleClientId || ''
     this.TOKEN_STORAGE_KEY = config?.tokenStorageKey || 'auth_token'
     this.USER_STORAGE_KEY = config?.userStorageKey || 'auth_user'
 
@@ -51,6 +50,10 @@ export class AuthService implements IAuthService {
       config?.userStorageKey || 'auth_user'
     )
     this.provider = deps?.provider ?? new DefaultGoogleOAuthProvider()
+
+    if (!this.API_BASE_URL) {
+      throw new Error('AuthService requires apiBaseUrl in config.')
+    }
 
     // Validar que el client_id esté configurado
     if (!this.GOOGLE_CLIENT_ID) {

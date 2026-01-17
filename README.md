@@ -66,7 +66,7 @@ Este proyecto es una aplicación web de crowdfunding que permite a usuarios cont
 Debes definir las siguientes variables en archivos de entorno o en CI/CD segÃºn el entorno.
 
 Frontend (public, Vite):
-- VITE_API_BASE_URL
+  - VITE_API_BASE_URL (required at build time in CI/CD)
 - VITE_SITE_URL
 - VITE_GOOGLE_CLIENT_ID
 - VITE_MERCADOPAGO_PUBLIC_KEY

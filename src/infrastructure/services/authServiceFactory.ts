@@ -4,7 +4,7 @@
  */
 
 import { AuthService } from './authService'
-import { getApiBaseUrl } from '@/config/api'
+import { getAppConfig } from '@/config/appConfig'
 import type { IAuthService, AuthServiceConfig } from './IAuthService'
 import { DefaultTokenStorage, SessionStorageTokenStorage, MemoryOnlyTokenStorage } from './auth/tokenStorage'
 import { DefaultGoogleOAuthProvider } from './auth/googleOAuthProvider'
@@ -13,9 +13,10 @@ import { DefaultGoogleOAuthProvider } from './auth/googleOAuthProvider'
 /**
  * Configuración por defecto del servicio de autenticación
  */
+const appConfig = getAppConfig()
 const defaultConfig: AuthServiceConfig = {
-  apiBaseUrl: getApiBaseUrl(),
-  googleClientId: import.meta.env.VITE_GOOGLE_CLIENT_ID || '',
+  apiBaseUrl: appConfig.apiBaseUrl,
+  googleClientId: appConfig.googleClientId,
   tokenStorageKey: 'auth_token',
   userStorageKey: 'auth_user'
 }
@@ -74,8 +75,8 @@ export function createAuthService(config?: Partial<AuthServiceConfig>): IAuthSer
  */
 export const authService = new AuthService(
   {
-    apiBaseUrl: getApiBaseUrl(),
-    googleClientId: import.meta.env.VITE_GOOGLE_CLIENT_ID
+    apiBaseUrl: appConfig.apiBaseUrl,
+    googleClientId: appConfig.googleClientId
   },
   {
     storage: new SessionStorageTokenStorage('auth_token', 'auth_user'),

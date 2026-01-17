@@ -11,14 +11,15 @@ import type {
 import { ContributionRepositoryError } from '@/application/ports/ContributionsRepository'
 import { authService } from '@/infrastructure/services/authServiceFactory'
 import { csrfService } from '@/infrastructure/services/csrfService'
-import { getApiBaseUrl, DEFAULT_TIMEOUT_MS } from '@/config/api'
+import { DEFAULT_TIMEOUT_MS } from '@/config/api'
+import { getAppConfig } from '@/config/appConfig'
 
 export class ContributionsRepository implements ContributionsRepositoryPort {
   private readonly apiBaseUrl: string
   private readonly debugHttp: boolean
 
   constructor(apiBaseUrl?: string) {
-    this.apiBaseUrl = apiBaseUrl || getApiBaseUrl()
+    this.apiBaseUrl = apiBaseUrl || getAppConfig().apiBaseUrl
     this.debugHttp = import.meta.env.VITE_DEBUG_HTTP === 'true'
     if (import.meta.env.DEV) {
       this.pingHealth().catch(() => {})

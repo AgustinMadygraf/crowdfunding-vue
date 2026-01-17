@@ -4,7 +4,7 @@
  */
 
 import type { UpdateDTO } from '@/infrastructure/dto'
-import { getApiBaseUrl } from '@/config/api'
+import { getAppConfig } from '@/config/appConfig'
 
 export interface GetUpdatesParams {
   category?: string
@@ -33,7 +33,7 @@ export class UpdatesRepository {
   private readonly apiBaseUrl: string
 
   constructor(apiBaseUrl?: string) {
-    this.apiBaseUrl = apiBaseUrl || getApiBaseUrl()
+    this.apiBaseUrl = apiBaseUrl || getAppConfig().apiBaseUrl
   }
 
   /**

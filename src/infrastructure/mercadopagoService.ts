@@ -4,7 +4,7 @@
  */
 
 import { loadMercadoPago } from '@mercadopago/sdk-js'
-import { getApiBaseUrl } from '@/config/api'
+import { getAppConfig } from '@/config/appConfig'
 import { csrfService } from '@/infrastructure/services/csrfService'
 
 // MercadoPago SDK instance (loaded asynchronously)
@@ -86,7 +86,7 @@ export async function createPaymentPreference(data: {
   payer_email: string
   payer_name: string
 }): Promise<{ preference_id: string }> {
-  const apiUrl = getApiBaseUrl()
+  const apiUrl = getAppConfig().apiBaseUrl
   const csrfToken = csrfService.getToken()
   try {
     // Validar que contacto_id esté disponible
