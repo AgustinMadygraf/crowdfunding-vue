@@ -50,10 +50,11 @@ const milestoneModalContent = content.home.milestoneModal;
         role="dialog"
         aria-modal="true"
         :aria-label="`${milestoneModalContent.ariaLabelPrefix} ${milestone.name}`"
+        aria-labelledby="milestone-modal-title"
       >
         <!-- Header -->
         <header class="modal-header">
-          <h2 class="m-0 fs-4 text-dark">{{ milestone.name }}</h2>
+          <h2 id="milestone-modal-title" class="m-0 fs-4 text-dark">{{ milestone.name }}</h2>
           <button
             type="button"
             class="btn-close"
