@@ -7,7 +7,7 @@ import { AuthService } from './authService'
 import { getAppConfig } from '@/config/appConfig'
 import type { IAuthService, AuthServiceConfig } from './IAuthService'
 import { DefaultTokenStorage, SessionStorageTokenStorage, MemoryOnlyTokenStorage } from './auth/tokenStorage'
-import { DefaultGoogleOAuthProvider } from './auth/googleOAuthProvider'
+import { GoogleSignInAdapter } from './auth/googleSignInAdapter'
 
 
 /**
@@ -56,9 +56,9 @@ export function createAuthService(config?: Partial<AuthServiceConfig>): IAuthSer
     // MIGRATION: Usar MemoryOnlyTokenStorage (máxima seguridad, no persiste entre recargas)
     // Requiere que el backend maneje la sesión vía httpOnly cookies para persistencia real
     const storage = new MemoryOnlyTokenStorage()
-    const provider = new DefaultGoogleOAuthProvider()
+    const googleSignIn = new GoogleSignInAdapter()
 
-    return new AuthService(finalConfig, { storage, provider })
+    return new AuthService(finalConfig, { storage, googleSignIn })
   } catch (error) {
     console.error('Error creando AuthService', error)
     throw error
@@ -80,6 +80,6 @@ export const authService = new AuthService(
   },
   {
     storage: new SessionStorageTokenStorage('auth_token', 'auth_user'),
-    provider: new DefaultGoogleOAuthProvider()
+    googleSignIn: new GoogleSignInAdapter()
   }
 )
