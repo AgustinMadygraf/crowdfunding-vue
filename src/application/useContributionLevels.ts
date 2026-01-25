@@ -1,10 +1,10 @@
 import { computed, ref } from 'vue';
 import type { ContributionLevel } from '@/domain/contribution-level';
-import { mockContributionLevels } from '@/infrastructure/mockData';
+import { content } from '@/infrastructure/content';
 
 
 export function useContributionLevels() {
-  const levels = ref<ContributionLevel[]>([...mockContributionLevels]);
+  const levels = ref<ContributionLevel[]>([...content.data.contributionLevels]);
   const selectedLevel = ref<ContributionLevel>(levels.value[0]);
 
   const benefitAmount = computed(() =>

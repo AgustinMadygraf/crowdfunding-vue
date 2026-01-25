@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import type { Milestone } from '@/domain/milestone';
+import { content } from '@/infrastructure/content';
 
 const props = defineProps<{
   milestone: Milestone;
@@ -24,6 +25,8 @@ const progress = computed(() => {
 const handleCardClick = () => {
   emit('show-details', props.milestone);
 };
+
+const milestoneCardContent = content.home.milestoneCard;
 </script>
 
 <template>
@@ -35,20 +38,20 @@ const handleCardClick = () => {
     </div>
     <dl class="milestone-details">
       <div>
-        <dt>Meta</dt>
-        <dd>ARS {{ props.milestone.targetAmount.toLocaleString() }}</dd>
+        <dt>{{ milestoneCardContent.labels.target }}</dt>
+        <dd>{{ content.app.currencyLabel }} {{ props.milestone.targetAmount.toLocaleString() }}</dd>
       </div>
       <div>
-        <dt>Recaudado</dt>
-        <dd>ARS {{ props.milestone.raisedAmount.toLocaleString() }} ({{ progress }}%)</dd>
+        <dt>{{ milestoneCardContent.labels.raised }}</dt>
+        <dd>{{ content.app.currencyLabel }} {{ props.milestone.raisedAmount.toLocaleString() }} ({{ progress }}%)</dd>
       </div>
       <div>
-        <dt>Fecha objetivo</dt>
+        <dt>{{ milestoneCardContent.labels.targetDate }}</dt>
         <dd>{{ new Date(props.milestone.targetDate).toLocaleDateString() }}</dd>
       </div>
     </dl>
     <div class="card-footer">
-      <span class="link-text">Ver detalles →</span>
+      <span class="link-text">{{ milestoneCardContent.viewDetailsLabel }}</span>
     </div>
   </article>
 </template>

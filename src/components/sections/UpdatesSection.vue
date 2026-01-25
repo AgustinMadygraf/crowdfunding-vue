@@ -1,10 +1,16 @@
+<script setup lang="ts">
+import { content } from '@/infrastructure/content';
+
+const updatesContent = content.home.updatesSection;
+</script>
+
 <template>
   <section class="updates section-padding" id="updates">
     <div class="container-narrow">
-      <h2>Actualizaciones quincenales</h2>
-      <p>Próxima actualización: 21 de septiembre de 2025</p>
+      <h2>{{ updatesContent.title }}</h2>
+      <p>{{ updatesContent.nextUpdateLabel }} {{ updatesContent.nextUpdateDate }}</p>
       <div class="updates-placeholder">
-        <p>Aquí se mostrarán las actualizaciones quincenales del proyecto.</p>
+        <p>{{ updatesContent.placeholder }}</p>
       </div>
     </div>
   </section>

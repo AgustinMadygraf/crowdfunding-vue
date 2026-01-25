@@ -10,33 +10,33 @@
           class="avatar"
         >
         <div>
-          <h1>Mi Dashboard</h1>
-          <p class="greeting">Hola, {{ user?.nombre }}</p>
+          <h1>{{ dashboardContent.title }}</h1>
+          <p class="greeting">{{ dashboardContent.greetingLabel }} {{ user?.nombre }}</p>
           <p class="email">{{ user?.email }}</p>
         </div>
       </div>
       <button @click="handleLogout" class="logout-button">
-        Cerrar sesión
+        {{ dashboardContent.logoutLabel }}
       </button>
     </div>
 
     <!-- Loading State -->
     <div v-if="isLoading" class="loading">
-      <p>Cargando tus contribuciones...</p>
+      <p>{{ dashboardContent.loadingLabel }}</p>
     </div>
 
     <!-- Error State -->
     <div v-if="error && !isLoading" class="error-banner">
       {{ error }}
-      <button @click="loadContributions" class="retry-btn">Reintentar</button>
+      <button @click="loadContributions" class="retry-btn">{{ dashboardContent.retryLabel }}</button>
     </div>
 
     <!-- Contributions Section -->
     <div v-if="!isLoading && contributions.length > 0" class="contributions-section">
-      <h2>Mis Contribuciones</h2>
+      <h2>{{ dashboardContent.contributionsTitle }}</h2>
       <p class="subtitle">
-        Tienes {{ contributions.length }} 
-        {{ contributions.length === 1 ? 'contribución' : 'contribuciones' }}
+        {{ dashboardContent.contributionsPrefix }} {{ contributions.length }} 
+        {{ contributions.length === 1 ? dashboardContent.contributionsSingle : dashboardContent.contributionsPlural }}
       </p>
 
       <div class="contributions-list">
@@ -59,14 +59,14 @@
 
           <div class="contribution-body">
             <div class="status-row">
-              <span class="status-label">Estado del Pago:</span>
+              <span class="status-label">{{ dashboardContent.statusLabel }}</span>
               <span :class="['status-badge', `status-${contribution.estado_pago}`]">
                 {{ getStatusLabel(contribution.estado_pago) }}
               </span>
             </div>
 
             <div v-if="contribution.completed_at" class="completion-date">
-              Pago completado: {{ formatDate(contribution.completed_at) }}
+              {{ dashboardContent.completedAtLabel }} {{ formatDate(contribution.completed_at) }}
             </div>
           </div>
 
@@ -75,7 +75,7 @@
               :to="`/suscribir/${contribution.token}`"
               class="view-link"
             >
-              Ver Detalles
+              {{ dashboardContent.viewDetailsLabel }}
             </router-link>
 
             <button 
@@ -83,7 +83,7 @@
               @click="goToPayment(contribution.token)"
               class="pay-button"
             >
-              Completar Pago
+              {{ dashboardContent.payLabel }}
             </button>
           </div>
         </div>
@@ -91,15 +91,15 @@
 
       <div class="stats-summary">
         <div class="stat">
-          <span class="stat-label">Total Aportado:</span>
+          <span class="stat-label">{{ dashboardContent.totalContributedLabel }}</span>
           <span class="stat-value">${{ formatAmount(getTotalContributed()) }}</span>
         </div>
         <div class="stat">
-          <span class="stat-label">Pagos Completados:</span>
+          <span class="stat-label">{{ dashboardContent.completedPaymentsLabel }}</span>
           <span class="stat-value">{{ getCompletedCount() }}</span>
         </div>
         <div class="stat">
-          <span class="stat-label">Pagos Pendientes:</span>
+          <span class="stat-label">{{ dashboardContent.pendingPaymentsLabel }}</span>
           <span class="stat-value">{{ getPendingCount() }}</span>
         </div>
       </div>
@@ -107,17 +107,17 @@
 
     <!-- Empty State -->
     <div v-if="!isLoading && contributions.length === 0 && !error" class="empty-state">
-      <h2>Aún no tienes contribuciones</h2>
-      <p>¡Comienza tu primer aporte hoy!</p>
+      <h2>{{ dashboardContent.emptyTitle }}</h2>
+      <p>{{ dashboardContent.emptySubtitle }}</p>
       <router-link to="/suscribir" class="primary-button">
-        Hacer una Contribución
+        {{ dashboardContent.emptyCta }}
       </router-link>
     </div>
 
     <!-- New Contribution Button -->
     <div v-if="contributions.length > 0" class="actions-footer">
       <router-link to="/suscribir" class="secondary-button">
-        + Nueva Contribución
+        {{ dashboardContent.newContributionLabel }}
       </router-link>
     </div>
   </div>
@@ -128,6 +128,7 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthService } from '@/application/useAuthService'
 import { useSubscription } from '@/application/useSubscription'
+import { content } from '@/infrastructure/content'
 import type { UserContribution } from '@/application/ports/ContributionsRepository'
 import type { User } from '@/domain/user'
 import { sanitizeAvatarUrl } from '@/utils/urlSanitizer'
@@ -135,6 +136,7 @@ import { sanitizeAvatarUrl } from '@/utils/urlSanitizer'
 
 const router = useRouter()
 const auth = useAuthService()
+const dashboardContent = content.userDashboardView
 
 // State
 const user = ref<User | null>(null)
@@ -161,14 +163,7 @@ const loadContributions = async () => {
  * Obtiene la etiqueta de estado
  */
 const getStatusLabel = (status: string): string => {
-  const labels: Record<string, string> = {
-    pendiente: '⏳ Pendiente',
-    procesando: '🔄 Procesando',
-    completado: '✅ Completado',
-    fallido: '❌ Fallido',
-    cancelado: '⚠️ Cancelado'
-  }
-  return labels[status] || status
+  return dashboardContent.statusLabels[status] || status
 }
 
 /**
@@ -256,7 +251,7 @@ const fetchUserData = async () => {
     loadContributions()
   } catch (err) {
     console.error('Error obteniendo datos de usuario', err)
-    error.value = err instanceof Error ? err.message : 'Error al obtener datos del usuario'
+    error.value = err instanceof Error ? err.message : dashboardContent.errors.userLoad
     isLoading.value = false
   }
 }

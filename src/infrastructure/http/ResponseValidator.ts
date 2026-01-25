@@ -130,6 +130,10 @@ export class ResponseValidator {
   private extractBodyPreview(body: string, contentType: string): string {
     const maxLength = 500
     
+    if (!body) {
+      return ''
+    }
+
     if (contentType.includes('text/html')) {
       // Para HTML, intentar extraer el título
       const titleMatch = body.match(/<title>([^<]*)<\/title>/i)

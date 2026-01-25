@@ -2,6 +2,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useSubscription } from '@/application/useSubscription'
+import { content } from '@/infrastructure/content'
 
 
 const route = useRoute()
@@ -9,6 +10,7 @@ const router = useRouter()
 
 const contributionId = computed(() => route.params.id as string)
 const { isLoading, error, loadContributionByToken } = useSubscription()
+const statusContent = content.subscriptionStatusView
 
 // Contribution data
 const contribution = ref<{
@@ -23,13 +25,7 @@ const contribution = ref<{
 } | null>(null)
 
 // Map payment status to display labels
-const statusLabels: Record<string, string> = {
-  pendiente: 'Pendiente',
-  procesando: 'Procesando',
-  completado: 'Completado',
-  fallido: 'Fallido',
-  cancelado: 'Cancelado'
-}
+const statusLabels: Record<string, string> = statusContent.statusLabels
 
 const statusColors: Record<string, string> = {
   pendiente: '#f39c12',
@@ -42,7 +38,7 @@ const statusColors: Record<string, string> = {
 const loadContribution = async () => {
   // Validar token antes de fetch
   if (!contributionId.value?.trim()) {
-    error.value = 'ID de contribución inválido o vacío'
+    error.value = statusContent.errors.emptyId
     return
   }
   try {
@@ -69,8 +65,8 @@ onMounted(() => {
   <div class="subscription-status-view">
     <section class="hero-section">
       <div class="container">
-        <h1>Estado de Contribución</h1>
-        <p class="subtitle" v-if="contributionId">ID: {{ contributionId }}</p>
+        <h1>{{ statusContent.heroTitle }}</h1>
+        <p class="subtitle" v-if="contributionId">{{ statusContent.idLabel }} {{ contributionId }}</p>
       </div>
     </section>
 
@@ -78,7 +74,7 @@ onMounted(() => {
     <section v-if="isLoading" class="status-section">
       <div class="container">
         <div class="status-card loading">
-          <p>Cargando información de tu contribución...</p>
+          <p>{{ statusContent.loadingLabel }}</p>
         </div>
       </div>
     </section>
@@ -87,11 +83,11 @@ onMounted(() => {
     <section v-else-if="error && !contribution" class="status-section">
       <div class="container">
         <div class="status-card error">
-          <h2>Error</h2>
+          <h2>{{ statusContent.errorTitle }}</h2>
           <p>{{ error }}</p>
           <div class="actions">
-            <button @click="retry" class="btn-primary">Reintentar</button>
-            <router-link to="/" class="btn-secondary">Volver al inicio</router-link>
+            <button @click="retry" class="btn-primary">{{ statusContent.retryLabel }}</button>
+            <router-link to="/" class="btn-secondary">{{ statusContent.backHomeLabel }}</router-link>
           </div>
         </div>
       </div>
@@ -102,7 +98,7 @@ onMounted(() => {
       <div class="container">
         <div class="status-card">
           <div class="status-header">
-            <h2>Estado actual</h2>
+            <h2>{{ statusContent.statusTitle }}</h2>
             <span
               class="status-badge"
               :style="{ backgroundColor: statusColors[contribution.estado_pago] }"
@@ -113,15 +109,15 @@ onMounted(() => {
 
           <div class="status-details">
             <div class="detail-row">
-              <span class="label">Nivel:</span>
+              <span class="label">{{ statusContent.detailLabels.level }}</span>
               <span class="value">{{ contribution.nivel_nombre }}</span>
             </div>
             <div class="detail-row">
-              <span class="label">Monto:</span>
+              <span class="label">{{ statusContent.detailLabels.amount }}</span>
               <span class="value">${{ contribution.monto.toLocaleString('es-AR') }}</span>
             </div>
             <div class="detail-row">
-              <span class="label">Fecha de creación:</span>
+              <span class="label">{{ statusContent.detailLabels.created }}</span>
               <span class="value">{{
                 new Date(contribution.created_at).toLocaleDateString('es-AR', {
                   year: 'numeric',
@@ -133,7 +129,7 @@ onMounted(() => {
               }}</span>
             </div>
             <div v-if="contribution.completed_at" class="detail-row">
-              <span class="label">Completado:</span>
+              <span class="label">{{ statusContent.detailLabels.completed }}</span>
               <span class="value">{{
                 new Date(contribution.completed_at).toLocaleDateString('es-AR', {
                   year: 'numeric',
@@ -145,43 +141,43 @@ onMounted(() => {
               }}</span>
             </div>
             <div class="detail-row">
-              <span class="label">Token:</span>
+              <span class="label">{{ statusContent.detailLabels.token }}</span>
               <span class="value token">{{ contribution.token }}</span>
             </div>
           </div>
 
           <div class="status-explanation">
-            <h3>¿Qué significa esto?</h3>
+            <h3>{{ statusContent.explanationTitle }}</h3>
             <p v-if="contribution.estado_pago === 'pendiente'">
-              Tu contribución está pendiente de pago. Por favor completa el proceso de pago para confirmar tu participación.
+              {{ statusContent.explanations.pendiente }}
             </p>
             <p v-else-if="contribution.estado_pago === 'procesando'">
-              Tu pago está siendo procesado. Este proceso puede tardar algunos minutos. Te notificaremos cuando se complete.
+              {{ statusContent.explanations.procesando }}
             </p>
             <p v-else-if="contribution.estado_pago === 'completado'">
-              ¡Felicitaciones! Tu contribución ha sido confirmada. Recibirás un email con los próximos pasos y detalles de tu participación en el proyecto.
+              {{ statusContent.explanations.completado }}
             </p>
             <p v-else-if="contribution.estado_pago === 'fallido'">
-              Lamentablemente tu pago no pudo ser procesado. Por favor intenta nuevamente o contacta a soporte para más información.
+              {{ statusContent.explanations.fallido }}
             </p>
             <p v-else-if="contribution.estado_pago === 'cancelado'">
-              Tu contribución fue cancelada. Si deseas participar en el proyecto, puedes iniciar un nuevo proceso de contribución.
+              {{ statusContent.explanations.cancelado }}
             </p>
           </div>
 
           <div class="actions">
-            <router-link 
-              v-if="contribution.estado_pago === 'pendiente'" 
-              :to="`/suscribir/pago/${contribution.token}`" 
+            <router-link
+              v-if="contribution.estado_pago === 'pendiente'"
+              :to="`/suscribir/pago/${contribution.token}`"
               class="btn-primary"
             >
-              Completar Pago
+              {{ statusContent.actions.completePayment }}
             </router-link>
             <button v-if="contribution.estado_pago === 'procesando'" @click="retry" class="btn-primary">
-              Actualizar Estado
+              {{ statusContent.actions.refreshStatus }}
             </button>
-            <router-link to="/" class="btn-secondary">Volver al inicio</router-link>
-            <a href="mailto:info@madypack.com.ar" class="btn-secondary">Contactar soporte</a>
+            <router-link to="/" class="btn-secondary">{{ statusContent.backHomeLabel }}</router-link>
+            <a href="mailto:info@madypack.com.ar" class="btn-secondary">{{ statusContent.actions.contactSupport }}</a>
           </div>
         </div>
       </div>

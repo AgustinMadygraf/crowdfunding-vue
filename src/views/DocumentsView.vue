@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { documentsRepository, DocumentRepositoryError } from '@/infrastructure/repositories/DocumentsRepository'
+import { content } from '@/infrastructure/content'
 
 import type { DocumentDTO } from '@/infrastructure/dto'
 
@@ -8,13 +9,14 @@ import type { DocumentDTO } from '@/infrastructure/dto'
 const documents = ref<DocumentDTO[]>([])
 const isLoading = ref(false)
 const error = ref<string | null>(null)
+const documentsContent = content.documentsView
 
 // Computed: agrupar documentos por categoría
 const categorizedDocuments = computed(() => {
   const grouped: Record<string, DocumentDTO[]> = {}
   
   documents.value.forEach(doc => {
-    const category = doc.category || 'Sin categoría'
+    const category = doc.category || documentsContent.uncategorizedLabel
     if (!grouped[category]) {
       grouped[category] = []
     }
@@ -26,7 +28,7 @@ const categorizedDocuments = computed(() => {
 
 // Computed: orden de categorías para consistencia
 const sortedCategories = computed(() => {
-  const categoryOrder = ['Legal', 'Técnico', 'Comercial', 'Logística']
+  const categoryOrder = documentsContent.categoryOrder
   const categories = Object.keys(categorizedDocuments.value)
   
   // Ordenar según categoryOrder, luego las demás alfabéticamente
@@ -57,7 +59,7 @@ const loadDocuments = async () => {
     console.error('Error obteniendo documentos (vista)', err)
     
     if (err instanceof DocumentRepositoryError) {
-      error.value = err.message || 'Error al cargar documentos'
+      error.value = err.message || documentsContent.errorFallback
     } else {
       error.value = err instanceof Error ? err.message : 'Error desconocido'
     }
@@ -81,8 +83,8 @@ onMounted(() => {
   <div class="documents-view">
     <section class="hero-section">
       <div class="container-narrow">
-        <h1>Repositorio de Documentos</h1>
-        <p class="subtitle">Acceso público a toda la documentación del proyecto</p>
+        <h1>{{ documentsContent.heroTitle }}</h1>
+        <p class="subtitle">{{ documentsContent.heroSubtitle }}</p>
       </div>
     </section>
 
@@ -90,13 +92,13 @@ onMounted(() => {
       <div class="container-narrow">
         <!-- Loading State -->
         <div v-if="isLoading" class="loading-state">
-          <p>Cargando documentos...</p>
+          <p>{{ documentsContent.loadingLabel }}</p>
         </div>
 
         <!-- Error State -->
         <div v-else-if="error" class="error-state">
           <p>{{ error }}</p>
-          <button @click="retry" class="btn-retry">Reintentar</button>
+          <button @click="retry" class="btn-retry">{{ documentsContent.retryLabel }}</button>
         </div>
 
         <!-- Success State -->
@@ -129,7 +131,7 @@ onMounted(() => {
                   }}</span>
                   <span v-if="doc.version" class="version">v{{ doc.version }}</span>
                 </div>
-                <div class="download-hint">↓ Descargar</div>
+                <div class="download-hint">{{ documentsContent.downloadLabel }}</div>
               </a>
             </div>
           </div>
@@ -137,8 +139,8 @@ onMounted(() => {
 
         <!-- Empty State -->
         <div v-else class="empty-state">
-          <p>No hay documentos disponibles aún</p>
-          <p class="subtitle">Los documentos del proyecto aparecerán aquí una vez se publiquen.</p>
+          <p>{{ documentsContent.emptyTitle }}</p>
+          <p class="subtitle">{{ documentsContent.emptySubtitle }}</p>
         </div>
       </div>
     </section>

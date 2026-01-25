@@ -11,6 +11,7 @@ import GoogleAuthButton from '@/components/auth/GoogleAuthButton.vue'
 import type { User } from '@/domain/user'
 import { sanitizeAvatarUrl } from '@/utils/urlSanitizer'
 import { useAuthStore } from '@/stores/authStore'
+import { content } from '@/infrastructure/content'
 
 
 const router = useRouter()
@@ -35,6 +36,7 @@ const authStore = useAuthStore()
 const user = computed(() => authStore.user)
 const isAuthenticated = computed(() => authStore.isAuthenticated)
 const { createContribution } = useSubscription()
+const subscribeContent = content.subscribeView
 
 // Cargar usuario actual y UTM params al montar
 onMounted(async () => {
@@ -78,7 +80,7 @@ onMounted(async () => {
       console.error('[Subscribe] Detalles:', error instanceof Error ? error.message : 'Error desconocido')
     }
     console.warn('[Subscribe] ⚠️ Los pagos pueden no funcionar correctamente')
-    submitError.value = 'Error al cargar Mercado Pago. Por favor, recarga la página.'
+    submitError.value = subscribeContent.errors.loadPayment
   }
 })
 
@@ -97,7 +99,7 @@ const handleAuthSuccess = (authenticatedUser: User) => {
 const handleSubmit = async () => {
   
   if (!selectedLevel.value) {
-    submitError.value = 'Seleccioná un nivel de contribución para continuar'
+    submitError.value = subscribeContent.errors.missingLevel
     console.warn('[Subscribe] ⚠️ Envío bloqueado: sin nivel seleccionado')
     return
   }
@@ -109,7 +111,7 @@ const handleSubmit = async () => {
   }
 
   if (!user.value) {
-    submitError.value = 'Error: usuario no disponible'
+    submitError.value = subscribeContent.errors.missingUser
     return
   }
 
@@ -128,7 +130,7 @@ const handleSubmit = async () => {
 
     if (!validationResult.valid) {
       const errorMessages = Object.values(validationResult.errors).join(', ')
-      submitError.value = `Validación fallida: ${errorMessages}`
+      submitError.value = `${subscribeContent.errors.validationFailed} ${errorMessages}`
       console.error('[Subscribe] ❌ Errores de validación:', validationResult.errors)
       isSubmitting.value = false
       return
@@ -151,18 +153,18 @@ const handleSubmit = async () => {
     // Mostrar errores claros al usuario
     if (error instanceof ContributionRepositoryError) {
       if (error.statusCode === 401) {
-        submitError.value = 'Sesión expirada. Por favor, cerrá sesión y volvé a ingresar.'
+        submitError.value = subscribeContent.errors.expiredSession
       } else if (error.statusCode === 403) {
-        submitError.value = 'No tenés permisos para realizar esta acción.'
+        submitError.value = subscribeContent.errors.forbidden
       } else if (error.statusCode && error.statusCode >= 500) {
-        submitError.value = 'Error del servidor. Por favor, intentá de nuevo más tarde.'
+        submitError.value = subscribeContent.errors.serverError
       } else {
-        submitError.value = error.message || 'Error al crear contribución'
+        submitError.value = error.message || subscribeContent.errors.createContribution
       }
     } else if (error instanceof Error) {
       submitError.value = error.message
     } else {
-      submitError.value = 'Error desconocido al procesar tu contribución'
+      submitError.value = subscribeContent.errors.unknownContribution
     }
     console.error('[Subscribe] ❌ Error en handleSubmit:', error)
     isSubmitting.value = false
@@ -174,14 +176,14 @@ const handleSubmit = async () => {
 const handlePayment = async () => {
   
   if (!contributionToken.value) {
-    const errorMsg = 'Token de contribución no disponible'
+    const errorMsg = subscribeContent.errors.missingToken
     console.error('[Subscribe] ❌ ' + errorMsg)
     submitError.value = `Error: ${errorMsg}`
     return
   }
 
   if (!selectedLevel.value) {
-    const errorMsg = 'Nivel no disponible'
+    const errorMsg = subscribeContent.errors.missingLevelPayment
     console.error('[Subscribe] ❌ ' + errorMsg)
     submitError.value = `Error: ${errorMsg}`
     return
@@ -198,7 +200,7 @@ const handlePayment = async () => {
     console.error('[Subscribe] ❌ Error al redirigir:', error)
     console.error('[Subscribe] Tipo:', typeof error)
     console.error('[Subscribe] Detalles:', error instanceof Error ? error.message : 'Error desconocido')
-    submitError.value = 'No se pudo iniciar el proceso de pago'
+    submitError.value = subscribeContent.errors.paymentInit
     isProcessingPayment.value = false
   }
 }
@@ -208,17 +210,19 @@ const handlePayment = async () => {
   <div class="subscribe-view">
     <section class="hero-section">
       <div class="container-narrow">
-        <h1>Iniciar Contribución</h1>
-        <p class="subtitle">Apoya nuestro proyecto colaborando con nosotros</p>
+        <h1>{{ subscribeContent.heroTitle }}</h1>
+        <p class="subtitle">{{ subscribeContent.heroSubtitle }}</p>
       </div>
     </section>
 
     <!-- Authentication Modal -->
     <div v-if="isAuthenticationModalOpen && !isAuthenticated" class="modal-overlay" @click="isAuthenticationModalOpen = false">
       <div class="modal-content" @click.stop>
-        <button class="close-button" @click="isAuthenticationModalOpen = false">×</button>
-        <h2>Ingresá a tu cuenta</h2>
-        <p>Para continuar necesitás autenticarte con Google</p>
+        <button class="close-button" @click="isAuthenticationModalOpen = false">
+          {{ subscribeContent.authModalClose }}
+        </button>
+        <h2>{{ subscribeContent.authModalTitle }}</h2>
+        <p>{{ subscribeContent.authModalSubtitle }}</p>
         <GoogleAuthButton 
           @auth-success="handleAuthSuccess"
           @logout="isAuthenticationModalOpen = false"
@@ -232,30 +236,30 @@ const handlePayment = async () => {
           <div class="user-badge">
             <img v-if="user.avatar_url" :src="sanitizeAvatarUrl(user.avatar_url)" :alt="user.nombre" class="avatar-sm">
             <div>
-              <p class="greeting">Hola, {{ user.nombre }}</p>
+              <p class="greeting">{{ subscribeContent.greetingLabel }} {{ user.nombre }}</p>
               <p class="email">{{ user.email }}</p>
             </div>
           </div>
           <router-link to="/account" class="dashboard-link">
-            Mi Dashboard
+            {{ subscribeContent.dashboardLink }}
           </router-link>
         </div>
 
         <div class="form-container">
           <div v-if="selectedLevel && !contributionCreated" class="level-summary">
-            <h2>Nivel seleccionado</h2>
+            <h2>{{ subscribeContent.levelSelectedTitle }}</h2>
             <div class="level-info">
               <h3>{{ selectedLevel.name }}</h3>
               <p class="amount">${{ selectedLevel.amount.toLocaleString() }}</p>
-              <p class="benefit">Beneficio: {{ benefitAmount }}</p>
+              <p class="benefit">{{ subscribeContent.levelBenefitLabel }} {{ benefitAmount }}</p>
             </div>
             <button @click="selectLevel(levels[0])" class="change-level-btn">
-              Cambiar nivel
+              {{ subscribeContent.changeLevelLabel }}
             </button>
           </div>
 
           <div v-if="!selectedLevel && !contributionCreated" class="level-selector">
-            <h2>Seleccioná tu nivel de aporte</h2>
+            <h2>{{ subscribeContent.levelSelectorTitle }}</h2>
             <div class="levels-grid">
               <button
                 v-for="level in levels"
@@ -270,56 +274,56 @@ const handlePayment = async () => {
           </div>
 
           <div v-if="selectedLevel && !contributionCreated" class="contribution-form">
-            <h2>Autenticación y confirmación</h2>
+            <h2>{{ subscribeContent.authConfirmTitle }}</h2>
 
             <div v-if="!isAuthenticated" class="auth-prompt">
-              <p>Necesitás autenticarte para continuar</p>
+              <p>{{ subscribeContent.authPrompt }}</p>
               <button type="button" class="auth-button" @click="isAuthenticationModalOpen = true">
-                Continuar con Google
+                {{ subscribeContent.authPromptButton }}
               </button>
             </div>
 
             <div v-else>
               <div v-if="submitError" class="form-error-banner">{{ submitError }}</div>
               <button type="button" class="submit-button" :disabled="isSubmitting" @click="handleSubmit">
-                {{ isSubmitting ? 'Procesando...' : 'Continuar al pago' }}
+                {{ isSubmitting ? subscribeContent.submitLoadingLabel : subscribeContent.submitLabel }}
               </button>
             </div>
           </div>
 
           <div v-if="contributionCreated && contributionToken" class="success-section">
             <div class="success-message">
-              <h3>✅ Contribución registrada</h3>
-              <p>¡Excelente! Tu contribución ha sido registrada. Ahora procede con el pago.</p>
+              <h3>{{ subscribeContent.successTitle }}</h3>
+              <p>{{ subscribeContent.successSubtitle }}</p>
             </div>
 
             <div class="payment-summary">
-              <h4>Resumen de tu contribución</h4>
+              <h4>{{ subscribeContent.summaryTitle }}</h4>
               <div class="summary-row">
-                <span>Nombre:</span>
+                <span>{{ subscribeContent.summaryNameLabel }}</span>
                 <strong>{{ user?.nombre }}</strong>
               </div>
               <div class="summary-row">
-                <span>Email:</span>
+                <span>{{ subscribeContent.summaryEmailLabel }}</span>
                 <strong>{{ user?.email }}</strong>
               </div>
               <div class="summary-row">
-                <span>Nivel:</span>
+                <span>{{ subscribeContent.summaryLevelLabel }}</span>
                 <strong>{{ selectedLevel?.name }}</strong>
               </div>
               <div class="summary-row highlight">
-                <span>Monto:</span>
+                <span>{{ subscribeContent.summaryAmountLabel }}</span>
                 <strong>${{ selectedLevel?.amount.toLocaleString() }}</strong>
               </div>
             </div>
 
             <button type="button" class="payment-button" @click="handlePayment" :disabled="isProcessingPayment">
-              <span v-if="!isProcessingPayment">💳 Ir a Pagar</span>
-              <span v-else>Redirigiendo...</span>
+              <span v-if="!isProcessingPayment">{{ subscribeContent.payLabel }}</span>
+              <span v-else>{{ subscribeContent.payLoadingLabel }}</span>
             </button>
 
             <p class="payment-note">
-              Serás redirigido a tu página de pago personalizada donde podrás completar la transacción.
+              {{ subscribeContent.payNote }}
             </p>
           </div>
         </div>

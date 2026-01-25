@@ -1,6 +1,6 @@
 <template>
   <div class="faq-section">
-    <h2>Preguntas Frecuentes</h2>
+    <h2>{{ faqTitle }}</h2>
     <div v-for="(faq, index) in faqs" :key="index" class="faq-item">
       <h3 @click="toggleFaq(index)">{{ faq.question }}</h3>
       <p v-if="faq.showAnswer">{{ faq.answer }}</p>
@@ -9,17 +9,15 @@
 </template>
 
 <script lang="ts">
+import { content } from '@/infrastructure/content'
 
 
 export default {
   name: 'FaqSection',
   data() {
     return {
-      faqs: [
-        { question: 'Pregunta 1', answer: 'Respuesta 1', showAnswer: false },
-        { question: 'Pregunta 2', answer: 'Respuesta 2', showAnswer: false },
-        // ...más preguntas frecuentes
-      ],
+      faqTitle: content.home.faq.title,
+      faqs: content.home.faq.items.map((item) => ({ ...item, showAnswer: false })),
     }
   },
   methods: {

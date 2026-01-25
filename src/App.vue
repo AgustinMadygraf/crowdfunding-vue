@@ -4,6 +4,7 @@ import AppFooter from '@/components/layout/AppFooter.vue'
 import AppHeader from '@/components/layout/AppHeader.vue'
 import { useAuthStore } from '@/stores/authStore'
 import { useCsrfToken } from '@/application/composables/useCsrfToken'
+import { content } from '@/infrastructure/content'
 
 const authStore = useAuthStore()
 const isAuthenticated = computed(() => authStore.isAuthenticated)
@@ -12,16 +13,10 @@ const isAuthenticated = computed(() => authStore.isAuthenticated)
 useCsrfToken()
 
 const navigationLinks = computed(() => {
-  const baseLinks = [
-    { label: 'Inicio', href: '/' },
-    { label: 'Etapas', href: '/etapas' },
-    { label: 'Actualizaciones', href: '/actualizaciones' },
-    { label: 'Documentos', href: '/documentos' },
-    { label: 'Suscribir', href: '/suscribir' }
-  ]
+  const baseLinks = [...content.app.navigation.links]
 
   if (isAuthenticated.value) {
-    baseLinks.push({ label: 'Mi Dashboard', href: '/account' })
+    baseLinks.push(content.app.navigation.authLink)
   }
 
   return baseLinks

@@ -5,10 +5,12 @@ import { useAuthStore } from '@/stores/authStore'
 import { milestonesRepository, MilestoneRepositoryError } from '@/infrastructure/repositories/MilestonesRepository'
 import { updatesRepository, UpdateRepositoryError } from '@/infrastructure/repositories/UpdatesRepository'
 import type { MilestoneDTO, UpdateDTO } from '@/infrastructure/dto'
+import { content } from '@/infrastructure/content'
 
 
 const router = useRouter()
 const authStore = useAuthStore()
+const adminContent = content.adminView
 
 // State
 const milestones = ref<MilestoneDTO[]>([])
@@ -54,7 +56,7 @@ const loadData = async () => {
     }
   } catch (err) {
     console.error('[AdminView] ❌ Error al cargar datos:', err)
-    error.value = 'Error al cargar datos administrativos'
+    error.value = adminContent.errors.loadData
   } finally {
     isLoading.value = false
   }
@@ -72,7 +74,7 @@ const fetchAdminData = async () => {
     updates.value = await updatesRepository.getAll()
   } catch (err) {
     console.error('Error obteniendo datos de admin', err)
-    error.value = err instanceof Error ? err.message : 'Error al obtener datos administrativos'
+    error.value = err instanceof Error ? err.message : adminContent.errors.fetchAdmin
   } finally {
     isLoading.value = false
   }
@@ -113,18 +115,18 @@ const formatDate = (dateString: string) => {
     <!-- Header -->
     <header class="admin-header">
       <div class="container">
-        <h1>Panel de Administración</h1>
+        <h1>{{ adminContent.title }}</h1>
         <div class="header-info">
           <span class="user-info">👤 {{ authStore.user?.nombre || authStore.user?.email }}</span>
-          <button @click="handleLogout" class="logout-button">Cerrar sesión</button>
+          <button @click="handleLogout" class="logout-button">{{ adminContent.logoutLabel }}</button>
         </div>
       </div>
     </header>
 
     <!-- Auth Check Message -->
     <div v-if="!authStore.isAuthenticated" class="auth-required">
-      <p>Debes estar autenticado para acceder al panel administrativo.</p>
-      <router-link to="/login" class="btn-login">Iniciar sesión</router-link>
+      <p>{{ adminContent.authRequired }}</p>
+      <router-link to="/login" class="btn-login">{{ adminContent.authCta }}</router-link>
     </div>
 
     <!-- Main Content -->
@@ -132,13 +134,13 @@ const formatDate = (dateString: string) => {
       <div class="container">
         <!-- Loading State -->
         <div v-if="isLoading" class="loading-state">
-          <p>Cargando datos...</p>
+          <p>{{ adminContent.loadingLabel }}</p>
         </div>
 
         <!-- Error State -->
         <div v-else-if="error" class="error-state">
           <p>{{ error }}</p>
-          <button @click="retry" class="btn-retry">Reintentar</button>
+          <button @click="retry" class="btn-retry">{{ adminContent.retryLabel }}</button>
         </div>
 
         <!-- Dashboard -->
@@ -149,19 +151,19 @@ const formatDate = (dateString: string) => {
               @click="activeTab = 'dashboard'"
               :class="['tab', { active: activeTab === 'dashboard' }]"
             >
-              📊 Dashboard
+              {{ adminContent.tabDashboard }}
             </button>
             <button
               @click="activeTab = 'milestones'"
               :class="['tab', { active: activeTab === 'milestones' }]"
             >
-              🎯 Etapas ({{ stats.totalMilestones }})
+              {{ adminContent.tabMilestones }} ({{ stats.totalMilestones }})
             </button>
             <button
               @click="activeTab = 'updates'"
               :class="['tab', { active: activeTab === 'updates' }]"
             >
-              📝 Actualizaciones ({{ stats.totalUpdates }})
+              {{ adminContent.tabUpdates }} ({{ stats.totalUpdates }})
             </button>
           </div>
 
@@ -169,39 +171,39 @@ const formatDate = (dateString: string) => {
           <div v-show="activeTab === 'dashboard'" class="tab-content">
             <div class="stats-grid">
               <div class="stat-card">
-                <h3>Etapas totales</h3>
+                <h3>{{ adminContent.statsTitles.totalMilestones }}</h3>
                 <p class="stat-value">{{ stats.totalMilestones }}</p>
-                <p class="stat-detail">{{ stats.activeMilestones }} activas</p>
+                <p class="stat-detail">{{ stats.activeMilestones }} {{ adminContent.statsLabels.activeMilestones }}</p>
               </div>
               <div class="stat-card">
-                <h3>Etapas completadas</h3>
+                <h3>{{ adminContent.statsTitles.completedMilestones }}</h3>
                 <p class="stat-value">{{ stats.completedMilestones }}</p>
               </div>
               <div class="stat-card">
-                <h3>Actualizaciones</h3>
+                <h3>{{ adminContent.statsTitles.totalUpdates }}</h3>
                 <p class="stat-value">{{ stats.totalUpdates }}</p>
-                <p class="stat-detail">{{ stats.publishedUpdates }} publicadas</p>
+                <p class="stat-detail">{{ stats.publishedUpdates }} {{ adminContent.statsLabels.publishedUpdates }}</p>
               </div>
               <div class="stat-card">
-                <h3>Estado</h3>
-                <p class="stat-value status-ok">✅ Online</p>
+                <h3>{{ adminContent.statsTitles.status }}</h3>
+                <p class="stat-value status-ok">{{ adminContent.statsLabels.statusOk }}</p>
               </div>
             </div>
 
             <section class="admin-section">
-              <h2>Atajos rápidos</h2>
+              <h2>{{ adminContent.shortcutsTitle }}</h2>
               <div class="shortcuts">
                 <button class="shortcut" @click="activeTab = 'milestones'">
                   <span class="icon">🎯</span>
-                  <span class="label">Gestionar etapas</span>
+                  <span class="label">{{ adminContent.shortcuts.milestones }}</span>
                 </button>
                 <button class="shortcut" @click="activeTab = 'updates'">
                   <span class="icon">📝</span>
-                  <span class="label">Crear actualización</span>
+                  <span class="label">{{ adminContent.shortcuts.updates }}</span>
                 </button>
                 <a href="mailto:info@madypack.com.ar" class="shortcut">
                   <span class="icon">📧</span>
-                  <span class="label">Contactar soporte</span>
+                  <span class="label">{{ adminContent.shortcuts.support }}</span>
                 </a>
               </div>
             </section>
@@ -210,10 +212,10 @@ const formatDate = (dateString: string) => {
           <!-- Milestones Tab -->
           <div v-show="activeTab === 'milestones'" class="tab-content">
             <section class="admin-section">
-              <h2>Gestión de Etapas</h2>
+              <h2>{{ adminContent.milestonesTitle }}</h2>
               
               <div v-if="milestones.length === 0" class="empty-message">
-                <p>No hay etapas registradas</p>
+                <p>{{ adminContent.milestonesEmpty }}</p>
               </div>
               
               <div v-else class="items-list">
@@ -227,8 +229,8 @@ const formatDate = (dateString: string) => {
                   <p class="item-description">{{ milestone.description }}</p>
                   <div class="item-meta">
                     <span>📅 {{ formatDate(milestone.created_at || '') }}</span>
-                    <span>🎯 Meta: ${{ milestone.target_amount?.toLocaleString('es-AR') }}</span>
-                    <span>💰 Recaudado: ${{ milestone.raised_amount?.toLocaleString('es-AR') }}</span>
+                    <span>{{ adminContent.milestoneLabels.target }} ${{ milestone.target_amount?.toLocaleString('es-AR') }}</span>
+                    <span>{{ adminContent.milestoneLabels.raised }} ${{ milestone.raised_amount?.toLocaleString('es-AR') }}</span>
                   </div>
                 </div>
               </div>
@@ -238,10 +240,10 @@ const formatDate = (dateString: string) => {
           <!-- Updates Tab -->
           <div v-show="activeTab === 'updates'" class="tab-content">
             <section class="admin-section">
-              <h2>Gestión de Actualizaciones</h2>
+              <h2>{{ adminContent.updatesTitle }}</h2>
               
               <div v-if="updates.length === 0" class="empty-message">
-                <p>No hay actualizaciones registradas</p>
+                <p>{{ adminContent.updatesEmpty }}</p>
               </div>
               
               <div v-else class="items-list">
@@ -257,7 +259,7 @@ const formatDate = (dateString: string) => {
                     <span>📂 {{ update.category }}</span>
                     <span>📅 {{ formatDate(update.created_at) }}</span>
                     <span v-if="update.published_at">
-                      ✓ Publicado: {{ formatDate(update.published_at) }}
+                      {{ adminContent.updateLabels.published }} {{ formatDate(update.published_at) }}
                     </span>
                   </div>
                 </div>

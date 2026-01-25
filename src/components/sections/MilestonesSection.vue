@@ -3,6 +3,7 @@ import { ref } from 'vue';
 import type { Milestone } from '@/domain/milestone';
 import MilestoneCard from '@/components/milestones/MilestoneCard.vue';
 import MilestoneDetailModal from '@/components/milestones/MilestoneDetailModal.vue';
+import { content } from '@/infrastructure/content';
 
 const props = defineProps<{
   milestones: Milestone[];
@@ -23,6 +24,8 @@ const handleCloseModal = () => {
   showModal.value = false;
   selectedMilestone.value = null;
 };
+
+const milestonesContent = content.home.milestonesSection;
 </script>
 
 <template>
@@ -30,13 +33,13 @@ const handleCloseModal = () => {
     <div class="container">
       <header class="section-header">
         <div>
-          <h2>Avance por hitos</h2>
-          <p>Seguimiento transparente del proyecto en tiempo real.</p>
+          <h2>{{ milestonesContent.title }}</h2>
+          <p>{{ milestonesContent.subtitle }}</p>
         </div>
         <div class="card-base summary" aria-live="polite">
-          <p><strong>Progreso total:</strong> {{ props.progressPercentage }}%</p>
-          <p><strong>Recaudado:</strong> ARS {{ props.totalRaisedAmount.toLocaleString() }}</p>
-          <p><strong>Meta total:</strong> ARS {{ props.totalTargetAmount.toLocaleString() }}</p>
+          <p><strong>{{ milestonesContent.summaryLabels.progress }}</strong> {{ props.progressPercentage }}%</p>
+          <p><strong>{{ milestonesContent.summaryLabels.raised }}</strong> {{ content.app.currencyLabel }} {{ props.totalRaisedAmount.toLocaleString() }}</p>
+          <p><strong>{{ milestonesContent.summaryLabels.target }}</strong> {{ content.app.currencyLabel }} {{ props.totalTargetAmount.toLocaleString() }}</p>
         </div>
       </header>
 

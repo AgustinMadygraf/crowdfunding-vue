@@ -29,6 +29,7 @@
     "@tsconfig/node22": "^22.0.2",
     "@types/node": "^22.16.5",
     "@vitejs/plugin-vue": "^6.0.1",
+    "@vitest/coverage-v8": "^4.0.17",
     "@vitest/ui": "^4.0.17",
     "@vue/tsconfig": "^0.7.0",
     "happy-dom": "^20.3.1",

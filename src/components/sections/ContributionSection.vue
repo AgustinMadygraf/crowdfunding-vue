@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { ContributionLevel } from '@/domain/contribution-level';
+import { content } from '@/infrastructure/content';
 
 const props = defineProps<{
   levels: ContributionLevel[];
@@ -12,14 +13,16 @@ const emit = defineEmits<{
   (event: 'start'): void;
 }>();
 
-const formatCurrency = (value: number) => `ARS ${value.toLocaleString()}`;
+const formatCurrency = (value: number) =>
+  `${content.app.currencyLabel} ${value.toLocaleString()}`;
+const contributionContent = content.home.contribution;
 </script>
 
 <template>
   <section class="contribute section-padding" id="contribute">
     <div class="container">
-      <h2>Seleccioná tu nivel de aporte</h2>
-      <p>Bono fijo con beneficio en especie, transferible y con validez de 12 meses.</p>
+      <h2>{{ contributionContent.title }}</h2>
+      <p>{{ contributionContent.subtitle }}</p>
 
       <div class="contribution-levels">
         <article
@@ -32,24 +35,31 @@ const formatCurrency = (value: number) => `ARS ${value.toLocaleString()}`;
         >
           <h3>{{ level.name }}</h3>
           <p class="amount">{{ formatCurrency(level.amount) }}</p>
-          <p class="benefit">+{{ level.benefit }}% crédito de compra</p>
+          <p class="benefit">
+            {{ contributionContent.benefitLabel.replace('{benefit}', String(level.benefit)) }}
+          </p>
         </article>
       </div>
 
       <aside class="selected-level-info" aria-live="polite">
-        <h3>Tu selección</h3>
+        <h3>{{ contributionContent.selectionTitle }}</h3>
         <p>
-          Aporte: <strong>{{ formatCurrency(props.selectedLevel.amount) }}</strong>
+          {{ contributionContent.selectionAmountLabel }}
+          <strong>{{ formatCurrency(props.selectedLevel.amount) }}</strong>
         </p>
         <p>
-          Beneficio: <strong>+{{ props.selectedLevel.benefit }}% ({{ formatCurrency(props.benefitAmount) }})</strong>
+          {{ contributionContent.selectionBenefitLabel }}
+          <strong>
+            +{{ props.selectedLevel.benefit }}% ({{ formatCurrency(props.benefitAmount) }})
+          </strong>
         </p>
-        <button class="btn btn-primary btn-lg" type="button" @click="emit('start')">Continuar</button>
+        <button class="btn btn-primary btn-lg" type="button" @click="emit('start')">
+          {{ contributionContent.continueLabel }}
+        </button>
       </aside>
 
       <p class="disclaimer">
-        Este programa constituye un crowdfunding productivo con beneficio en especie. No representa oferta pública de
-        valores ni asesoramiento financiero. El beneficio es un crédito de compra con vigencia y condiciones publicadas.
+        {{ contributionContent.disclaimer }}
       </p>
     </div>
   </section>

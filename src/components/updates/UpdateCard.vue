@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Update } from '@/domain/update';
+import { content } from '@/infrastructure/content';
 
 const props = defineProps<{
   update: Update;
@@ -12,12 +13,7 @@ const categoryColors: Record<string, string> = {
   legal: 'var(--category-legal)',
 };
 
-const categoryLabels: Record<string, string> = {
-  comercial: 'Comercial',
-  tecnico: 'Técnico',
-  logistica: 'Logística',
-  legal: 'Legal',
-};
+const categoryLabels = content.home.updateCard.categoryLabels;
 
 const formattedDate = new Date(props.update.publishedAt).toLocaleDateString('es-AR', {
   year: 'numeric',
@@ -43,7 +39,7 @@ const formattedDate = new Date(props.update.publishedAt).toLocaleDateString('es-
     <p v-if="update.excerpt" class="excerpt">{{ update.excerpt }}</p>
 
     <div class="card-footer">
-      <span class="link-text">Leer más →</span>
+      <span class="link-text">{{ content.home.updateCard.readMoreLabel }}</span>
     </div>
   </article>
 </template>

@@ -12,7 +12,7 @@ import { useContributionLevels } from '@/application/useContributionLevels'
 import { useMilestones } from '@/application/useMilestones'
 import { useRouter } from 'vue-router'
 
-import { homeViewHeroSection } from '@/infrastructure/mockData'
+import { content } from '@/infrastructure/content'
 
 const router = useRouter()
 const { milestones, totalTargetAmount, totalRaisedAmount, progressPercentage } = useMilestones()
@@ -26,11 +26,11 @@ const startContribution = () => {
 <template>
   <div class="home-view">
     <HeroSection
-      :title="homeViewHeroSection.title"
-      :subtitle="homeViewHeroSection.subtitle"
-      :primary-label="homeViewHeroSection.primaryLabel"
-      :secondary-label="homeViewHeroSection.secondaryLabel"
-      :secondary-href="homeViewHeroSection.secondaryHref"
+      :title="content.home.hero.title"
+      :subtitle="content.home.hero.subtitle"
+      :primary-label="content.home.hero.primaryLabel"
+      :secondary-label="content.home.hero.secondaryLabel"
+      :secondary-href="content.home.hero.secondaryHref"
       @start="startContribution"
     />
 

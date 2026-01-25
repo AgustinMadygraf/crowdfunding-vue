@@ -4,13 +4,13 @@ Path: src/application/useMilestones.ts
 
 import { computed, ref, onMounted } from 'vue'
 import type { Milestone } from '@/domain/milestone'
-import { mockMilestones } from '@/infrastructure/mockData'
+import { content } from '@/infrastructure/content'
 import { milestonesRepository, MilestoneRepositoryError } from '@/infrastructure/repositories/MilestonesRepository'
 import type { MilestoneDTO } from '@/infrastructure/dto'
 
 
 // Transforma un mock Milestone a modelo de dominio Milestone
-const transformMockMilestone = (mock: typeof mockMilestones[number]): Milestone => ({
+const transformMockMilestone = (mock: typeof content.data.milestones[number]): Milestone => ({
   id: mock.id,
   name: mock.name,
   description: mock.description,
@@ -36,7 +36,7 @@ const transformMilestone = (dto: MilestoneDTO): Milestone => ({
 
 export function useMilestones(useApi = false) {
   const milestones = ref<Milestone[]>(
-    mockMilestones
+    content.data.milestones
       .filter(m => m.status !== 'delayed')
       .map(transformMockMilestone)
   )
@@ -61,7 +61,7 @@ export function useMilestones(useApi = false) {
         error.value = 'Error al cargar las etapas'
       }
       // Fallback a datos mock en caso de error
-      milestones.value = mockMilestones
+      milestones.value = content.data.milestones
         .filter(m => m.status !== 'delayed')
         .map(transformMockMilestone)
     } finally {

@@ -4,13 +4,13 @@ Path: src/application/useUpdates.ts
 
 import { computed, ref, onMounted } from 'vue'
 import type { Update, UpdateCategory } from '@/domain/update'
-import { mockUpdates } from '@/infrastructure/mockData'
+import { content } from '@/infrastructure/content'
 import { updatesRepository, UpdateRepositoryError, type GetUpdatesParams } from '@/infrastructure/repositories/UpdatesRepository'
 import type { UpdateDTO } from '@/infrastructure/dto'
 
 
 // Transforma un mock Update a modelo de dominio Update
-const transformMockUpdate = (mock: typeof mockUpdates[number]): Update => ({
+const transformMockUpdate = (mock: typeof content.data.updates[number]): Update => ({
   id: mock.id,
   category: mock.category as UpdateCategory,
   title: mock.title,
@@ -35,7 +35,7 @@ const transformUpdate = (dto: UpdateDTO): Update => ({
 
 export function useUpdates(useApi = false, params?: GetUpdatesParams) {
   const updates = ref<Update[]>(
-    mockUpdates
+    content.data.updates
       .filter(u => u.status === 'published' && u.category !== 'general')
       .map(transformMockUpdate)
   )
@@ -62,7 +62,7 @@ export function useUpdates(useApi = false, params?: GetUpdatesParams) {
         error.value = 'Error al cargar las actualizaciones'
       }
       // Fallback a datos mock en caso de error
-      updates.value = mockUpdates
+      updates.value = content.data.updates
         .filter(u => u.status === 'published' && u.category !== 'general')
         .map(transformMockUpdate)
     } finally {

@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
+import { content } from '@/infrastructure/content'
 
 
 const router = useRouter()
+const notFoundContent = content.notFoundView
 
 const goHome = () => {
   router.push('/')
@@ -22,9 +24,9 @@ const handleNotFound = () => {
   <div class="not-found-view">
     <div class="container">
       <h1 class="error-code">404</h1>
-      <h2>Página no encontrada</h2>
-      <p>La página que buscás no existe o fue movida.</p>
-      <button @click="goHome" class="home-button">Volver al inicio</button>
+      <h2>{{ notFoundContent.title }}</h2>
+      <p>{{ notFoundContent.subtitle }}</p>
+      <button @click="goHome" class="home-button">{{ notFoundContent.cta }}</button>
     </div>
   </div>
 </template>

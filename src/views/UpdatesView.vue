@@ -3,12 +3,14 @@ import { ref, computed } from 'vue';
 import { useUpdates } from '@/application/useUpdates';
 import UpdateCard from '@/components/updates/UpdateCard.vue';
 import type { Update, UpdateCategory } from '@/domain/update';
+import { content } from '@/infrastructure/content';
 ;
 
 const { updates, categoryCounts } = useUpdates(false); // false = usar mocks
 const selectedCategory = ref<UpdateCategory | 'all'>('all');
 const selectedUpdate = ref<Update | null>(null);
 const showModal = ref(false);
+const updatesViewContent = content.updatesView;
 
 const filteredUpdates = computed(() => {
   if (selectedCategory.value === 'all') {
@@ -24,11 +26,11 @@ const sortedUpdates = computed(() => {
 });
 
 const categories = computed(() => [
-  { value: 'all', label: 'Todas', count: categoryCounts.value.all },
-  { value: 'comercial', label: 'Comercial', count: categoryCounts.value.comercial },
-  { value: 'tecnico', label: 'Técnico', count: categoryCounts.value.tecnico },
-  { value: 'logistica', label: 'Logística', count: categoryCounts.value.logistica },
-  { value: 'legal', label: 'Legal', count: categoryCounts.value.legal },
+  { value: 'all', label: updatesViewContent.categoryFilters.all, count: categoryCounts.value.all },
+  { value: 'comercial', label: updatesViewContent.categoryFilters.comercial, count: categoryCounts.value.comercial },
+  { value: 'tecnico', label: updatesViewContent.categoryFilters.tecnico, count: categoryCounts.value.tecnico },
+  { value: 'logistica', label: updatesViewContent.categoryFilters.logistica, count: categoryCounts.value.logistica },
+  { value: 'legal', label: updatesViewContent.categoryFilters.legal, count: categoryCounts.value.legal },
 ]);
 
 const handleCardClick = (update: Update) => {
@@ -57,9 +59,9 @@ fetchUpdates();
   <div class="updates-view">
     <section class="hero-section">
       <div class="container">
-        <h1>Actualizaciones del Proyecto</h1>
-        <p class="subtitle">Seguimiento transparente del progreso de la RKHA190</p>
-        <p class="stats">{{ sortedUpdates.length }} actualizaciones publicadas</p>
+        <h1>{{ updatesViewContent.heroTitle }}</h1>
+        <p class="subtitle">{{ updatesViewContent.heroSubtitle }}</p>
+        <p class="stats">{{ sortedUpdates.length }} {{ updatesViewContent.statsLabel }}</p>
       </div>
     </section>
 
@@ -96,7 +98,7 @@ fetchUpdates();
 
         <!-- Empty state -->
         <div v-if="sortedUpdates.length === 0" class="empty-state">
-          <p>No hay actualizaciones en esta categoría aún.</p>
+          <p>{{ updatesViewContent.emptyState }}</p>
         </div>
       </div>
     </section>
@@ -121,7 +123,7 @@ fetchUpdates();
                 }) }}
               </time>
             </div>
-            <button class="btn-close" @click="handleCloseModal" aria-label="Cerrar">×</button>
+            <button class="btn-close" @click="handleCloseModal" :aria-label="updatesViewContent.modalCloseLabel">×</button>
           </header>
 
           <div class="modal-body">
@@ -132,7 +134,7 @@ fetchUpdates();
           </div>
 
           <footer class="modal-footer">
-            <button class="btn-primary" @click="handleCloseModal">Cerrar</button>
+            <button class="btn-primary" @click="handleCloseModal">{{ updatesViewContent.modalCloseLabel }}</button>
           </footer>
         </div>
       </div>

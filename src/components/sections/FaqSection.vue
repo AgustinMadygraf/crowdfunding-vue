@@ -3,14 +3,16 @@ Path: src/components/sections/FaqSection.vue
 -->
 
 <script setup lang="ts">
-import { faqSectionData } from '@/infrastructure/mockData';
+import { content } from '@/infrastructure/content';
+
+const faqSection = content.home.faq;
 </script>
 
 <template>
   <section class="faq section-padding" id="faq">
     <div class="container-narrow">
-      <h2>{{ faqSectionData.title }}</h2>
-      <div v-for="(item, idx) in faqSectionData.items" :key="idx" class="faq-item">
+      <h2>{{ faqSection.title }}</h2>
+      <div v-for="(item, idx) in faqSection.items" :key="idx" class="faq-item">
         <h3>{{ item.question }}</h3>
         <p>{{ item.answer }}</p>
       </div>

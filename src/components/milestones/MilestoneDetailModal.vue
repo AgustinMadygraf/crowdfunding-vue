@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import type { Milestone } from '@/domain/milestone';
+import { content } from '@/infrastructure/content';
 
 const props = defineProps<{
   milestone: Milestone;
@@ -24,16 +25,23 @@ const handleBackdropClick = (e: MouseEvent) => {
     emit('close');
   }
 };
+
+const milestoneModalContent = content.home.milestoneModal;
 </script>
 
 <template>
   <teleport to="body">
     <div v-if="isOpen" class="modal-backdrop" @click="handleBackdropClick">
-      <div class="modal-content" role="dialog" aria-modal="true" :aria-label="`Detalles: ${milestone.name}`">
+      <div
+        class="modal-content"
+        role="dialog"
+        aria-modal="true"
+        :aria-label="`${milestoneModalContent.ariaLabelPrefix} ${milestone.name}`"
+      >
         <!-- Header -->
         <header class="modal-header">
           <h2>{{ milestone.name }}</h2>
-          <button class="btn-close" @click="$emit('close')" aria-label="Cerrar">
+          <button class="btn-close" @click="$emit('close')" :aria-label="milestoneModalContent.closeLabel">
             <span aria-hidden="true">&times;</span>
           </button>
         </header>
@@ -50,28 +58,34 @@ const handleBackdropClick = (e: MouseEvent) => {
 
           <!-- Progress -->
           <div class="progress-section">
-            <h3>Progreso de recaudación</h3>
+            <h3>{{ milestoneModalContent.progressTitle }}</h3>
             <div class="progress-container">
               <div class="progress-bar" :style="{ width: `${progress}%` }"></div>
             </div>
             <dl class="stats">
               <div>
-                <dt>Meta</dt>
-                <dd>ARS {{ (milestone.targetAmount || 0).toLocaleString() }}</dd>
+                <dt>{{ milestoneModalContent.statsLabels.target }}</dt>
+                <dd>{{ content.app.currencyLabel }} {{ (milestone.targetAmount || 0).toLocaleString() }}</dd>
               </div>
               <div>
-                <dt>Recaudado</dt>
-                <dd>ARS {{ (milestone.raisedAmount || 0).toLocaleString() }} ({{ progress }}%)</dd>
+                <dt>{{ milestoneModalContent.statsLabels.raised }}</dt>
+                <dd>{{ content.app.currencyLabel }} {{ (milestone.raisedAmount || 0).toLocaleString() }} ({{ progress }}%)</dd>
               </div>
               <div>
-                <dt>Fecha objetivo</dt>
+                <dt>{{ milestoneModalContent.statsLabels.targetDate }}</dt>
                 <dd>{{ new Date(milestone.targetDate).toLocaleDateString('es-AR') }}</dd>
               </div>
               <div>
-                <dt>Estado</dt>
+                <dt>{{ milestoneModalContent.statsLabels.status }}</dt>
                 <dd>
                   <span class="badge-status" :class="`status-${milestone.status}`">
-                    {{ milestone.status === 'active' ? 'En progreso' : milestone.status === 'pending' ? 'Pendiente' : 'Completada' }}
+                    {{
+                      milestone.status === 'active'
+                        ? milestoneModalContent.statusLabels.active
+                        : milestone.status === 'pending'
+                          ? milestoneModalContent.statusLabels.pending
+                          : milestoneModalContent.statusLabels.completed
+                    }}
                   </span>
                 </dd>
               </div>
@@ -80,7 +94,7 @@ const handleBackdropClick = (e: MouseEvent) => {
 
           <!-- Timeline -->
           <div v-if="milestone.timeline?.length" class="timeline-section">
-            <h3>Hitos de progreso</h3>
+            <h3>{{ milestoneModalContent.timelineTitle }}</h3>
             <ul class="timeline">
               <li v-for="(item, idx) in milestone.timeline" :key="idx" class="timeline-item">
                 <div class="timeline-marker" :class="`status-${item.status}`"></div>
@@ -95,7 +109,7 @@ const handleBackdropClick = (e: MouseEvent) => {
 
           <!-- Evidencias -->
           <div v-if="milestone.evidences?.length" class="evidences-section">
-            <h3>Documentos y evidencias</h3>
+            <h3>{{ milestoneModalContent.evidencesTitle }}</h3>
             <ul class="evidences-list">
               <li v-for="evidence in milestone.evidences" :key="evidence.id" class="evidence-item">
                 <a :href="evidence.url" target="_blank" rel="noopener noreferrer" class="evidence-link">
@@ -110,23 +124,27 @@ const handleBackdropClick = (e: MouseEvent) => {
 
           <!-- Responsable -->
           <div v-if="milestone.responsible" class="responsible-section">
-            <h3>Responsable</h3>
+            <h3>{{ milestoneModalContent.responsibleTitle }}</h3>
             <p>{{ milestone.responsible }}</p>
           </div>
 
           <!-- Dependencias -->
           <div v-if="milestone.dependencies?.length" class="dependencies-section">
-            <h3>Etapas previas</h3>
-            <p class="text-muted">Esta etapa depende de: {{ milestone.dependencies.join(', ') }}</p>
+            <h3>{{ milestoneModalContent.dependenciesTitle }}</h3>
+            <p class="text-muted">
+              {{ milestoneModalContent.dependenciesPrefix }} {{ milestone.dependencies.join(', ') }}
+            </p>
           </div>
         </div>
 
         <!-- Footer -->
         <footer class="modal-footer">
           <router-link :to="`/etapas/${milestone.id}`" class="btn btn-primary">
-            Ver detalles completos
+            {{ milestoneModalContent.footerLabels.details }}
           </router-link>
-          <button class="btn btn-secondary" @click="$emit('close')">Cerrar</button>
+          <button class="btn btn-secondary" @click="$emit('close')">
+            {{ milestoneModalContent.footerLabels.close }}
+          </button>
         </footer>
       </div>
     </div>

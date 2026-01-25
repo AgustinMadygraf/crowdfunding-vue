@@ -124,11 +124,21 @@ export class ApiConfig implements ApiEndpoints {
    */
   private normalizePrefix(prefix: string): string {
     let normalized = prefix.trim()
-    
+
+    if (!normalized) {
+      return ''
+    }
+
+    normalized = normalized.replace(/\/+/g, '/')
+
     if (!normalized.startsWith('/')) {
       normalized = `/${normalized}`
     }
     
+    if (normalized === '/') {
+      return ''
+    }
+
     if (normalized.endsWith('/')) {
       normalized = normalized.slice(0, -1)
     }

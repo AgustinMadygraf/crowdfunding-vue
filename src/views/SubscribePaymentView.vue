@@ -2,25 +2,25 @@
   <div class="subscribe-payment-container">
     <!-- Header -->
     <div class="payment-header">
-      <h1>Tu Página de Contribución</h1>
-      <p v-if="user" class="user-greeting">Hola, {{ user.nombre }}</p>
+      <h1>{{ paymentContent.headerTitle }}</h1>
+      <p v-if="user" class="user-greeting">{{ paymentContent.greetingLabel }} {{ user.nombre }}</p>
     </div>
 
     <!-- Loading State -->
     <div v-if="isLoading" class="loading">
-      <p>Cargando información de tu contribución...</p>
+      <p>{{ paymentContent.loadingLabel }}</p>
     </div>
 
     <!-- Error State -->
     <div v-if="error && !isLoading" class="error-banner">
       {{ error }}
-      <button @click="loadContribution" class="retry-btn">Reintentar</button>
+      <button @click="loadContribution" class="retry-btn">{{ paymentContent.retryLabel }}</button>
     </div>
 
     <!-- Contribution Details -->
     <div v-if="contribution && !isLoading" class="contribution-card">
       <div class="card-header">
-        <h2>Detalles de tu Contribución</h2>
+        <h2>{{ paymentContent.detailsTitle }}</h2>
         <span :class="['status-badge', `status-${contribution.estado_pago}`]">
           {{ getStatusLabel(contribution.estado_pago) }}
         </span>
@@ -28,27 +28,27 @@
 
       <div class="contribution-details">
         <div class="detail-row">
-          <span class="label">Nivel:</span>
+          <span class="label">{{ paymentContent.detailLabels.level }}</span>
           <span class="value">{{ contribution.nivel_nombre }}</span>
         </div>
 
         <div class="detail-row">
-          <span class="label">Monto:</span>
+          <span class="label">{{ paymentContent.detailLabels.amount }}</span>
           <span class="value">$ {{ formatAmount(contribution.monto) }}</span>
         </div>
 
         <div class="detail-row">
-          <span class="label">Fecha de Creación:</span>
+          <span class="label">{{ paymentContent.detailLabels.created }}</span>
           <span class="value">{{ formatDate(contribution.created_at) }}</span>
         </div>
 
         <div v-if="contribution.completed_at" class="detail-row">
-          <span class="label">Pago Completado:</span>
+          <span class="label">{{ paymentContent.detailLabels.completed }}</span>
           <span class="value">{{ formatDate(contribution.completed_at) }}</span>
         </div>
 
         <div class="detail-row">
-          <span class="label">Token:</span>
+          <span class="label">{{ paymentContent.detailLabels.token }}</span>
           <span class="value token">{{ contribution.token }}</span>
         </div>
       </div>
@@ -57,59 +57,59 @@
       <div class="payment-section">
         <!-- Pending Payment -->
         <div v-if="contribution.estado_pago === 'pendiente'" class="pending-payment">
-          <h3>Completar Pago</h3>
-          <p>Tu pago aún está pendiente. Haz clic en el botón de abajo para continuar.</p>
+          <h3>{{ paymentContent.payment.pendingTitle }}</h3>
+          <p>{{ paymentContent.payment.pendingSubtitle }}</p>
           
           <button 
             @click="initiatePayment"
             class="mercadopago-button"
             :disabled="isProcessing"
           >
-            {{ isProcessing ? 'Procesando...' : 'Ir a MercadoPago' }}
+            {{ isProcessing ? subscribeContent.submitLoadingLabel : paymentContent.payment.pendingButton }}
           </button>
         </div>
 
         <!-- Processing Payment -->
         <div v-if="contribution.estado_pago === 'procesando'" class="processing-payment">
-          <h3>Pago en Proceso</h3>
-          <p>Tu pago se está procesando. Por favor espera.</p>
+          <h3>{{ paymentContent.payment.processingTitle }}</h3>
+          <p>{{ paymentContent.payment.processingSubtitle }}</p>
           <button @click="loadContribution" class="secondary-button">
-            Actualizar Estado
+            {{ paymentContent.payment.processingButton }}
           </button>
         </div>
 
         <!-- Completed Payment -->
         <div v-if="contribution.estado_pago === 'completado'" class="completed-payment">
-          <h3>✓ Pago Completado</h3>
-          <p>¡Gracias por tu contribución! Tu pago se ha procesado correctamente.</p>
+          <h3>{{ paymentContent.payment.completedTitle }}</h3>
+          <p>{{ paymentContent.payment.completedSubtitle }}</p>
           <p class="secondary-text">
-            Recibirás un email de confirmación en breve.
+            {{ paymentContent.payment.completedNote }}
           </p>
         </div>
 
         <!-- Failed Payment -->
         <div v-if="contribution.estado_pago === 'fallido'" class="failed-payment">
-          <h3>❌ Pago Fallido</h3>
-          <p>Hubo un problema procesando tu pago. Por favor intenta de nuevo.</p>
+          <h3>{{ paymentContent.payment.failedTitle }}</h3>
+          <p>{{ paymentContent.payment.failedSubtitle }}</p>
           <button 
             @click="initiatePayment"
             class="mercadopago-button"
             :disabled="isProcessing"
           >
-            {{ isProcessing ? 'Procesando...' : 'Reintentar Pago' }}
+            {{ isProcessing ? subscribeContent.submitLoadingLabel : paymentContent.payment.failedButton }}
           </button>
         </div>
 
         <!-- Cancelled Payment -->
         <div v-if="contribution.estado_pago === 'cancelado'" class="cancelled-payment">
-          <h3>Pago Cancelado</h3>
-          <p>Tu pago fue cancelado. Puedes reintentarlo si lo deseas.</p>
+          <h3>{{ paymentContent.payment.cancelledTitle }}</h3>
+          <p>{{ paymentContent.payment.cancelledSubtitle }}</p>
           <button 
             @click="initiatePayment"
             class="mercadopago-button"
             :disabled="isProcessing"
           >
-            {{ isProcessing ? 'Procesando...' : 'Reintenta tu Pago' }}
+            {{ isProcessing ? subscribeContent.submitLoadingLabel : paymentContent.payment.cancelledButton }}
           </button>
         </div>
       </div>
@@ -117,26 +117,26 @@
       <!-- Info Box -->
       <div class="info-box">
         <p>
-          <strong>¿Necesitas ayuda?</strong> 
-          Si tienes problemas completando tu pago, contáctanos a través del chat en la esquina inferior derecha.
+          <strong>{{ paymentContent.infoHelpTitle }}</strong>
+          {{ paymentContent.infoHelpSubtitle }}
         </p>
       </div>
     </div>
 
     <!-- Not Found State -->
     <div v-if="!isLoading && !contribution && !error" class="not-found">
-      <p>No se encontró la contribución solicitada.</p>
+      <p>{{ paymentContent.notFoundLabel }}</p>
       <router-link to="/subscribe" class="link">
-        ← Volver a suscripción
+        {{ paymentContent.notFoundCta }}
       </router-link>
     </div>
 
     <!-- Unauthenticated Info -->
     <div v-if="showAuthInfo" class="auth-info">
       <p>
-        Si eres el usuario registrado, puedes 
-        <router-link to="/account">ir a tu dashboard</router-link> 
-        para ver todas tus contribuciones.
+        {{ paymentContent.authInfoPrefix }}
+        <router-link to="/account">{{ paymentContent.authInfoLink }}</router-link>
+        {{ paymentContent.authInfoSuffix }}
       </p>
     </div>
   </div>
@@ -148,6 +148,7 @@ import { useRoute } from 'vue-router'
 import { useSubscription } from '@/application/useSubscription'
 import { useAuthService } from '@/application/useAuthService'
 import type { User } from '@/domain/user'
+import { content } from '@/infrastructure/content'
 
 
 interface Contribution {
@@ -163,6 +164,8 @@ interface Contribution {
 
 const route = useRoute()
 const subscriptionService = useSubscription()
+const paymentContent = content.subscribePaymentView
+const subscribeContent = content.subscribeView
 
 // State
 const user = ref<User | null>(null)
@@ -180,7 +183,7 @@ const showAuthInfo = computed(() => !user.value && contribution.value)
 const loadContribution = async () => {
   // Validar token antes de fetch
   if (!token.value?.trim()) {
-    error.value = 'Token de contribución inválido o vacío'
+    error.value = paymentContent.errors.emptyToken
     console.error('[SubscribePayment] ❌ Token vacío')
     return
   }
@@ -195,7 +198,7 @@ const loadContribution = async () => {
     if (result) {
       contribution.value = result as Contribution
     } else {
-      error.value = subscriptionService.error.value || 'No se pudo cargar la contribución'
+      error.value = subscriptionService.error.value || paymentContent.errors.loadContribution
       console.error('[SubscribePayment] ❌ Contribución null o error en service:')
       console.error('[SubscribePayment]   Service error:', subscriptionService.error.value)
     }
@@ -216,7 +219,7 @@ const loadContribution = async () => {
  */
 const initiatePayment = async () => {
   if (!contribution.value?.mercadopago_preference_id) {
-    error.value = 'No se pudo cargar la información de pago'
+    error.value = paymentContent.errors.paymentInfo
     return
   }
 
@@ -232,7 +235,7 @@ const initiatePayment = async () => {
       window.location.href = `https://www.mercadopago.com/checkout/v1/redirect?preference-id=${contribution.value.mercadopago_preference_id}`
     }
   } catch (err) {
-    error.value = err instanceof Error ? err.message : 'Error al iniciar pago'
+    error.value = err instanceof Error ? err.message : paymentContent.errors.paymentInit
     console.error('[SubscribePayment] Error initiating payment:', err)
   } finally {
     isProcessing.value = false
@@ -243,14 +246,7 @@ const initiatePayment = async () => {
  * Obtiene la etiqueta de estado
  */
 const getStatusLabel = (status: string): string => {
-  const labels: Record<string, string> = {
-    pendiente: '⏳ Pendiente',
-    procesando: '🔄 Procesando',
-    completado: '✅ Completado',
-    fallido: '❌ Fallido',
-    cancelado: '⚠️ Cancelado'
-  }
-  return labels[status] || status
+  return paymentContent.statusLabels[status] || status
 }
 
 /**

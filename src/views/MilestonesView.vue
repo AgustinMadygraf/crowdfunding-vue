@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { useMilestones } from '@/application/useMilestones'
 import MilestoneCard from '@/components/milestones/MilestoneCard.vue'
+import { content } from '@/infrastructure/content'
 
 
 const { milestones, totalTargetAmount, totalRaisedAmount, progressPercentage } = useMilestones()
+const milestonesViewContent = content.milestonesView
 
 const fetchMilestones = async () => {
   try {
@@ -19,10 +21,10 @@ const fetchMilestones = async () => {
   <div class="milestones-view">
     <section class="hero-section">
       <div class="container">
-        <h1>Etapas del Proyecto</h1>
+        <h1>{{ milestonesViewContent.heroTitle }}</h1>
         <p class="subtitle">
-          Seguí el progreso de cada hito del proyecto RKHA190. Total recaudado:
-          <strong>${{ totalRaisedAmount.toLocaleString() }}</strong> de
+          {{ milestonesViewContent.heroSubtitle }}
+          <strong>${{ totalRaisedAmount.toLocaleString() }}</strong> {{ milestonesViewContent.heroAmountSeparator }}
           <strong>${{ totalTargetAmount.toLocaleString() }}</strong> ({{ progressPercentage }}%)
         </p>
       </div>
@@ -42,9 +44,9 @@ const fetchMilestones = async () => {
 
     <section class="evidences-section">
       <div class="container">
-        <h2>Evidencias y Documentos</h2>
+        <h2>{{ milestonesViewContent.evidencesTitle }}</h2>
         <p class="coming-soon">
-          Próximamente: acceso a evidencias públicas por etapa con versionado y checksums
+          {{ milestonesViewContent.evidencesSubtitle }}
         </p>
       </div>
     </section>

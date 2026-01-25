@@ -2,11 +2,13 @@
 import { computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useMilestones } from '@/application/useMilestones';
+import { content } from '@/infrastructure/content';
 ;
 
 const route = useRoute();
 const router = useRouter();
 const { milestones } = useMilestones();
+const milestoneDetailContent = content.milestoneDetailView;
 
 const milestoneId = computed(() => Number(route.params.id));
 
@@ -57,8 +59,8 @@ const fetchMilestoneDetail = async () => {
     <!-- Header -->
     <header class="header">
       <div class="container-narrow">
-        <button class="btn-back" @click="handleGoBack" aria-label="Volver">
-          ← Volver
+        <button class="btn-back" @click="handleGoBack" :aria-label="milestoneDetailContent.backLabel">
+          {{ milestoneDetailContent.backLabel }}
         </button>
         <h1>{{ milestone.name }}</h1>
         <p v-if="milestone.description" class="subtitle">{{ milestone.description }}</p>
@@ -69,26 +71,26 @@ const fetchMilestoneDetail = async () => {
     <main class="container-narrow">
       <!-- Detalles -->
       <section class="section">
-        <h2>Información general</h2>
+        <h2>{{ milestoneDetailContent.infoTitle }}</h2>
         <div class="content-grid">
           <div v-if="milestone.details" class="card-base">
-            <h3>Descripción detallada</h3>
+            <h3>{{ milestoneDetailContent.detailsTitle }}</h3>
             <p>{{ milestone.details }}</p>
           </div>
 
           <div class="card-base">
-            <h3>Estado del proyecto</h3>
+            <h3>{{ milestoneDetailContent.statusTitle }}</h3>
             <dl class="stats">
               <div>
-                <dt>Meta de recaudación</dt>
-                <dd>ARS {{ (milestone.targetAmount || 0).toLocaleString() }}</dd>
+                <dt>{{ milestoneDetailContent.statsLabels.target }}</dt>
+                <dd>{{ content.app.currencyLabel }} {{ (milestone.targetAmount || 0).toLocaleString() }}</dd>
               </div>
               <div>
-                <dt>Recaudado hasta ahora</dt>
-                <dd>ARS {{ (milestone.raisedAmount || 0).toLocaleString() }}</dd>
+                <dt>{{ milestoneDetailContent.statsLabels.raised }}</dt>
+                <dd>{{ content.app.currencyLabel }} {{ (milestone.raisedAmount || 0).toLocaleString() }}</dd>
               </div>
               <div>
-                <dt>Progreso</dt>
+                <dt>{{ milestoneDetailContent.statsLabels.progress }}</dt>
                 <dd>
                   <div class="progress-container">
                     <div class="progress-bar" :style="{ width: `${progress}%` }"></div>
@@ -97,14 +99,20 @@ const fetchMilestoneDetail = async () => {
                 </dd>
               </div>
               <div>
-                <dt>Fecha objetivo</dt>
+                <dt>{{ milestoneDetailContent.statsLabels.targetDate }}</dt>
                 <dd>{{ new Date(milestone.targetDate).toLocaleDateString('es-AR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) }}</dd>
               </div>
               <div>
-                <dt>Estado actual</dt>
+                <dt>{{ milestoneDetailContent.statsLabels.status }}</dt>
                 <dd>
                   <span class="badge-status" :class="`status-${milestone.status}`">
-                    {{ milestone.status === 'active' ? 'En progreso' : milestone.status === 'pending' ? 'Pendiente' : 'Completada' }}
+                    {{
+                      milestone.status === 'active'
+                        ? milestoneDetailContent.statusLabels.active
+                        : milestone.status === 'pending'
+                          ? milestoneDetailContent.statusLabels.pending
+                          : milestoneDetailContent.statusLabels.completed
+                    }}
                   </span>
                 </dd>
               </div>
@@ -115,7 +123,7 @@ const fetchMilestoneDetail = async () => {
 
       <!-- Timeline -->
       <section v-if="milestone.timeline?.length" class="section">
-        <h2>Línea de tiempo</h2>
+        <h2>{{ milestoneDetailContent.timelineTitle }}</h2>
         <div class="timeline">
           <div v-for="(item, idx) in milestone.timeline" :key="idx" class="timeline-item">
             <div class="timeline-marker" :class="`status-${item.status}`"></div>
@@ -130,7 +138,7 @@ const fetchMilestoneDetail = async () => {
 
       <!-- Evidencias -->
       <section v-if="milestone.evidences?.length" class="section">
-        <h2>Documentos y evidencias</h2>
+        <h2>{{ milestoneDetailContent.evidencesTitle }}</h2>
         <div class="evidences-grid">
           <a
             v-for="evidence in milestone.evidences"
@@ -150,7 +158,7 @@ const fetchMilestoneDetail = async () => {
 
       <!-- Responsable -->
       <section v-if="milestone.responsible" class="section">
-        <h2>Responsable</h2>
+        <h2>{{ milestoneDetailContent.responsibleTitle }}</h2>
         <div class="card">
           <p>{{ milestone.responsible }}</p>
         </div>
@@ -158,7 +166,7 @@ const fetchMilestoneDetail = async () => {
 
       <!-- Dependencias -->
       <section v-if="dependentMilestones.length" class="section">
-        <h2>Etapas previas requeridas</h2>
+        <h2>{{ milestoneDetailContent.dependenciesTitle }}</h2>
         <div class="related-milestones">
           <div v-for="m in dependentMilestones" :key="m.id" class="milestone-link">
             <router-link :to="`/etapas/${m.id}`">
@@ -171,7 +179,7 @@ const fetchMilestoneDetail = async () => {
 
       <!-- Siguientes etapas -->
       <section v-if="dependentOnThis.length" class="section">
-        <h2>Etapas que dependen de esta</h2>
+        <h2>{{ milestoneDetailContent.dependentsTitle }}</h2>
         <div class="related-milestones">
           <div v-for="m in dependentOnThis" :key="m.id" class="milestone-link">
             <router-link :to="`/etapas/${m.id}`">
@@ -185,10 +193,10 @@ const fetchMilestoneDetail = async () => {
       <!-- CTA -->
       <section class="section cta-section">
         <div class="cta-card">
-          <h2>¿Quieres apoyar esta etapa?</h2>
-          <p>Ingresá con Google y elegí tu nivel de contribución.</p>
+          <h2>{{ milestoneDetailContent.ctaTitle }}</h2>
+          <p>{{ milestoneDetailContent.ctaSubtitle }}</p>
           <router-link to="/suscribir" class="btn btn-primary">
-            Comenzar a contribuir
+            {{ milestoneDetailContent.ctaButton }}
           </router-link>
         </div>
       </section>
@@ -198,9 +206,11 @@ const fetchMilestoneDetail = async () => {
   <!-- 404 -->
   <div v-else class="not-found">
     <div class="container">
-      <h1>Etapa no encontrada</h1>
-      <p>No pudimos encontrar la información de esta etapa.</p>
-      <router-link to="/etapas" class="btn btn-primary">Volver al panel de etapas</router-link>
+      <h1>{{ milestoneDetailContent.notFoundTitle }}</h1>
+      <p>{{ milestoneDetailContent.notFoundSubtitle }}</p>
+      <router-link to="/etapas" class="btn btn-primary">
+        {{ milestoneDetailContent.notFoundCta }}
+      </router-link>
     </div>
   </div>
 </template>

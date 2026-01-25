@@ -3,7 +3,9 @@ Path: src/components/layout/AppFooter.vue
 -->
 
 <script setup lang="ts">
-import { appFooterData } from '@/infrastructure/mockData';
+import { content } from '@/infrastructure/content';
+
+const footerContent = content.app.footer;
 </script>
 
 <template>
@@ -11,27 +13,27 @@ import { appFooterData } from '@/infrastructure/mockData';
     <div class="container">
       <div class="footer-info">
         <div class="footer-logo">
-          <img :alt="appFooterData.logo.alt" :src="appFooterData.logo.src" :width="appFooterData.logo.width" />
-          <p>{{ appFooterData.logo.text }}</p>
+          <img :alt="footerContent.logo.alt" :src="footerContent.logo.src" :width="footerContent.logo.width" />
+          <p>{{ footerContent.logo.text }}</p>
         </div>
         <div class="footer-links">
-          <h4>{{ appFooterData.links.title }}</h4>
+          <h4>{{ footerContent.links.title }}</h4>
           <ul>
-            <li v-for="(item, idx) in appFooterData.links.items" :key="idx">
+            <li v-for="(item, idx) in footerContent.links.items" :key="idx">
               <a :href="item.href">{{ item.label }}</a>
             </li>
           </ul>
         </div>
         <div class="footer-contact">
-          <h4>{{ appFooterData.contact.title }}</h4>
-          <p>Email: {{ appFooterData.contact.email }}</p>
+          <h4>{{ footerContent.contact.title }}</h4>
+          <p>{{ footerContent.contact.emailLabel }} {{ footerContent.contact.email }}</p>
           <div class="social-links">
-            <a v-for="(social, idx) in appFooterData.contact.social" :key="idx" :href="social.href" :aria-label="social.aria">{{ social.short }}</a>
+            <a v-for="(social, idx) in footerContent.contact.social" :key="idx" :href="social.href" :aria-label="social.aria">{{ social.short }}</a>
           </div>
         </div>
       </div>
       <div class="copyright">
-        <p>{{ appFooterData.copyright }}</p>
+        <p>{{ footerContent.copyright }}</p>
       </div>
     </div>
   </footer>
