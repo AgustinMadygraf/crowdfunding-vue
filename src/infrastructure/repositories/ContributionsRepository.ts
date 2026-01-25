@@ -47,13 +47,40 @@ export class ContributionsRepository implements ContributionsRepositoryPort {
     const startedAt = Date.now()
     const requestHeaders = new Headers(init?.headers || {})
     requestHeaders.set('X-Request-Id', requestId)
+    requestHeaders.set('ngrok-skip-browser-warning', 'true')
+    
+    // Log request details for debugging
+    if (this.debugHttp) {
+      const authHeaderPreview = requestHeaders.get('Authorization')
+        ? `Bearer ${requestHeaders.get('Authorization')?.slice(0, 30)}...`
+        : 'none'
+      console.log(`[ContributionsRepository] 📤 REQUEST [${requestId}]`)
+      console.log(`  URL: ${urlStr}`)
+      console.log(`  Method: ${init?.method || 'GET'}`)
+      console.log(`  Accept: ${requestHeaders.get('Accept') || 'not set'}`)
+      console.log(`  Authorization: ${authHeaderPreview}`)
+      console.log(`  Content-Type: ${requestHeaders.get('Content-Type') || 'not set'}`)
+    }
     
     try {
       const response = await fetch(input, { ...init, headers: requestHeaders, signal: controller.signal })
       const contentType = response.headers.get('content-type') || ''
       const elapsedMs = Date.now() - startedAt
 
-      if (this.debugHttp) {      }
+      // Log response details for debugging
+      if (this.debugHttp) {
+        console.log(`[ContributionsRepository] 📥 RESPONSE [${requestId}] (${elapsedMs}ms)`)
+        console.log(`  Status: ${response.status} ${response.statusText}`)
+        console.log(`  Final URL: ${response.url}`)
+        console.log(`  Redirected: ${response.redirected}`)
+        console.log(`  Content-Type: ${contentType}`)
+        console.log(`  Location header: ${response.headers.get('location') || 'none'}`)
+        if (response.redirected && response.url !== urlStr) {
+          console.warn(`[ContributionsRepository] ⚠️ REDIRECT CHAIN DETECTED`)
+          console.warn(`  Original: ${urlStr}`)
+          console.warn(`  Final: ${response.url}`)
+        }
+      }
 
       if (contentType.includes('text/html')) {
         // Probable misconfig: el frontend sirvió HTML (index.html) en vez de JSON
@@ -62,6 +89,8 @@ export class ContributionsRepository implements ContributionsRepositoryPort {
         const htmlTitle = titleMatch ? titleMatch[1].trim() : null
         const pageOrigin = typeof window !== 'undefined' ? window.location.origin : 'unknown'
         const responseUrl = response.url || urlStr
+        const ngrokWarning = contentType.includes('text/html') && responseUrl.includes('ngrok')
+        
         const errorDetails = {
           urlRequested: urlStr,
           requestId,
@@ -73,20 +102,44 @@ export class ContributionsRepository implements ContributionsRepositoryPort {
           elapsedMs,
           htmlTitle,
           bodyPreview: body.slice(0, 500),
-          fullBodyLength: body.length
+          fullBodyLength: body.length,
+          redirected: response.redirected,
+          redirectChain: response.redirected ? `${urlStr} -> ${responseUrl}` : null,
+          isNgrokHTML: ngrokWarning,
+          requestHeaders: {
+            Accept: requestHeaders.get('Accept'),
+            'Content-Type': requestHeaders.get('Content-Type'),
+            'ngrok-skip-browser-warning': requestHeaders.get('ngrok-skip-browser-warning'),
+            AuthorizationPresent: !!requestHeaders.get('Authorization')
+          },
+          responseHeaders: {
+            'Content-Type': contentType,
+            Location: response.headers.get('location'),
+            'X-Ngrok-Session-ID': response.headers.get('x-ngrok-session-id')
+          }
         }
         
         console.error('[ContributionsRepository] 🚨 CRITICAL - HTML response when JSON expected')
-        console.error('[ContributionsRepository] Response URL:', responseUrl)
-        console.error('[ContributionsRepository] Page origin:', pageOrigin)
-        console.error('[ContributionsRepository] Requested URL:', urlStr)
-        console.error('[ContributionsRepository] API Base URL:', this.apiBaseUrl)
-        console.error('[ContributionsRepository] Content-Type:', contentType)
-        console.error('[ContributionsRepository] Status:', response.status)
-        if (htmlTitle) {
-          console.error('[ContributionsRepository] HTML title:', htmlTitle)
+        console.error(`[ContributionsRepository] [${requestId}] Requested URL: ${urlStr}`)
+        console.error(`[ContributionsRepository] [${requestId}] Response URL: ${responseUrl}`)
+        console.error(`[ContributionsRepository] [${requestId}] API Base URL: ${this.apiBaseUrl}`)
+        console.error(`[ContributionsRepository] [${requestId}] Page Origin: ${pageOrigin}`)
+        console.error(`[ContributionsRepository] [${requestId}] Status: ${response.status}`)
+        console.error(`[ContributionsRepository] [${requestId}] Content-Type: ${contentType}`)
+        console.error(`[ContributionsRepository] [${requestId}] Redirected: ${response.redirected}`)
+        if (response.redirected && response.url !== urlStr) {
+          console.error(`[ContributionsRepository] [${requestId}] ⚠️ REDIRECT: ${urlStr} -> ${responseUrl}`)
         }
-        console.error('[ContributionsRepository] Response preview:', body.slice(0, 200))
+        if (htmlTitle) {
+          console.error(`[ContributionsRepository] [${requestId}] HTML Title: ${htmlTitle}`)
+        }
+        if (ngrokWarning) {
+          console.error('[ContributionsRepository] 🆘 Detected ngrok HTML response - this might be ngrok interstitial page')
+          console.error('[ContributionsRepository]    Try adding ngrok-skip-browser-warning header (should be automatic now)')
+        }
+        console.error(`[ContributionsRepository] [${requestId}] Response preview (200 chars):`)
+        console.error(body.slice(0, 200))
+        console.error('[ContributionsRepository] Full error details:', errorDetails)
         
         throw new ContributionRepositoryError(
           'Respuesta HTML recibida del endpoint. Revisa VITE_API_BASE_URL o el proxy.',
@@ -242,8 +295,17 @@ export class ContributionsRepository implements ContributionsRepositoryPort {
 
     const headers = authService.getAuthHeaders()
     const url = `${this.apiBaseUrl}/api/contributions/${token}`
+    
+    // Log método y parámetros
+    if (this.debugHttp) {
+      console.log('[ContributionsRepository] 🔍 getByToken() called')
+      console.log(`  Token: ${token.slice(0, 20)}...`)
+      console.log(`  URL: ${url}`)
+      console.log(`  Headers:`, headers)
+    }
+    
     try {
-      const response = await this.fetchWithGuard(url, { headers })
+      const response = await this.fetchWithGuard(url, { headers, method: 'GET' })
 
       if (!response.ok) {
         const statusText = response.statusText || 'Unknown error'
@@ -257,6 +319,11 @@ export class ContributionsRepository implements ContributionsRepositoryPort {
 
       const contribution: UserContribution = await response.json()
       
+      if (this.debugHttp) {
+        console.log('[ContributionsRepository] ✅ getByToken() success')
+        console.log(`  Contribution ID: ${contribution.id}`)
+      }
+      
       return contribution
     } catch (error) {
       if (error instanceof ContributionRepositoryError) {
@@ -267,6 +334,10 @@ export class ContributionsRepository implements ContributionsRepositoryPort {
       console.error('[ContributionsRepository] ❌ Conexión o parsing error:', errMsg)
       console.error('[ContributionsRepository] Error details:', error)
       console.error('[ContributionsRepository] URL:', url)
+      console.error('[ContributionsRepository] ⚠️ DIAGNOSTIC INFO:')
+      console.error('[ContributionsRepository]   - Is it an ngrok URL?', url.includes('ngrok'))
+      console.error('[ContributionsRepository]   - Authorization header sent?', !!headers.Authorization)
+      console.error('[ContributionsRepository]   - API Base URL config:', this.apiBaseUrl)
       
       throw new ContributionRepositoryError(
         `No se pudo obtener la contribución desde ${url}: ${errMsg}`,

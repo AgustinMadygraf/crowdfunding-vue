@@ -11,6 +11,13 @@ import { getAppConfig } from '@/config/appConfig'
 import { setContributionsRepository } from '@/application/ports/contributionsRepositoryProvider'
 import { contributionsRepository } from '@/infrastructure/repositories/ContributionsRepository'
 
+// Load API diagnostic utility in development
+if (import.meta.env.DEV) {
+  import('@/utils/apiDiagnostic').catch(err => {
+    console.warn('[main] Failed to load API diagnostic utility:', err)
+  })
+}
+
 // ============================================================
 // DIAGNÓSTICO DE CONFIGURACIÓN - Crítico para debugging
 // ============================================================
