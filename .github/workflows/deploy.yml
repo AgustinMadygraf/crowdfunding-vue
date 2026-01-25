@@ -37,7 +37,6 @@ jobs:
         env:
           FTP_SERVER: ${{ vars.FTP_SERVER }}
           FTP_SERVER_IP: ${{ vars.FTP_SERVER_IP }}
-          FTP_DIR: ${{ vars.FTP_DIR }}
           FTP_PORT: ${{ vars.FTP_PORT }}
           FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
           FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
@@ -50,7 +49,7 @@ jobs:
           set -euo pipefail
 
           # Validar variables obligatorias
-          for v in FTP_DIR FTP_USERNAME FTP_PASSWORD VITE_CHATWOOT_TOKEN VITE_CHATWOOT_BASE_URL VITE_CHATWOOT_INBOX_IDENTIFIER VITE_API_BASE_URL VITE_GOOGLE_CLIENT_ID; do
+          for v in FTP_USERNAME FTP_PASSWORD VITE_CHATWOOT_TOKEN VITE_CHATWOOT_BASE_URL VITE_CHATWOOT_INBOX_IDENTIFIER VITE_API_BASE_URL VITE_GOOGLE_CLIENT_ID; do
             if [ -z "${!v:-}" ]; then
               echo "::error::Falta $v (requerido para producción)"
               exit 1
@@ -61,11 +60,6 @@ jobs:
 
           if [ -z "${FTP_SERVER:-}" ]; then
             echo "::error::Falta FTP_SERVER (var). Ej: vps-5455262-x.dattaweb.com"
-            exit 1
-          fi
-
-          if [[ "$FTP_DIR" != /* ]]; then
-            echo "::error::FTP_DIR debe ser absoluto (ej: /public_html/crowdfunding)"
             exit 1
           fi
 
@@ -135,16 +129,15 @@ jobs:
           EOF
           fi
 
-      - name: Deploy con lftp mirror (dist -> FTP_DIR) [IPv4 + excludes]
+      - name: Deploy con lftp mirror (dist -> /public_html) [IPv4 + excludes]
         shell: bash
         env:
-          FTP_DIR: ${{ vars.FTP_DIR }}
           FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
           FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
         run: |
           set -euo pipefail
-                    # Debug: muestra la URL de conexión (sin credenciales)
-          echo "::notice::Conectando a: $FTP_CONNECT_URL (destino: $FTP_DIR)"
+          # Debug: muestra la URL de conexion (sin credenciales)
+          echo "::notice::Conectando a: $FTP_CONNECT_URL (destino: /public_html)"
           echo "::notice::Tamaño de dist/: $(du -sh dist/ | cut -f1)"
 
           lftp -u "$FTP_USERNAME","$FTP_PASSWORD" "$FTP_CONNECT_URL" <<'EOF'
@@ -165,7 +158,7 @@ jobs:
           mirror -R --delete --verbose --no-perms \
             --exclude-glob .ht_leame \
             --exclude-glob cgi-bin/ \
-            dist/ $FTP_DIR/ || echo "Mirror completó con advertencias"
+            dist/ /public_html/ || echo "Mirror completó con advertencias"
 
           echo "Proceso finalizado"
           bye
