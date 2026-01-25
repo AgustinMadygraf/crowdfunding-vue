@@ -71,7 +71,7 @@ export const content: Content = {
   },
   home: {
     hero: {
-      title: 'Financiemos juntxs la nueva capacidad productiva de Madygraf',
+      title: 'Financiemos juntos la nueva capacidad productiva de Madygraf',
       subtitle: 'Tu aporte acelera la RKHA190. Seguís cada hito, ves el avance, recibís tu beneficio.',
       primaryLabel: 'Quiero aportar',
       secondaryLabel: 'Ver avance',
