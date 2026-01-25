@@ -41,6 +41,7 @@ Este proyecto es una aplicación web de crowdfunding que permite a usuarios cont
 - `src/stores/` — Pinia stores para manejo de estado
 - `src/assets/` — Estilos y recursos estáticos
 - `src/router/` — Definición de rutas
+- `docs/` — Documentación y referencias (ver `docs/AUTH_LOG_CODES.md`)
 
 ## Instalación y uso
 
