@@ -1,3 +1,7 @@
+<!--
+Path: src/components/sections/MilestonesSection.vue
+-->
+
 <script setup lang="ts">
 import { ref } from 'vue';
 import type { Milestone } from '@/domain/milestone';

@@ -1,3 +1,7 @@
+<!--
+Path: src/components/sections/UpdatesSection.vue
+-->
+
 <script setup lang="ts">
 import { content } from '@/infrastructure/content';
 
@@ -9,22 +13,9 @@ const updatesContent = content.home.updatesSection;
     <div class="container">
       <h2>{{ updatesContent.title }}</h2>
       <p>{{ updatesContent.nextUpdateLabel }} {{ updatesContent.nextUpdateDate }}</p>
-      <div class="updates-placeholder">
-        <p>{{ updatesContent.placeholder }}</p>
+      <div class="bg-light rounded-3 p-4 text-center text-muted mt-4">
+        <p class="mb-0">{{ updatesContent.placeholder }}</p>
       </div>
     </div>
   </section>
 </template>
-
-<style scoped>
-/* container en components.css */
-
-.updates-placeholder {
-  margin-top: 24px;
-  background-color: #f9f9f9;
-  border-radius: 8px;
-  padding: 24px;
-  text-align: center;
-  color: #555;
-}
-</style>

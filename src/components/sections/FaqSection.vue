@@ -9,35 +9,13 @@ const faqSection = content.home.faq;
 </script>
 
 <template>
-  <section class="faq py-5" id="faq">
+  <section class="bg-light py-5" id="faq">
     <div class="container">
-      <h2>{{ faqSection.title }}</h2>
-      <div v-for="(item, idx) in faqSection.items" :key="idx" class="faq-item">
-        <h3>{{ item.question }}</h3>
-        <p>{{ item.answer }}</p>
+      <h2 class="mb-4">{{ faqSection.title }}</h2>
+      <div v-for="(item, idx) in faqSection.items" :key="idx" class="mb-4 pb-4 border-bottom">
+        <h3 class="h5 mb-2">{{ item.question }}</h3>
+        <p class="text-muted mb-0">{{ item.answer }}</p>
       </div>
     </div>
   </section>
 </template>
-
-<style scoped>
-/* container en components.css */
-
-.faq {
-  background-color: #f9fafb;
-}
-
-.faq-item {
-  margin-bottom: 24px;
-  padding-bottom: 24px;
-  border-bottom: 1px solid #e0e0e0;
-}
-
-h3 {
-  margin-bottom: 12px;
-}
-
-p {
-  color: #555;
-}
-</style>

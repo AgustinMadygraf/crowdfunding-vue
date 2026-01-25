@@ -1,3 +1,7 @@
+<!--
+Path: src/views/FaqSection.vue
+-->
+
 <template>
   <div class="faq-section">
     <h2>{{ faqTitle }}</h2>
@@ -30,8 +34,3 @@ export default {
   },
 }
 </script>
-
-<style scoped>
-/* .faq-section {  Estilos aquí si es necesario  } */
-/* .faq-item {  Estilos aquí si es necesario  } */
-</style>

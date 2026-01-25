@@ -1,3 +1,7 @@
+<!--
+Path: src/App.vue
+-->
+
 <script setup lang="ts">
 import { computed } from 'vue'
 import AppFooter from '@/components/layout/AppFooter.vue'
@@ -24,28 +28,11 @@ const navigationLinks = computed(() => {
 </script>
 
 <template>
-  <div class="app-shell">
+  <div class="d-flex flex-column min-vh-100 bg-white text-dark">
     <AppHeader :links="navigationLinks" :key="isAuthenticated ? 'auth' : 'guest'" />
-    <main>
+    <main class="d-flex flex-column flex-grow-1">
       <RouterView :key="isAuthenticated ? 'auth' : 'guest'" />
     </main>
     <AppFooter />
   </div>
 </template>
-
-<style scoped>
-.app-shell {
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-  background-color: #ffffff;
-  color: #333;
-}
-
-main {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-}
-</style>

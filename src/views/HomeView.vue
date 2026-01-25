@@ -24,7 +24,7 @@ const startContribution = () => {
 </script>
 
 <template>
-  <div class="home-view">
+  <div class="d-flex flex-column">
     <HeroSection
       :title="content.home.hero.title"
       :subtitle="content.home.hero.subtitle"
@@ -56,10 +56,3 @@ const startContribution = () => {
   </div>
 </template>
 
-<style scoped>
-.home-view {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-}
-</style>

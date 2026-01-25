@@ -1,3 +1,7 @@
+<!--
+Path: src/components/layout/AppHeader.vue
+-->
+
 <script setup lang="ts">
 import { content } from '@/infrastructure/content'
 
