@@ -1,3 +1,7 @@
+<!--
+Path: src/views/SubscribeView.vue
+-->
+
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
@@ -207,11 +211,11 @@ const handlePayment = async () => {
 </script>
 
 <template>
-  <div class="subscribe-view">
-    <section class="hero-section">
+  <div class="d-flex flex-column">
+    <section class="py-5 text-center text-white" style="background: linear-gradient(135deg, #42b983 0%, #2c3e50 100%);">
       <div class="container">
-        <h1>{{ subscribeContent.heroTitle }}</h1>
-        <p class="subtitle">{{ subscribeContent.heroSubtitle }}</p>
+        <h1 class="display-5 fw-bold mb-3">{{ subscribeContent.heroTitle }}</h1>
+        <p class="lead mb-0">{{ subscribeContent.heroSubtitle }}</p>
       </div>
     </section>
 
@@ -242,15 +246,15 @@ const handlePayment = async () => {
       <div class="modal-backdrop fade show"></div>
     </div>
 
-    <section class="form-section">
-      <div class="container">
+    <section class="py-4 bg-light">
+      <div class="container" style="max-width: 700px;">
         <div v-if="isAuthenticated && user" class="card shadow-sm mb-4">
           <div class="card-body d-flex justify-content-between align-items-center flex-wrap gap-2">
           <div class="user-badge">
-            <img v-if="user.avatar_url" :src="sanitizeAvatarUrl(user.avatar_url)" :alt="user.nombre" class="avatar-sm">
+            <img v-if="user.avatar_url" :src="sanitizeAvatarUrl(user.avatar_url)" :alt="user.nombre" class="rounded-circle" width="40" height="40">
             <div>
-              <p class="greeting">{{ subscribeContent.greetingLabel }} {{ user.nombre }}</p>
-              <p class="email">{{ user.email }}</p>
+              <p class="fw-semibold mb-0">{{ subscribeContent.greetingLabel }} {{ user.nombre }}</p>
+              <p class="text-muted small mb-0">{{ user.email }}</p>
             </div>
           </div>
           <router-link to="/account" class="btn btn-primary btn-sm">
@@ -263,10 +267,10 @@ const handlePayment = async () => {
           <div class="card-body p-4">
           <div v-if="selectedLevel && !contributionCreated" class="level-summary">
             <h2 class="h4 mb-3">{{ subscribeContent.levelSelectedTitle }}</h2>
-            <div class="level-info">
-              <h3>{{ selectedLevel.name }}</h3>
-              <p class="amount">${{ selectedLevel.amount.toLocaleString() }}</p>
-              <p class="benefit">{{ subscribeContent.levelBenefitLabel }} {{ benefitAmount }}</p>
+            <div class="bg-light border rounded-2 p-3 mb-3">
+              <h3 class="h5 mb-2">{{ selectedLevel.name }}</h3>
+              <p class="fs-4 fw-bold mb-1">${{ selectedLevel.amount.toLocaleString() }}</p>
+              <p class="text-muted mb-0">{{ subscribeContent.levelBenefitLabel }} {{ benefitAmount }}</p>
             </div>
             <button @click="selectLevel(levels[0])" class="btn btn-outline-secondary btn-sm">
               {{ subscribeContent.changeLevelLabel }}
@@ -291,8 +295,8 @@ const handlePayment = async () => {
           <div v-if="selectedLevel && !contributionCreated" class="contribution-form">
             <h2 class="h4 mb-3">{{ subscribeContent.authConfirmTitle }}</h2>
 
-            <div v-if="!isAuthenticated" class="auth-prompt">
-              <p>{{ subscribeContent.authPrompt }}</p>
+            <div v-if="!isAuthenticated" class="alert alert-info text-center">
+              <p class="mb-3">{{ subscribeContent.authPrompt }}</p>
               <button type="button" class="btn btn-primary" @click="isAuthenticationModalOpen = true">
                 {{ subscribeContent.authPromptButton }}
               </button>
@@ -306,7 +310,7 @@ const handlePayment = async () => {
             </div>
           </div>
 
-          <div v-if="contributionCreated && contributionToken" class="success-section">
+          <div v-if="contributionCreated && contributionToken" class="mt-4">
             <div class="alert alert-success text-center">
               <h3 class="h5 mb-2">{{ subscribeContent.successTitle }}</h3>
               <p class="mb-0">{{ subscribeContent.successSubtitle }}</p>
@@ -315,19 +319,19 @@ const handlePayment = async () => {
             <div class="card border-0 bg-light mb-3">
               <div class="card-body">
                 <h4 class="h6 text-uppercase text-muted">{{ subscribeContent.summaryTitle }}</h4>
-                <div class="summary-row">
+                <div class="d-flex justify-content-between py-2 border-bottom">
                   <span>{{ subscribeContent.summaryNameLabel }}</span>
                   <strong>{{ user?.nombre }}</strong>
                 </div>
-                <div class="summary-row">
+                <div class="d-flex justify-content-between py-2 border-bottom">
                   <span>{{ subscribeContent.summaryEmailLabel }}</span>
                   <strong>{{ user?.email }}</strong>
                 </div>
-                <div class="summary-row">
+                <div class="d-flex justify-content-between py-2 border-bottom">
                   <span>{{ subscribeContent.summaryLevelLabel }}</span>
                   <strong>{{ selectedLevel?.name }}</strong>
                 </div>
-                <div class="summary-row highlight">
+                <div class="d-flex justify-content-between py-2 fw-semibold">
                   <span>{{ subscribeContent.summaryAmountLabel }}</span>
                   <strong>${{ selectedLevel?.amount.toLocaleString() }}</strong>
                 </div>
@@ -339,7 +343,7 @@ const handlePayment = async () => {
               <span v-else>{{ subscribeContent.payLoadingLabel }}</span>
             </button>
 
-            <p class="payment-note">
+            <p class="text-muted text-center small fst-italic mt-3 mb-0">
               {{ subscribeContent.payNote }}
             </p>
           </div>
@@ -349,151 +353,3 @@ const handlePayment = async () => {
     </section>
   </div>
 </template>
-
-<style scoped>
-.subscribe-view {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-}
-
-.hero-section {
-  padding: 80px 20px 40px;
-  background: linear-gradient(135deg, #42b983 0%, #2c3e50 100%);
-  color: white;
-  text-align: center;
-}
-
-.container {
-  max-width: 700px;
-  margin: 0 auto;
-}
-
-.hero-section h1 {
-  font-size: 2.5rem;
-  margin-bottom: 1rem;
-}
-
-.subtitle {
-  font-size: 1.2rem;
-  opacity: 0.9;
-}
-
-.form-section {
-  background-color: #f5f5f5;
-  padding: 2rem 1rem;
-}
-
-.user-badge {
-  display: flex;
-  gap: 1rem;
-  align-items: center;
-}
-
-.avatar-sm {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  object-fit: cover;
-}
-
-.greeting {
-  margin: 0;
-  font-weight: 600;
-  color: var(--color-text);
-}
-
-.email {
-  margin: 0.25rem 0 0;
-  font-size: 0.875rem;
-  color: var(--color-text-secondary);
-}
-
-
-.level-summary,
-.level-selector {
-  margin-bottom: 3rem;
-  padding-bottom: 2rem;
-  border-bottom: 2px solid #e0e0e0;
-}
-
-.level-info {
-  background: #f5f5f5;
-  padding: 1.5rem;
-  border-radius: 8px;
-  margin-bottom: 1rem;
-}
-
-.level-info h3 {
-  color: #42b983;
-  font-size: 1.25rem;
-  margin-bottom: 0.5rem;
-}
-
-.amount {
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: #2c3e50;
-  margin: 0.5rem 0;
-}
-
-.benefit {
-  color: #666;
-}
-
-
-
-.auth-prompt {
-  background: #f0f8ff;
-  border: 1px solid #b0d4ff;
-  border-radius: 0.5rem;
-  padding: 1.5rem;
-  text-align: center;
-  margin-bottom: 1rem;
-}
-
-.auth-prompt p {
-  margin: 0 0 1rem;
-  color: var(--color-text-secondary);
-}
-
-
-.success-section {
-  margin-top: 2rem;
-}
-
-.summary-row {
-  display: flex;
-  justify-content: space-between;
-  padding: 0.75rem 0;
-  border-bottom: 1px solid #e0e0e0;
-}
-
-.summary-row:last-child {
-  border-bottom: none;
-}
-
-.summary-row.highlight {
-  padding-top: 1rem;
-  font-size: 1.1rem;
-  font-weight: 600;
-}
-
-.summary-row span {
-  color: #666;
-}
-
-.summary-row strong {
-  color: #2c3e50;
-}
-
-
-.payment-note {
-  text-align: center;
-  color: #666;
-  font-size: 0.9rem;
-  margin-top: 1rem;
-  font-style: italic;
-}
-
-</style>

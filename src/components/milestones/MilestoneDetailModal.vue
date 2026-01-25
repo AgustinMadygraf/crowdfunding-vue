@@ -53,7 +53,7 @@ const milestoneModalContent = content.home.milestoneModal;
       >
         <!-- Header -->
         <header class="modal-header">
-          <h2>{{ milestone.name }}</h2>
+          <h2 class="m-0 fs-4 text-dark">{{ milestone.name }}</h2>
           <button
             type="button"
             class="btn-close"
@@ -65,35 +65,41 @@ const milestoneModalContent = content.home.milestoneModal;
         <!-- Body -->
         <div class="modal-body">
           <!-- Descripción -->
-          <p v-if="milestone.description" class="description">{{ milestone.description }}</p>
+          <p v-if="milestone.description" class="mb-3 fw-semibold text-body">{{ milestone.description }}</p>
 
           <!-- Detalles -->
-          <div v-if="milestone.details" class="details">
-            <p>{{ milestone.details }}</p>
+          <div v-if="milestone.details" class="bg-light p-3 rounded mb-4">
+            <p class="mb-0 text-body-emphasis">{{ milestone.details }}</p>
           </div>
 
           <!-- Progress -->
-          <div class="progress-section">
-            <h3>{{ milestoneModalContent.progressTitle }}</h3>
-            <div class="progress-container">
+          <div class="mb-4">
+            <h3 class="text-uppercase small fw-semibold text-muted mb-2">{{ milestoneModalContent.progressTitle }}</h3>
+            <div class="progress-container mb-3">
               <div class="progress-bar" :style="{ width: `${progress}%` }"></div>
             </div>
-            <dl class="stats">
-              <div>
-                <dt>{{ milestoneModalContent.statsLabels.target }}</dt>
-                <dd>{{ content.app.currencyLabel }} {{ (milestone.targetAmount || 0).toLocaleString() }}</dd>
+            <dl class="row g-3 mb-0">
+              <div class="col-12 col-md-6">
+                <dt class="text-uppercase small fw-semibold text-muted">{{ milestoneModalContent.statsLabels.target }}</dt>
+                <dd class="mb-0 fw-semibold text-dark">
+                  {{ content.app.currencyLabel }} {{ (milestone.targetAmount || 0).toLocaleString() }}
+                </dd>
               </div>
-              <div>
-                <dt>{{ milestoneModalContent.statsLabels.raised }}</dt>
-                <dd>{{ content.app.currencyLabel }} {{ (milestone.raisedAmount || 0).toLocaleString() }} ({{ progress }}%)</dd>
+              <div class="col-12 col-md-6">
+                <dt class="text-uppercase small fw-semibold text-muted">{{ milestoneModalContent.statsLabels.raised }}</dt>
+                <dd class="mb-0 fw-semibold text-dark">
+                  {{ content.app.currencyLabel }} {{ (milestone.raisedAmount || 0).toLocaleString() }} ({{ progress }}%)
+                </dd>
               </div>
-              <div>
-                <dt>{{ milestoneModalContent.statsLabels.targetDate }}</dt>
-                <dd>{{ new Date(milestone.targetDate).toLocaleDateString('es-AR') }}</dd>
+              <div class="col-12 col-md-6">
+                <dt class="text-uppercase small fw-semibold text-muted">{{ milestoneModalContent.statsLabels.targetDate }}</dt>
+                <dd class="mb-0 fw-semibold text-dark">
+                  {{ new Date(milestone.targetDate).toLocaleDateString('es-AR') }}
+                </dd>
               </div>
-              <div>
-                <dt>{{ milestoneModalContent.statsLabels.status }}</dt>
-                <dd>
+              <div class="col-12 col-md-6">
+                <dt class="text-uppercase small fw-semibold text-muted">{{ milestoneModalContent.statsLabels.status }}</dt>
+                <dd class="mb-0">
                   <span class="badge" :class="statusBadgeClass">
                     {{
                       milestone.status === 'active'
@@ -109,45 +115,55 @@ const milestoneModalContent = content.home.milestoneModal;
           </div>
 
           <!-- Timeline -->
-          <div v-if="milestone.timeline?.length" class="timeline-section">
-            <h3>{{ milestoneModalContent.timelineTitle }}</h3>
-            <ul class="timeline">
-              <li v-for="(item, idx) in milestone.timeline" :key="idx" class="timeline-item">
-                <div class="timeline-marker" :class="`status-${item.status}`"></div>
-                <div class="timeline-content">
-                  <time class="timeline-date">{{ new Date(item.date).toLocaleDateString('es-AR') }}</time>
-                  <h4 class="timeline-title">{{ item.title }}</h4>
-                  <p class="timeline-description">{{ item.description }}</p>
+          <div v-if="milestone.timeline?.length" class="mb-4">
+            <h3 class="text-uppercase small fw-semibold text-muted mb-3">{{ milestoneModalContent.timelineTitle }}</h3>
+            <ul class="list-unstyled m-0 d-grid gap-3">
+              <li v-for="(item, idx) in milestone.timeline" :key="idx" class="d-flex gap-3">
+                <div class="timeline-marker" :class="item.status"></div>
+                <div class="timeline-content" :class="item.status">
+                  <time class="d-block small text-muted mb-1">
+                    {{ new Date(item.date).toLocaleDateString('es-AR') }}
+                  </time>
+                  <h4 class="h6 mb-1 fw-semibold text-dark">{{ item.title }}</h4>
+                  <p class="mb-0 small text-muted">{{ item.description }}</p>
                 </div>
               </li>
             </ul>
           </div>
 
           <!-- Evidencias -->
-          <div v-if="milestone.evidences?.length" class="evidences-section">
-            <h3>{{ milestoneModalContent.evidencesTitle }}</h3>
-            <ul class="evidences-list">
-              <li v-for="evidence in milestone.evidences" :key="evidence.id" class="evidence-item">
-                <a :href="evidence.url" target="_blank" rel="noopener noreferrer" class="evidence-link">
-                  <span class="evidence-icon">📄</span>
-                  <span class="evidence-title">{{ evidence.title }}</span>
-                  <span v-if="evidence.version" class="evidence-version">v{{ evidence.version }}</span>
+          <div v-if="milestone.evidences?.length" class="mb-4">
+            <h3 class="text-uppercase small fw-semibold text-muted mb-3">{{ milestoneModalContent.evidencesTitle }}</h3>
+            <ul class="list-unstyled m-0 d-grid gap-2">
+              <li v-for="evidence in milestone.evidences" :key="evidence.id" class="bg-light rounded p-3">
+                <a
+                  :href="evidence.url"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="d-flex align-items-center gap-2 text-decoration-none link-primary"
+                >
+                  <i class="bi bi-file-earmark-text text-muted" aria-hidden="true"></i>
+                  <span class="flex-grow-1 fw-semibold">{{ evidence.title }}</span>
+                  <span v-if="evidence.version" class="small text-muted">v{{ evidence.version }}</span>
                 </a>
-                <p v-if="evidence.description" class="evidence-description">{{ evidence.description }}</p>
+                <p v-if="evidence.description" class="mb-0 mt-2 small text-muted">
+                  {{ evidence.description }}
+                </p>
               </li>
             </ul>
           </div>
 
           <!-- Responsable -->
-          <div v-if="milestone.responsible" class="responsible-section">
-            <h3>{{ milestoneModalContent.responsibleTitle }}</h3>
-            <p>{{ milestone.responsible }}</p>
+
+          <div v-if="milestone.responsible" class="mb-4">
+            <h3 class="text-uppercase small fw-semibold text-muted mb-2">{{ milestoneModalContent.responsibleTitle }}</h3>
+            <p class="mb-0 text-body-emphasis">{{ milestone.responsible }}</p>
           </div>
 
           <!-- Dependencias -->
-          <div v-if="milestone.dependencies?.length" class="dependencies-section">
-            <h3>{{ milestoneModalContent.dependenciesTitle }}</h3>
-            <p class="text-muted">
+          <div v-if="milestone.dependencies?.length" class="mb-4">
+            <h3 class="text-uppercase small fw-semibold text-muted mb-2">{{ milestoneModalContent.dependenciesTitle }}</h3>
+            <p class="mb-0 text-muted">
               {{ milestoneModalContent.dependenciesPrefix }} {{ milestone.dependencies.join(', ') }}
             </p>
           </div>
@@ -166,242 +182,3 @@ const milestoneModalContent = content.home.milestoneModal;
     </div>
   </teleport>
 </template>
-
-<style scoped>
-/* modal-backdrop, modal-content, modal-header, modal-body, modal-footer en components.css */
-
-.modal-header h2 {
-  margin: 0;
-  font-size: 24px;
-  color: #111;
-}
-
-.description {
-  font-size: 16px;
-  font-weight: 500;
-  color: #333;
-  margin: 0 0 16px 0;
-}
-
-.details {
-  background-color: #f5f5f5;
-  padding: 16px;
-  border-radius: 8px;
-  margin-bottom: 24px;
-  line-height: 1.6;
-}
-
-.details p {
-  margin: 0;
-  color: #555;
-}
-
-/* Progress Section */
-.progress-section {
-  margin-bottom: 32px;
-}
-
-.progress-section h3 {
-  margin: 0 0 12px 0;
-  font-size: 14px;
-  font-weight: 600;
-  text-transform: uppercase;
-  color: #666;
-}
-
-/* progress-container y progress-bar en components.css */
-.progress-bar-container {
-  margin-bottom: 16px;
-}
-
-.stats {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-  margin: 0;
-}
-
-.stats > div {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.stats dt {
-  font-weight: 600;
-  font-size: 12px;
-  text-transform: uppercase;
-  color: #999;
-}
-
-.stats dd {
-  margin: 0;
-  font-size: 16px;
-  color: #111;
-  font-weight: 500;
-}
-
-/* Timeline */
-.timeline-section {
-  margin-bottom: 32px;
-}
-
-.timeline-section h3 {
-  margin: 0 0 16px 0;
-  font-size: 14px;
-  font-weight: 600;
-  text-transform: uppercase;
-  color: #666;
-}
-
-.timeline {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-/* timeline-marker, timeline-content en components.css */
-
-.timeline-item {
-  display: flex;
-  gap: 16px;
-  margin-bottom: 20px;
-  position: relative;
-}
-
-.timeline-marker {
-  margin-top: 4px;
-}
-
-.timeline-date {
-  display: block;
-  font-size: 12px;
-  color: #999;
-  margin-bottom: 4px;
-}
-
-.timeline-title {
-  margin: 0 0 4px 0;
-  font-size: 14px;
-  font-weight: 600;
-  color: #111;
-}
-
-.timeline-description {
-  margin: 0;
-  font-size: 14px;
-  color: #666;
-  line-height: 1.5;
-}
-
-/* Evidencias */
-.evidences-section {
-  margin-bottom: 32px;
-}
-
-.evidences-section h3 {
-  margin: 0 0 16px 0;
-  font-size: 14px;
-  font-weight: 600;
-  text-transform: uppercase;
-  color: #666;
-}
-
-.evidences-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.evidence-item {
-  background-color: #f5f5f5;
-  padding: 12px;
-  border-radius: 8px;
-}
-
-.evidence-link {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  color: #2196f3;
-  text-decoration: none;
-  transition: color 0.2s;
-}
-
-.evidence-link:hover {
-  color: #1976d2;
-  text-decoration: underline;
-}
-
-.evidence-icon {
-  font-size: 20px;
-}
-
-.evidence-title {
-  flex: 1;
-  font-weight: 500;
-}
-
-.evidence-version {
-  font-size: 12px;
-  color: #999;
-}
-
-.evidence-description {
-  margin: 8px 0 0 32px;
-  font-size: 12px;
-  color: #666;
-  line-height: 1.4;
-}
-
-/* Other sections */
-.responsible-section,
-.dependencies-section {
-  margin-bottom: 24px;
-}
-
-.responsible-section h3,
-.dependencies-section h3 {
-  margin: 0 0 8px 0;
-  font-size: 14px;
-  font-weight: 600;
-  color: #666;
-}
-
-.responsible-section p,
-.dependencies-section p {
-  margin: 0;
-  color: #333;
-}
-
-.text-muted {
-  color: #999;
-}
-
-/* Footer */
-.modal-footer {
-  display: flex;
-  gap: 12px;
-  padding: 16px 24px;
-  border-top: 1px solid #e0e0e0;
-  background-color: #f9fafb;
-  justify-content: flex-end;
-}
-
-/* btn-primary, btn-secondary en Bootstrap */
-
-@media (max-width: 600px) {
-  .modal-content {
-    max-width: 100%;
-    max-height: 100vh;
-    border-radius: 0;
-  }
-
-  .stats {
-    grid-template-columns: 1fr;
-  }
-}
-</style>

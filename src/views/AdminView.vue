@@ -126,26 +126,28 @@ const getStatusBadgeClass = (status: string) => {
 </script>
 
 <template>
-  <div class="admin-view">
+  <div class="min-vh-100 bg-light">
     <!-- Header -->
-    <header class="admin-header">
-      <div class="container">
-        <h1>{{ adminContent.title }}</h1>
-        <div class="header-info">
-          <span class="user-info">👤 {{ authStore.user?.nombre || authStore.user?.email }}</span>
+    <header class="bg-dark text-white py-3 shadow-sm">
+      <div class="container d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-2">
+        <h1 class="h4 mb-0">{{ adminContent.title }}</h1>
+        <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center gap-2">
+          <span class="small text-white-50">{{ authStore.user?.nombre || authStore.user?.email }}</span>
           <button @click="handleLogout" class="btn btn-danger btn-sm">{{ adminContent.logoutLabel }}</button>
         </div>
       </div>
     </header>
 
     <!-- Auth Check Message -->
-    <div v-if="!authStore.isAuthenticated" class="auth-required">
-      <p>{{ adminContent.authRequired }}</p>
+    <div v-if="!authStore.isAuthenticated" class="container my-4">
+      <div class="alert alert-danger text-center">
+      <p class="mb-3">{{ adminContent.authRequired }}</p>
       <router-link to="/login" class="btn btn-success">{{ adminContent.authCta }}</router-link>
+      </div>
     </div>
 
     <!-- Main Content -->
-    <main v-else class="admin-main">
+    <main v-else class="py-4">
       <div class="container">
         <!-- Loading State -->
         <div v-if="isLoading" class="alert alert-info text-center">
@@ -161,22 +163,25 @@ const getStatusBadgeClass = (status: string) => {
         <!-- Dashboard -->
         <div v-else>
           <!-- Tabs -->
-          <div class="tabs">
+          <div class="nav nav-tabs mb-4">
             <button
+              type="button"
               @click="activeTab = 'dashboard'"
-              :class="['tab', { active: activeTab === 'dashboard' }]"
+              :class="['nav-link', { active: activeTab === 'dashboard' }]"
             >
               {{ adminContent.tabDashboard }}
             </button>
             <button
+              type="button"
               @click="activeTab = 'milestones'"
-              :class="['tab', { active: activeTab === 'milestones' }]"
+              :class="['nav-link', { active: activeTab === 'milestones' }]"
             >
               {{ adminContent.tabMilestones }} ({{ stats.totalMilestones }})
             </button>
             <button
+              type="button"
               @click="activeTab = 'updates'"
-              :class="['tab', { active: activeTab === 'updates' }]"
+              :class="['nav-link', { active: activeTab === 'updates' }]"
             >
               {{ adminContent.tabUpdates }} ({{ stats.totalUpdates }})
             </button>
@@ -221,84 +226,84 @@ const getStatusBadgeClass = (status: string) => {
               </div>
             </div>
 
-            <section class="admin-section">
-              <h2>{{ adminContent.shortcutsTitle }}</h2>
-              <div class="row g-3">
-                <div class="col-12 col-sm-6 col-md-4">
-                  <button class="btn btn-outline-primary w-100 d-flex flex-column align-items-center gap-2 py-3" @click="activeTab = 'milestones'">
-                    <span class="fs-3">????</span>
-                    <span class="fw-semibold">{{ adminContent.shortcuts.milestones }}</span>
-                  </button>
-                </div>
-                <div class="col-12 col-sm-6 col-md-4">
-                  <button class="btn btn-outline-primary w-100 d-flex flex-column align-items-center gap-2 py-3" @click="activeTab = 'updates'">
-                    <span class="fs-3">????</span>
-                    <span class="fw-semibold">{{ adminContent.shortcuts.updates }}</span>
-                  </button>
-                </div>
-                <div class="col-12 col-sm-6 col-md-4">
-                  <a href="mailto:info@madypack.com.ar" class="btn btn-outline-primary w-100 d-flex flex-column align-items-center gap-2 py-3">
-                    <span class="fs-3">????</span>
-                    <span class="fw-semibold">{{ adminContent.shortcuts.support }}</span>
-                  </a>
+            <section class="card shadow-sm mb-4 mt-4">
+              <div class="card-body">
+                <h2 class="h5 mb-3">{{ adminContent.shortcutsTitle }}</h2>
+                <div class="row g-3">
+                  <div class="col-12 col-sm-6 col-md-4">
+                    <button class="btn btn-outline-primary w-100 d-flex flex-column align-items-center gap-2 py-3" @click="activeTab = 'milestones'">
+                      <span class="fw-semibold">{{ adminContent.shortcuts.milestones }}</span>
+                    </button>
+                  </div>
+                  <div class="col-12 col-sm-6 col-md-4">
+                    <button class="btn btn-outline-primary w-100 d-flex flex-column align-items-center gap-2 py-3" @click="activeTab = 'updates'">
+                      <span class="fw-semibold">{{ adminContent.shortcuts.updates }}</span>
+                    </button>
+                  </div>
+                  <div class="col-12 col-sm-6 col-md-4">
+                    <a href="mailto:info@madypack.com.ar" class="btn btn-outline-primary w-100 d-flex flex-column align-items-center gap-2 py-3">
+                      <span class="fw-semibold">{{ adminContent.shortcuts.support }}</span>
+                    </a>
+                  </div>
                 </div>
               </div>
-
             </section>
           </div>
-
           <!-- Milestones Tab -->
           <div v-show="activeTab === 'milestones'" class="tab-content">
-            <section class="admin-section">
-              <h2>{{ adminContent.milestonesTitle }}</h2>
-              
-              <div v-if="milestones.length === 0" class="empty-message">
-                <p>{{ adminContent.milestonesEmpty }}</p>
-              </div>
-              
-              <div v-else class="items-list">
-                <div v-for="milestone in milestones" :key="milestone.id" class="item-card">
-                  <div class="item-header">
-                    <h3>{{ milestone.title }}</h3>
-                    <span class="badge" :class="getStatusBadgeClass(milestone.status)">
-                      {{ milestone.status }}
-                    </span>
-                  </div>
-                  <p class="item-description">{{ milestone.description }}</p>
-                  <div class="item-meta">
-                    <span>📅 {{ formatDate(milestone.created_at || '') }}</span>
-                    <span>{{ adminContent.milestoneLabels.target }} ${{ milestone.target_amount?.toLocaleString('es-AR') }}</span>
-                    <span>{{ adminContent.milestoneLabels.raised }} ${{ milestone.raised_amount?.toLocaleString('es-AR') }}</span>
+            <section class="card shadow-sm mb-4">
+              <div class="card-body">
+                <h2 class="h5 mb-3">{{ adminContent.milestonesTitle }}</h2>
+                <div v-if="milestones.length === 0" class="text-center text-muted fst-italic py-4">
+                  <p class="mb-0">{{ adminContent.milestonesEmpty }}</p>
+                </div>
+                <div v-else class="d-grid gap-3">
+                  <div v-for="milestone in milestones" :key="milestone.id" class="card">
+                    <div class="card-body">
+                      <div class="d-flex justify-content-between align-items-start gap-3">
+                        <h3 class="h6 mb-0">{{ milestone.title }}</h3>
+                        <span class="badge" :class="getStatusBadgeClass(milestone.status)">
+                          {{ milestone.status }}
+                        </span>
+                      </div>
+                      <p class="text-muted small my-3 text-truncate-2">{{ milestone.description }}</p>
+                      <div class="d-flex flex-wrap gap-3 small text-muted border-top pt-2">
+                        <span>{{ formatDate(milestone.created_at || '') }}</span>
+                        <span>{{ adminContent.milestoneLabels.target }} ${{ milestone.target_amount?.toLocaleString('es-AR') }}</span>
+                        <span>{{ adminContent.milestoneLabels.raised }} ${{ milestone.raised_amount?.toLocaleString('es-AR') }}</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
             </section>
           </div>
-
           <!-- Updates Tab -->
           <div v-show="activeTab === 'updates'" class="tab-content">
-            <section class="admin-section">
-              <h2>{{ adminContent.updatesTitle }}</h2>
-              
-              <div v-if="updates.length === 0" class="empty-message">
-                <p>{{ adminContent.updatesEmpty }}</p>
-              </div>
-              
-              <div v-else class="items-list">
-                <div v-for="update in updates" :key="update.id" class="item-card">
-                  <div class="item-header">
-                    <h3>{{ update.title }}</h3>
-                    <span class="badge" :class="getStatusBadgeClass(update.status)">
-                      {{ update.status }}
-                    </span>
-                  </div>
-                  <p class="item-description">{{ update.content }}</p>
-                  <div class="item-meta">
-                    <span>📂 {{ update.category }}</span>
-                    <span>📅 {{ formatDate(update.created_at) }}</span>
-                    <span v-if="update.published_at">
-                      {{ adminContent.updateLabels.published }} {{ formatDate(update.published_at) }}
-                    </span>
+            <section class="card shadow-sm mb-4">
+              <div class="card-body">
+                <h2 class="h5 mb-3">{{ adminContent.updatesTitle }}</h2>
+                <div v-if="updates.length === 0" class="text-center text-muted fst-italic py-4">
+                  <p class="mb-0">{{ adminContent.updatesEmpty }}</p>
+                </div>
+                <div v-else class="d-grid gap-3">
+                  <div v-for="update in updates" :key="update.id" class="card">
+                    <div class="card-body">
+                      <div class="d-flex justify-content-between align-items-start gap-3">
+                        <h3 class="h6 mb-0">{{ update.title }}</h3>
+                        <span class="badge" :class="getStatusBadgeClass(update.status)">
+                          {{ update.status }}
+                        </span>
+                      </div>
+                      <p class="text-muted small my-3 text-truncate-2">{{ update.content }}</p>
+                      <div class="d-flex flex-wrap gap-3 small text-muted border-top pt-2">
+                        <span>{{ update.category }}</span>
+                        <span>{{ formatDate(update.created_at) }}</span>
+                        <span v-if="update.published_at">
+                          {{ adminContent.updateLabels.published }} {{ formatDate(update.published_at) }}
+                        </span>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -310,228 +315,3 @@ const getStatusBadgeClass = (status: string) => {
   </div>
 </template>
 
-<style scoped>
-.admin-view {
-  min-height: 100vh;
-  background-color: #f5f5f5;
-}
-
-.admin-header {
-  background: #2c3e50;
-  color: white;
-  padding: 1.5rem 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.admin-header .container {
-  max-width: 1200px;
-  margin: 0 auto;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.admin-header h1 {
-  font-size: 1.5rem;
-  margin: 0;
-}
-
-.header-info {
-  display: flex;
-  gap: 1.5rem;
-  align-items: center;
-}
-
-.user-info {
-  font-size: 0.9rem;
-  opacity: 0.9;
-}
-
-
-.auth-required {
-  text-align: center;
-  padding: 4rem 2rem;
-  background: white;
-  margin: 2rem 20px;
-  border-radius: 8px;
-  border-left: 4px solid #e74c3c;
-}
-
-.auth-required p {
-  color: #e74c3c;
-  margin-bottom: 1.5rem;
-  font-size: 1.1rem;
-}
-
-
-.admin-main {
-  padding: 2rem 20px;
-}
-
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-/* Tabs */
-.tabs {
-  display: flex;
-  gap: 1rem;
-  margin-bottom: 2rem;
-  border-bottom: 2px solid #e0e0e0;
-}
-
-.tab {
-  padding: 1rem 1.5rem;
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-weight: 600;
-  color: #666;
-  border-bottom: 3px solid transparent;
-  transition: all 0.2s ease;
-  font-size: 1rem;
-}
-
-.tab:hover {
-  color: #2c3e50;
-}
-
-.tab.active {
-  color: #42b983;
-  border-bottom-color: #42b983;
-}
-
-.tab-content {
-  animation: fadeIn 0.2s ease;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Admin Section */
-.admin-section {
-  background: white;
-  border-radius: 8px;
-  padding: 2rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  margin-bottom: 2rem;
-}
-
-.admin-section h2 {
-  font-size: 1.25rem;
-  color: #2c3e50;
-  margin-bottom: 1.5rem;
-  padding-bottom: 1rem;
-  border-bottom: 2px solid #f0f0f0;
-}
-
-/* Items List */
-.items-list {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.item-card {
-  background: #f9f9f9;
-  border: 1px solid #e0e0e0;
-  border-radius: 6px;
-  padding: 1.5rem;
-  transition: all 0.2s ease;
-}
-
-.item-card:hover {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  border-color: #42b983;
-}
-
-.item-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 1rem;
-  margin-bottom: 0.75rem;
-}
-
-.item-header h3 {
-  font-size: 1.1rem;
-  color: #2c3e50;
-  margin: 0;
-  flex: 1;
-}
-
-
-.item-description {
-  color: #666;
-  margin: 0.75rem 0;
-  line-height: 1.5;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.item-meta {
-  display: flex;
-  gap: 1.5rem;
-  font-size: 0.875rem;
-  color: #999;
-  flex-wrap: wrap;
-  padding-top: 0.75rem;
-  border-top: 1px solid #e0e0e0;
-}
-
-/* Empty Message */
-.empty-message {
-  text-align: center;
-  padding: 3rem 2rem;
-  color: #999;
-  font-style: italic;
-}
-
-@media (max-width: 768px) {
-  .admin-header .container {
-    flex-direction: column;
-    gap: 1rem;
-    text-align: center;
-  }
-
-  .header-info {
-    flex-direction: column;
-    gap: 1rem;
-    width: 100%;
-  }
-
-  .tabs {
-    flex-wrap: wrap;
-  }
-
-  .tab {
-    padding: 0.75rem 1rem;
-    font-size: 0.875rem;
-  }
-
-  .item-header {
-    flex-direction: column;
-  }
-
-  .badge {
-    align-self: flex-start;
-  }
-
-  .item-meta {
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-}
-</style>

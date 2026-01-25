@@ -1,4 +1,4 @@
-/*
+﻿/*
 Path: src/infrastructure/content.ts
 */
 
@@ -224,7 +224,7 @@ export const content: Content = {
     errorFallback: 'Error al cargar documentos',
     emptyTitle: 'No hay documentos disponibles aún',
     emptySubtitle: 'Los documentos del proyecto aparecerán aquí una vez se publiquen.',
-    downloadLabel: 'â†“ Descargar',
+    downloadLabel: '↓ Descargar',
     uncategorizedLabel: 'Sin categoría',
     categoryOrder: ['Legal', 'Técnico', 'Comercial', 'Logística'],
   },
@@ -475,8 +475,8 @@ Modelo de cálculo (dejar armado para completar)
      c) operación de pegado automático (nueva máquina ~30–40 bolsas/min)
 
 3) Resultado esperado:
-   - â†‘ disponibilidad/tiempo productivo real de la línea
-   - â†‘ producción y ventas de bolsas con manijas GRANDES
+   - ← disponibilidad/tiempo productivo real de la línea
+   - ← producción y ventas de bolsas con manijas GRANDES
    - Base para devolver el préstamo (flujo incremental)
 
 Entregables de esta etapa (evidencias públicas):
@@ -871,7 +871,7 @@ KPI base:
 - Cuando la máquina de bolsas está produciendo, trabaja aprox. a 44 bolsas/min (máx anecdótico: 100 bolsas/min).
 - Pero el dato clave es la utilización: sólo ~2,5% del tiempo calendario está en producción.
 
-Con el pegado automático (30â€“40 bolsas/min), liberamos horas de pegado manual de manija grande y las reasignamos a más tiempo productivo de la línea, sosteniendo el flujo de ventas necesario para devolver el préstamo.
+Con el pegado automático (30–40 bolsas/min), liberamos horas de pegado manual de manija grande y las reasignamos a más tiempo productivo de la línea, sosteniendo el flujo de ventas necesario para devolver el préstamo.
 Publicaremos evidencias por etapa: documentos redactados (sin datos sensibles), checklist técnicos y avances verificables.`,
         status: 'published',
         publishedAt: '2026-01-10T12:00:00Z',
@@ -889,7 +889,7 @@ Variables a relevar (mensuales):
 - Horas dedicadas a confección de bolsas
 - Horas dedicadas a confección de manijas
 - Horas dedicadas a pegado manual de manija GRANDE
-- Horas dedicadas a pegado manual de manija mediana/pequeÃ±a (se mantiene)
+- Horas dedicadas a pegado manual de manija mediana/pequeña (se mantiene)
 
 La nueva máquina reduce el tiempo de pegado manual de manija grande y permite reasignar esas horas a más producción, elevando el porcentaje de tiempo real en producción (hoy ~2,5% del tiempo calendario).`,
         status: 'published',

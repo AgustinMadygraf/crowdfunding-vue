@@ -1,3 +1,7 @@
+<!--
+Path: src/views/SubscriptionStatusView.vue
+-->
+
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
@@ -62,30 +66,30 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="subscription-status-view">
-    <section class="hero-section">
+  <div class="d-flex flex-column min-vh-80">
+    <section class="py-5 text-center text-white" style="background: linear-gradient(135deg, #42b983 0%, #2c3e50 100%);">
       <div class="container">
-        <h1>{{ statusContent.heroTitle }}</h1>
-        <p class="subtitle" v-if="contributionId">{{ statusContent.idLabel }} {{ contributionId }}</p>
+        <h1 class="display-6 fw-bold mb-2">{{ statusContent.heroTitle }}</h1>
+        <p class="small text-white-50 mb-0 font-monospace" v-if="contributionId">{{ statusContent.idLabel }} {{ contributionId }}</p>
       </div>
     </section>
 
     <!-- Loading State -->
-    <section v-if="isLoading" class="status-section">
+    <section v-if="isLoading" class="py-5 bg-light">
       <div class="container">
-        <div class="status-card loading">
-          <p>{{ statusContent.loadingLabel }}</p>
+        <div class="card shadow-sm text-center p-4">
+          <p class="mb-0">{{ statusContent.loadingLabel }}</p>
         </div>
       </div>
     </section>
 
     <!-- Error State -->
-    <section v-else-if="error && !contribution" class="status-section">
+    <section v-else-if="error && !contribution" class="py-5 bg-light">
       <div class="container">
-        <div class="status-card error">
-          <h2>{{ statusContent.errorTitle }}</h2>
-          <p>{{ error }}</p>
-          <div class="actions">
+        <div class="card shadow-sm border-danger border-2 p-4 text-center">
+          <h2 class="h5 text-danger mb-2">{{ statusContent.errorTitle }}</h2>
+          <p class="text-muted mb-3">{{ error }}</p>
+          <div class="d-flex gap-2 justify-content-center flex-wrap">
             <button @click="retry" class="btn btn-primary">{{ statusContent.retryLabel }}</button>
             <router-link to="/" class="btn btn-secondary">{{ statusContent.backHomeLabel }}</router-link>
           </div>
@@ -94,11 +98,11 @@ onMounted(() => {
     </section>
 
     <!-- Success State -->
-    <section v-else-if="contribution" class="status-section">
+    <section v-else-if="contribution" class="py-5 bg-light">
       <div class="container">
-        <div class="status-card">
-          <div class="status-header">
-            <h2>{{ statusContent.statusTitle }}</h2>
+        <div class="card shadow-sm p-4">
+          <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap border-bottom pb-3 mb-4">
+            <h2 class="h5 mb-0">{{ statusContent.statusTitle }}</h2>
             <span
               class="badge rounded-pill text-white"
               :style="{ backgroundColor: statusColors[contribution.estado_pago] }"
@@ -107,18 +111,18 @@ onMounted(() => {
             </span>
           </div>
 
-          <div class="status-details">
-            <div class="detail-row">
-              <span class="label">{{ statusContent.detailLabels.level }}</span>
-              <span class="value">{{ contribution.nivel_nombre }}</span>
+          <div class="mb-4">
+            <div class="d-flex justify-content-between py-3 border-bottom">
+              <span class="fw-semibold text-muted">{{ statusContent.detailLabels.level }}</span>
+              <span class="text-end">{{ contribution.nivel_nombre }}</span>
             </div>
-            <div class="detail-row">
-              <span class="label">{{ statusContent.detailLabels.amount }}</span>
-              <span class="value">${{ contribution.monto.toLocaleString('es-AR') }}</span>
+            <div class="d-flex justify-content-between py-3 border-bottom">
+              <span class="fw-semibold text-muted">{{ statusContent.detailLabels.amount }}</span>
+              <span class="text-end">${{ contribution.monto.toLocaleString('es-AR') }}</span>
             </div>
-            <div class="detail-row">
-              <span class="label">{{ statusContent.detailLabels.created }}</span>
-              <span class="value">{{
+            <div class="d-flex justify-content-between py-3 border-bottom">
+              <span class="fw-semibold text-muted">{{ statusContent.detailLabels.created }}</span>
+              <span class="text-end">{{
                 new Date(contribution.created_at).toLocaleDateString('es-AR', {
                   year: 'numeric',
                   month: 'long',
@@ -128,9 +132,9 @@ onMounted(() => {
                 })
               }}</span>
             </div>
-            <div v-if="contribution.completed_at" class="detail-row">
-              <span class="label">{{ statusContent.detailLabels.completed }}</span>
-              <span class="value">{{
+            <div v-if="contribution.completed_at" class="d-flex justify-content-between py-3 border-bottom">
+              <span class="fw-semibold text-muted">{{ statusContent.detailLabels.completed }}</span>
+              <span class="text-end">{{
                 new Date(contribution.completed_at).toLocaleDateString('es-AR', {
                   year: 'numeric',
                   month: 'long',
@@ -140,14 +144,14 @@ onMounted(() => {
                 })
               }}</span>
             </div>
-            <div class="detail-row">
-              <span class="label">{{ statusContent.detailLabels.token }}</span>
-              <span class="value token">{{ contribution.token }}</span>
+            <div class="d-flex justify-content-between py-3">
+              <span class="fw-semibold text-muted">{{ statusContent.detailLabels.token }}</span>
+              <span class="text-end font-monospace small bg-light px-2 py-1 rounded">{{ contribution.token }}</span>
             </div>
           </div>
 
-          <div class="status-explanation">
-            <h3>{{ statusContent.explanationTitle }}</h3>
+          <div class="alert alert-light mb-4">
+            <h3 class="h6 mb-2">{{ statusContent.explanationTitle }}</h3>
             <p v-if="contribution.estado_pago === 'pendiente'">
               {{ statusContent.explanations.pendiente }}
             </p>
@@ -165,7 +169,7 @@ onMounted(() => {
             </p>
           </div>
 
-          <div class="actions">
+          <div class="d-flex gap-2 justify-content-center flex-wrap">
             <router-link
               v-if="contribution.estado_pago === 'pendiente'"
               :to="`/suscribir/pago/${contribution.token}`"
@@ -184,158 +188,3 @@ onMounted(() => {
     </section>
   </div>
 </template>
-
-<style scoped>
-.subscription-status-view {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-  min-height: 80vh;
-}
-
-.hero-section {
-  padding: 80px 20px 40px;
-  background: linear-gradient(135deg, #42b983 0%, #2c3e50 100%);
-  color: white;
-  text-align: center;
-}
-
-.container {
-  max-width: 960px;
-  margin: 0 auto;
-}
-
-.hero-section h1 {
-  font-size: 2.5rem;
-  margin-bottom: 1rem;
-}
-
-.subtitle {
-  font-size: 1rem;
-  opacity: 0.8;
-  font-family: monospace;
-}
-
-.status-section {
-  padding: 80px 20px;
-  background-color: #f5f5f5;
-}
-
-.status-card {
-  background: white;
-  border-radius: 8px;
-  padding: 3rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.status-card.loading,
-.status-card.error {
-  text-align: center;
-  padding: 4rem 3rem;
-}
-
-.status-card.error {
-  border: 2px solid #e74c3c;
-}
-
-.status-card.error h2 {
-  color: #e74c3c;
-  margin-bottom: 1rem;
-}
-
-.status-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 2rem;
-  padding-bottom: 1.5rem;
-  border-bottom: 2px solid #e0e0e0;
-}
-
-.status-header h2 {
-  font-size: 1.5rem;
-  color: #2c3e50;
-}
-
-
-.status-details {
-  margin-bottom: 2rem;
-}
-
-.detail-row {
-  display: flex;
-  justify-content: space-between;
-  padding: 1rem 0;
-  border-bottom: 1px solid #f0f0f0;
-}
-
-.detail-row:last-child {
-  border-bottom: none;
-}
-
-.label {
-  font-weight: 600;
-  color: #666;
-}
-
-.value {
-  color: #2c3e50;
-}
-
-.value.token {
-  font-family: monospace;
-  font-size: 0.875rem;
-  word-break: break-all;
-}
-
-.status-explanation {
-  background: #f5f5f5;
-  padding: 1.5rem;
-  border-radius: 8px;
-  margin-bottom: 2rem;
-}
-
-.status-explanation h3 {
-  font-size: 1.25rem;
-  color: #2c3e50;
-  margin-bottom: 0.75rem;
-}
-
-.status-explanation p {
-  color: #666;
-  line-height: 1.6;
-}
-
-.actions {
-  display: flex;
-  gap: 1rem;
-  justify-content: center;
-  flex-wrap: wrap;
-}
-
-@media (max-width: 768px) {
-  .status-card {
-    padding: 2rem 1.5rem;
-  }
-
-  .status-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 1rem;
-  }
-
-  .detail-row {
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-
-  .actions {
-    flex-direction: column;
-  }
-
-  .btn {
-    width: 100%;
-    text-align: center;
-  }
-}
-</style>
