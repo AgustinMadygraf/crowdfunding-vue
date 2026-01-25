@@ -2,8 +2,7 @@
 Path: src/main.ts
 */
 
-import './assets/main.scss'
-import './assets/components.css' // Componentes reutilizables
+import './assets/main.css'
 
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'

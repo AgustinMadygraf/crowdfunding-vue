@@ -1,13 +1,5 @@
-@import './base.css';
+@import "bootstrap/dist/css/bootstrap.min.css";
+@import "bootstrap-icons/font/bootstrap-icons.css";
 
-#app {
-  min-height: 100vh;
-}
-
-a {
-  color: inherit;
-}
-
-a:hover {
-  text-decoration: underline;
-}
+@import "./base.css";
+@import "./components.css";
