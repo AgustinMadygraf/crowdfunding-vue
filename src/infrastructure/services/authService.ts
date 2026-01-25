@@ -6,17 +6,26 @@
 import type { User } from '@/domain/user'
 // import type { Credentials } from '@/domain/user' // Eliminado: no existe export Credentials
 import type { IAuthService, AuthState, MutableAuthState, GoogleAuthConfig, AuthServiceConfig } from './IAuthService'
+import type { AuthGatewayPort } from '@/application/ports/AuthGateway'
+import { LoginWithGoogleUseCase } from '@/application/usecases/LoginWithGoogleUseCase'
 import { DefaultTokenStorage, type TokenStorage } from './auth/tokenStorage'
 import { DefaultGoogleOAuthProvider, type GoogleOAuthProvider } from './auth/googleOAuthProvider'
+import { HttpAuthGateway } from './auth/httpAuthGateway'
+import { RefreshTokenUseCase } from '@/application/usecases/RefreshTokenUseCase'
+import { ShouldRefreshTokenUseCase } from '@/application/usecases/ShouldRefreshTokenUseCase'
+import { ValidateJwtUseCase } from '@/application/usecases/ValidateJwtUseCase'
+import { LogoutUseCase } from '@/application/usecases/LogoutUseCase'
+import type { SessionStoragePort } from '@/application/ports/SessionStoragePort'
+import { LoadStoredAuthUseCase } from '@/application/usecases/LoadStoredAuthUseCase'
+import { BuildAuthHeadersUseCase } from '@/application/usecases/BuildAuthHeadersUseCase'
+import { RateLimitLoginUseCase, type RateLimitState } from '@/application/usecases/RateLimitLoginUseCase'
+import { GetGoogleConfigInfoUseCase } from '@/application/usecases/GetGoogleConfigInfoUseCase'
+
+const logger = import.meta.env.DEV
+  ? console
+  : { log: () => undefined, warn: () => undefined, error: () => undefined }
 
 
-interface GoogleAuthResponse {
-  user_id: string
-  email: string
-  nombre: string
-  avatar_url?: string
-  auth_token: string
-}
 
 export class AuthService implements IAuthService {
   private authState: MutableAuthState = {
@@ -34,10 +43,36 @@ export class AuthService implements IAuthService {
   private loginAttempts: { timestamp: number }[] = []
   private readonly MAX_LOGIN_ATTEMPTS = 5
   private readonly LOGIN_TIMEOUT_MS = 60000 // 1 minuto
-  private readonly storage: TokenStorage
+  private readonly storage: SessionStoragePort
   private readonly provider: GoogleOAuthProvider
+  private readonly gateway: AuthGatewayPort
+  private readonly loginWithGoogleUseCase: LoginWithGoogleUseCase
+  private readonly refreshTokenUseCase: RefreshTokenUseCase
+  private readonly shouldRefreshTokenUseCase: ShouldRefreshTokenUseCase
+  private readonly validateJwtUseCase: ValidateJwtUseCase
+  private readonly logoutUseCase: LogoutUseCase
+  private readonly loadStoredAuthUseCase: LoadStoredAuthUseCase
+  private readonly buildAuthHeadersUseCase: BuildAuthHeadersUseCase
+  private readonly rateLimitLoginUseCase: RateLimitLoginUseCase
+  private readonly getGoogleConfigInfoUseCase: GetGoogleConfigInfoUseCase
 
-  constructor(config?: AuthServiceConfig, deps?: { storage?: TokenStorage; provider?: GoogleOAuthProvider }) {
+  constructor(
+    config?: AuthServiceConfig,
+    deps?: {
+      storage?: TokenStorage
+      provider?: GoogleOAuthProvider
+      gateway?: AuthGatewayPort
+      loginUseCase?: LoginWithGoogleUseCase
+      refreshUseCase?: RefreshTokenUseCase
+      shouldRefreshUseCase?: ShouldRefreshTokenUseCase
+      validateJwtUseCase?: ValidateJwtUseCase
+      logoutUseCase?: LogoutUseCase
+      loadStoredAuthUseCase?: LoadStoredAuthUseCase
+      buildAuthHeadersUseCase?: BuildAuthHeadersUseCase
+      rateLimitLoginUseCase?: RateLimitLoginUseCase
+      getGoogleConfigInfoUseCase?: GetGoogleConfigInfoUseCase
+    }
+  ) {
     // Aplicar configuración con fallback a variables de entorno
     this.API_BASE_URL = config?.apiBaseUrl || ''
     this.GOOGLE_CLIENT_ID = config?.googleClientId || ''
@@ -50,6 +85,18 @@ export class AuthService implements IAuthService {
       config?.userStorageKey || 'auth_user'
     )
     this.provider = deps?.provider ?? new DefaultGoogleOAuthProvider()
+    this.gateway = deps?.gateway ?? new HttpAuthGateway(this.API_BASE_URL)
+    this.loginWithGoogleUseCase = deps?.loginUseCase ?? new LoginWithGoogleUseCase(this.gateway)
+    this.refreshTokenUseCase = deps?.refreshUseCase ?? new RefreshTokenUseCase(this.gateway)
+    this.shouldRefreshTokenUseCase = deps?.shouldRefreshUseCase ?? new ShouldRefreshTokenUseCase()
+    this.validateJwtUseCase = deps?.validateJwtUseCase ?? new ValidateJwtUseCase()
+    this.logoutUseCase = deps?.logoutUseCase ?? new LogoutUseCase(this.storage)
+    this.loadStoredAuthUseCase =
+      deps?.loadStoredAuthUseCase ?? new LoadStoredAuthUseCase(this.storage, this.validateJwtUseCase)
+    this.buildAuthHeadersUseCase = deps?.buildAuthHeadersUseCase ?? new BuildAuthHeadersUseCase()
+    this.rateLimitLoginUseCase =
+      deps?.rateLimitLoginUseCase ?? new RateLimitLoginUseCase(this.MAX_LOGIN_ATTEMPTS, this.LOGIN_TIMEOUT_MS)
+    this.getGoogleConfigInfoUseCase = deps?.getGoogleConfigInfoUseCase ?? new GetGoogleConfigInfoUseCase()
 
     if (!this.API_BASE_URL) {
       throw new Error('AuthService requires apiBaseUrl in config.')
@@ -57,10 +104,7 @@ export class AuthService implements IAuthService {
 
     // Validar que el client_id esté configurado
     if (!this.GOOGLE_CLIENT_ID) {
-      console.error('[Auth] ❌ VITE_GOOGLE_CLIENT_ID no está configurado en las variables de entorno')
-      console.error('[Auth] Stack de ejecución iniciada en:', new Error().stack)
-      console.warn('[Auth] 📋 Crea un archivo .env en la raíz del proyecto')
-      console.warn('[Auth] 📋 Con contenido: VITE_GOOGLE_CLIENT_ID=tu_client_id_aqui.apps.googleusercontent.com')
+      logger.error('[Auth] VITE_GOOGLE_CLIENT_ID no configurado; revisa .env')
       this.authState.error = 'Configuración de Google OAuth incompleta'
     } else {
       // Solo loguear client ID en desarrollo por seguridad
@@ -68,8 +112,7 @@ export class AuthService implements IAuthService {
 
     // Validar que API use HTTPS en producción
     if (import.meta.env.PROD && !this.API_BASE_URL.startsWith('https://')) {
-      console.warn('[Auth] WARNING: API_BASE_URL deberia usar HTTPS en produccion')
-      console.warn('[Auth] URL actual:', this.API_BASE_URL)
+      logger.warn('[Auth] API_BASE_URL deberia usar HTTPS en produccion')
     }
 
     this.loadStoredAuth()
@@ -81,66 +124,34 @@ export class AuthService implements IAuthService {
    * @param token JWT en formato xxx.yyy.zzz
    * @returns Payload decodificado o null si no es JWT válido
    */
-  private decodeJWT(token: string): any | null {
-    try {
-      const parts = token.split('.')
-      if (parts.length !== 3) {
-        console.warn('[Auth] ⚠️ Token no tiene formato JWT (esperado: 3 partes, recibido:', parts.length + ')')
-        return null
-      }
-
-      // Decodificar payload (segunda parte)
-      const payload = parts[1]
-      // Reemplazar caracteres URL-safe de Base64
-      const base64 = payload.replace(/-/g, '+').replace(/_/g, '/')
-      const jsonPayload = decodeURIComponent(
-        atob(base64)
-          .split('')
-          .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
-          .join('')
-      )
-
-      return JSON.parse(jsonPayload)
-    } catch (error) {
-      console.error('[Auth] ❌ Error al decodificar JWT:', error)
-      console.error('[Auth] Token recibido es inválido o no parseable')
-      return null
-    }
-  }
-
   /**
    * Valida si un JWT ha expirado
    * @param token JWT a validar
    * @returns true si el token es válido y no expiró, false si expiró o no es JWT
    */
   private isTokenValid(token: string): boolean {
-    const payload = this.decodeJWT(token)
-    
-    if (!payload) {
-      console.warn('[Auth] ⚠️ No se pudo decodificar token para validar expiración')
-      // Si no es JWT, asumir válido y dejar que backend decida (401)
+    const validation = this.validateJwtUseCase.execute(token)
+
+    if (validation.reason === 'invalid_format' || validation.reason === 'decode_error') {
+      logger.warn('[Auth] ⚠️ No se pudo decodificar token para validar expiración')
       return true
     }
 
-    // Verificar claim 'exp' (expiración en segundos Unix)
-    if (!payload.exp) {
-      console.warn('[Auth] ⚠️ JWT sin claim "exp"; no se puede validar expiración en frontend')
-      return true // Asumir válido si no tiene exp
+    if (validation.reason === 'missing_exp') {
+      logger.warn('[Auth] ⚠️ JWT sin claim \"exp\"; no se puede validar expiración en frontend')
+      return true
     }
 
-    const now = Math.floor(Date.now() / 1000) // Timestamp actual en segundos
-    const isExpired = now >= payload.exp
-
-    if (isExpired) {
-      const expiredDate = new Date(payload.exp * 1000).toLocaleString('es-AR')
-      console.warn('[Auth] ⏰ Token expiró el', expiredDate)
-      console.warn('[Auth] 🕐 Tiempo actual:', new Date().toLocaleString('es-AR'))
-    } else {
-      const expiresIn = payload.exp - now
-      const minutesLeft = Math.floor(expiresIn / 60)
+    if (validation.reason === 'expired') {
+      const exp = validation.payload?.exp
+      if (exp) {
+        const expiredDate = new Date(exp * 1000).toLocaleString('es-AR')
+        logger.warn('[Auth] ⏰ Token expiró el', expiredDate);
+      }
+      return false
     }
 
-    return !isExpired
+    return true
   }
 
   /**
@@ -150,26 +161,39 @@ export class AuthService implements IAuthService {
     this.provider.loadScript()
   }
 
+  private ensureLoginRateLimit(): void {
+    const result = this.rateLimitLoginUseCase.execute(
+      { attempts: this.loginAttempts },
+      Date.now()
+    )
+    this.loginAttempts = result.nextState.attempts
+
+    if (!result.allowed) {
+      const waitTime = result.waitTimeSeconds ?? 0
+      const errorMsg = `Demasiados intentos de login. Espera ${waitTime} segundos.`
+      logger.warn(`[Auth] Rate limit alcanzado: ${this.loginAttempts.length} intentos en 1 minuto`)
+      this.authState.error = errorMsg
+      throw new Error(errorMsg)
+    }
+  }
+
+  private persistAuth(user: User, token: string): void {
+    this.authState.user = user
+    this.authState.token = token
+    this.authState.isAuthenticated = true
+
+    this.storage.save(user, token)
+  }
+
+
+
+
   /**
    * Inicia sesión con Google
    * @param token Token de ID de Google
    */
   async loginWithGoogle(token: string): Promise<User> {
-    // Rate limiting: prevenir spam de intentos de login
-    const now = Date.now()
-    this.loginAttempts = this.loginAttempts.filter(attempt => now - attempt.timestamp < this.LOGIN_TIMEOUT_MS)
-    
-    if (this.loginAttempts.length >= this.MAX_LOGIN_ATTEMPTS) {
-      const oldestAttempt = this.loginAttempts[0].timestamp
-      const waitTime = Math.ceil((this.LOGIN_TIMEOUT_MS - (now - oldestAttempt)) / 1000)
-      const errorMsg = `Demasiados intentos de login. Espera ${waitTime} segundos.`
-      console.warn(`[Auth] 🚫 Rate limit alcanzado: ${this.loginAttempts.length} intentos en 1 minuto`)
-      this.authState.error = errorMsg
-      throw new Error(errorMsg)
-    }
-    
-    this.loginAttempts.push({ timestamp: now })
-    
+    this.ensureLoginRateLimit()
     this.authState.isLoading = true
     this.authState.error = null
 
@@ -177,94 +201,23 @@ export class AuthService implements IAuthService {
       // Validar que el token esté disponible
       if (!token || token.trim() === '') {
         const errorMsg = 'Token de Google no válido'
-        console.error(`[Auth] ❌ ${errorMsg}`)
-        console.error('[Auth] El token está vacío o es undefined')
+        logger.error(`[Auth] ❌ ${errorMsg}`);
         throw new Error(errorMsg)
       }
       
-      // Enviar token a backend para validación
-      const response = await fetch(`${this.API_BASE_URL}/api/auth/google`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ token })
-      }).catch((fetchError) => {
-        console.error('[Auth] ❌ Error de conexión al servidor:', fetchError)
-        console.error('[Auth] 🌐 URL del servidor:', this.API_BASE_URL)
-        console.error('[Auth] Mensaje:', fetchError instanceof Error ? fetchError.message : 'Error desconocido')
-        console.error('[Auth] Stack:', fetchError instanceof Error ? fetchError.stack : 'No disponible')
-        console.warn('[Auth] Posibles causas:')
-        console.warn('  1️⃣ Servidor no está ejecutándose')
-        console.warn('  2️⃣ URL del servidor es incorrecta')
-        console.warn('  3️⃣ Problemas de conexión de red')
-        console.warn('  4️⃣ CORS no está configurado en el servidor')
-        throw new Error(`No se pudo conectar al servidor: ${fetchError.message}`)
-      })
-
-      if (!response.ok) {
-        const statusError = `HTTP ${response.status}: ${response.statusText}`
-        console.error(`[Auth] ❌ Error de respuesta del servidor: ${statusError}`)
-        console.error(`[Auth] 📍 Endpoint: ${this.API_BASE_URL}/api/auth/google`)
-        console.warn(`[Auth] Verifica que el servidor esté ejecutándose`)
-        console.warn(`[Auth] Verifica que CORS esté configurado correctamente`)
-        
-        // Intentar obtener más detalles del error
-        try {
-          const errorData = await response.json()
-          console.error('[Auth] Respuesta del servidor:', errorData)
-        } catch (parseErr) {
-          console.warn('[Auth] No se pudo parsear respuesta de error')
-        }
-        
-        throw new Error(`Error de autenticación: ${statusError}`)
-      }
-
-      let data: GoogleAuthResponse
-      try {
-        data = await response.json()
-      } catch (parseError) {
-        console.error('[Auth] ❌ Error al parsear respuesta JSON:', parseError)
-        console.error('[Auth] Stack:', parseError instanceof Error ? parseError.stack : 'No disponible')
-        throw new Error('La respuesta del servidor no es válida')
-      }
-
-      // Validar datos de respuesta
-      if (!data.user_id || !data.email || !data.auth_token) {
-        console.error('[Auth] ❌ Datos incompletos en respuesta del servidor:', data)
-        console.error('[Auth] Campos faltantes:')
-        console.error('  user_id:', !!data.user_id)
-        console.error('  email:', !!data.email)
-        console.error('  auth_token:', !!data.auth_token)
-        throw new Error('Respuesta del servidor incompleta')
-      }
-
-      // Guardar token y usuario
-      const user: User = {
-        id: data.user_id,
-        email: data.email,
-        nombre: data.nombre,
-        avatar_url: data.avatar_url
-      }
+      const result = await this.loginWithGoogleUseCase.execute(token)
 
       try {
-        this.authState.user = user
-        this.authState.token = data.auth_token
-        this.authState.isAuthenticated = true
-
-        this.storage.save(user, data.auth_token)
+        this.persistAuth(result.user, result.authToken)
       } catch (storageError) {
-        console.warn('[Auth] ⚠️ Error al guardar en localStorage:', storageError)
-        console.warn('[Auth] ⚠️ La sesión funcionará pero no será persistida en recarga')
+        logger.warn('[Auth] Error al guardar en localStorage:', storageError);
       }
 
-      return user
+      return result.user
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Error desconocido'
       this.authState.error = message
-      console.error('[Auth] ❌ Error de autenticación:', message)
-      console.error('[Auth] Detalles del error:', error)
-      console.error('[Auth] Stack:', error instanceof Error ? error.stack : 'No disponible')
+      logger.error('[Auth] Error de autenticacion:', message);
       throw error
     } finally {
       this.authState.isLoading = false
@@ -277,22 +230,20 @@ export class AuthService implements IAuthService {
   logout(): void {
     try {
       
-      this.authState.user = null
-      this.authState.token = null
-      this.authState.isAuthenticated = false
-      this.authState.error = null
-
-      this.storage.clear()
+      const result = this.logoutUseCase.execute()
+      this.authState.user = result.nextState.user
+      this.authState.token = result.nextState.token
+      this.authState.isAuthenticated = result.nextState.isAuthenticated
+      this.authState.error = result.nextState.error
 
       // Revocar sesión de Google si está disponible
       try {
         this.provider.disableAutoSelect()
       } catch (googleError) {
-        console.warn('[Auth] ⚠️ Error al revocar sesión de Google:', googleError)
+        logger.warn('[Auth] ⚠️ Error al revocar sesión de Google:', googleError)
       }
     } catch (error) {
-      console.error('[Auth] ❌ Error inesperado al cerrar sesión:', error)
-      console.error('[Auth] Stack:', error instanceof Error ? error.stack : 'No disponible')
+      logger.error('[Auth] ❌ Error inesperado al cerrar sesión:', error);
     }
   }
 
@@ -301,23 +252,18 @@ export class AuthService implements IAuthService {
    */
   private loadStoredAuth(): void {
     try {
-      const { token, user } = this.storage.load()
-      if (token && user) {
-        // Validar que el token no haya expirado
-        if (!this.isTokenValid(token)) {
-          console.warn('[Auth] ❌ Token expirado, cerrando sesión...')
-          this.logout()
-          return
-        }
-        this.authState.user = user
-        this.authState.token = token
-        this.authState.isAuthenticated = true
-      } else {
+      const result = this.loadStoredAuthUseCase.execute()
+      if (result.shouldLogout) {
+        logger.warn('[Auth] Token expirado, cerrando sesion...')
+        this.logout()
+        return
       }
+
+      this.authState.user = result.user
+      this.authState.token = result.token
+      this.authState.isAuthenticated = result.isAuthenticated
     } catch (error) {
-      console.error('[Auth] ❌ Error al cargar autenticación almacenada:', error)
-      console.error('[Auth] Stack:', error instanceof Error ? error.stack : 'No disponible')
-      console.warn('[Auth] ⚠️ Limpiando datos de sesión corruptos')
+      logger.error('[Auth] Error al cargar autenticacion almacenada; limpiando sesion')
       this.logout()
     }
   }
@@ -354,15 +300,7 @@ export class AuthService implements IAuthService {
    * Obtiene headers con token de autenticación
    */
   getAuthHeaders(): Record<string, string> {
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json'
-    }
-
-    if (this.authState.token) {
-      headers['Authorization'] = `Bearer ${this.authState.token}`
-    }
-
-    return headers
+    return this.buildAuthHeadersUseCase.execute(this.authState.token)
   }
 
   /**
@@ -371,33 +309,28 @@ export class AuthService implements IAuthService {
    */
   private async silentRefresh(): Promise<boolean> {
     if (!this.authState.token) {
-      console.warn('[Auth] ⚠️ No hay token disponible para refrescar')
+      logger.warn('[Auth] ⚠️ No hay token disponible para refrescar')
       return false
     }
 
     try {
 
-      const response = await fetch(`${this.API_BASE_URL}/api/auth/refresh`, {
-        method: 'POST',
-        headers: this.getAuthHeaders(),
-        body: JSON.stringify({ token: this.authState.token })
-      })
-
-      if (!response.ok) {
-        if (response.status === 401) {
-          console.warn('[Auth] ❌ Token refresh rechazado (401). Sesión expirada.')
+      let newToken: string
+      try {
+        newToken = await this.refreshTokenUseCase.execute(this.authState.token)
+      } catch (error) {
+        const message = error instanceof Error ? error.message : ''
+        if (message.includes('401')) {
+          logger.warn('[Auth] Token refresh rechazado (401). Sesion expirada.')
           this.logout()
           return false
         }
-        throw new Error(`Refresh falló: ${response.status}`)
+        throw error
       }
-
-      const data = (await response.json()) as { auth_token: string }
-      const newToken = data.auth_token
 
       // Validar nuevo token
       if (!newToken || newToken.trim() === '') {
-        console.error('[Auth] ❌ Backend retornó token vacío')
+        logger.error('[Auth] Backend retorno token vacio')
         return false
       }
 
@@ -408,14 +341,15 @@ export class AuthService implements IAuthService {
       }
 
       if (import.meta.env.DEV) {
-        const payload = this.decodeJWT(newToken)
-        const expiresIn = payload?.exp ? payload.exp - Math.floor(Date.now() / 1000) : 0
+        const validation = this.validateJwtUseCase.execute(newToken)
+        const exp = validation.payload?.exp
+        const expiresIn = exp ? exp - Math.floor(Date.now() / 1000) : 0
         const minutesLeft = Math.floor(expiresIn / 60)
       }
 
       return true
     } catch (error) {
-      console.error('[Auth] ❌ Error al refrescar token:', error)
+      logger.error('[Auth] ❌ Error al refrescar token:', error)
       this.logout()
       return false
     }
@@ -430,24 +364,16 @@ export class AuthService implements IAuthService {
       return false
     }
 
-    const payload = this.decodeJWT(this.authState.token)
-    if (!payload?.exp) {
+    const refreshDecision = this.shouldRefreshTokenUseCase.execute(this.authState.token)
+    if (!refreshDecision.canEvaluate) {
       return false
     }
 
-    const now = Math.floor(Date.now() / 1000)
-    const expiresIn = payload.exp - now
-    const REFRESH_THRESHOLD = 300 // 5 minutos en segundos
-
-    // Si el token expira en menos de 5 minutos, refrescar
-    if (expiresIn < REFRESH_THRESHOLD) {
-      if (import.meta.env.DEV) {
-        const minutesLeft = Math.floor(expiresIn / 60)
-      }
-      return await this.silentRefresh()
+    if (!refreshDecision.shouldRefresh) {
+      return true
     }
 
-    return true // Token aún válido
+    return await this.silentRefresh()
   }
 
   /**
@@ -461,10 +387,7 @@ export class AuthService implements IAuthService {
    * Obtiene información de configuración (sin exponer el client_id completo)
    */
   getConfigInfo(): { configured: boolean; clientIdPrefix: string } {
-    return {
-      configured: this.isGoogleConfigured(),
-      clientIdPrefix: this.GOOGLE_CLIENT_ID ? this.GOOGLE_CLIENT_ID.substring(0, 20) + '...' : 'NO CONFIGURADO'
-    }
+    return this.getGoogleConfigInfoUseCase.execute(this.GOOGLE_CLIENT_ID)
   }
 
   /**
@@ -480,14 +403,8 @@ export class AuthService implements IAuthService {
       
       // Validar que Google SDK esté cargado
       if (!this.provider.isReady()) {
-        const errorMsg = 'Google Identity Services SDK no está cargado'
-        console.error(`[Auth] ❌ ${errorMsg}`)
-        console.error('[Auth] window.google:', window.google)
-        console.error('[Auth] window.google.accounts:', window.google?.accounts)
-        console.warn('[Auth] Soluciones: ')
-        console.warn('  1️⃣ Verifica tu conexión a internet')
-        console.warn('  2️⃣ Verifica que accounts.google.com sea accesible')
-        console.warn('  3️⃣ Recarga la página')
+        const errorMsg = 'Google Identity Services SDK no est?? cargado'
+        logger.error(`[Auth] ${errorMsg}; verifica SDK y conexion`)
         this.authState.error = 'SDK de Google no disponible'
         return
       }
@@ -495,9 +412,7 @@ export class AuthService implements IAuthService {
       // Validar que el client_id esté configurado
       if (!this.GOOGLE_CLIENT_ID || this.GOOGLE_CLIENT_ID.trim() === '') {
         const errorMsg = 'client_id de Google no configurado'
-        console.error(`[Auth] ❌ ${errorMsg}`)
-        console.warn('[Auth] Configura VITE_GOOGLE_CLIENT_ID en tu archivo .env')
-        console.warn('[Auth] Formato: VITE_GOOGLE_CLIENT_ID=<tu_client_id>.apps.googleusercontent.com')
+        logger.error(`[Auth] ${errorMsg}; revisa .env`)
         this.authState.error = 'Client ID no configurado'
         return
       }
@@ -509,27 +424,12 @@ export class AuthService implements IAuthService {
             try {
               callback(cred)
             } catch (callbackError) {
-              console.error('[Auth] ❌ Error en callback de autenticación:', callbackError)
-              console.error('[Auth] Stack:', callbackError instanceof Error ? callbackError.stack : 'No disponible')
+              logger.error('[Auth] Error en callback de autenticacion')
               this.authState.error = 'Error procesando autenticación'
             }
           },
           (error: any) => {
-            console.error('[Auth] ❌❌❌ ERROR CRÍTICO: Origen NO autorizado en Google Cloud Console')
-            console.error('[Auth] 🌐 Origen bloqueado:', window.location.origin)
-            console.error('[Auth] Client ID: [redacted]')
-            console.error('[Auth] Error details:', error)
-            console.error('[Auth] ')
-            console.error('[Auth] 🔧 SOLUCIÓN RÁPIDA (5 minutos):')
-            console.error('[Auth] 1️⃣ Ve a: https://console.cloud.google.com/apis/credentials')
-            console.error('[Auth] 2️⃣ Busca el Client ID arriba en la lista de credenciales')
-            console.error('[Auth] 3️⃣ Click en editar > "Authorized JavaScript origins"')
-            console.error('[Auth] 4️⃣ Agrega:', window.location.origin)
-            console.error('[Auth] 5️⃣ También agrega: http://127.0.0.1:5173 (si usas localhost)')
-            console.error('[Auth] 6️⃣ Guarda y espera 1-2 minutos')
-            console.error('[Auth] 7️⃣ Recarga esta página con Ctrl+Shift+R')
-            console.error('[Auth] ')
-            console.error('[Auth] 📚 Documentación: Ver docs/GOOGLE_ORIGIN_NOT_AUTHORIZED_FIX.md')
+            logger.error('[Auth] Origen no autorizado en Google Cloud Console')
             this.authState.error = `Origen ${window.location.origin} no autorizado en Google Cloud Console. Ver consola para instrucciones.`
           }
         )
@@ -537,25 +437,17 @@ export class AuthService implements IAuthService {
         // Monitorear errores de red de Google después de inicializar
         setTimeout(() => {
           if (this.authState.error && this.authState.error.includes('no autorizado')) {
-            console.error('[Auth] ⚠️ Si ves error 403 en Network tab:')
-            console.error('[Auth] → El origen NO está en Google Cloud Console')
-            console.error('[Auth] → Ver docs/GOOGLE_ORIGIN_NOT_AUTHORIZED_FIX.md para solución')
+            logger.error('[Auth] Error 403: origen no autorizado en Google Cloud Console')
           }
         }, 2000)
       } catch (initError) {
-        console.error('[Auth] ❌ Error al inicializar Google Sign-In:', initError)
-        console.error('[Auth] Stack:', initError instanceof Error ? initError.stack : 'No disponible')
-        console.error(`[Auth] 🌐 Origen: ${window.location.origin}`)
-        console.error('[Auth] Client ID: [redacted]')
-        console.warn('[Auth] El origen puede no estar permitido en Google Cloud Console')
+        logger.error('[Auth] Error al inicializar Google Sign-In')
         throw initError
       }
 
       const container = document.getElementById(containerId)
       if (!container) {
-        console.error(`[Auth] ❌ Contenedor #${containerId} no encontrado en el DOM`)
-        console.error(`[Auth] Verifica que exista: <div id="${containerId}"></div>`)
-        console.warn(`[Auth] HTML que busca: <div id="${containerId}"></div>`)
+        logger.error(`[Auth] Contenedor #${containerId} no encontrado en el DOM`)
         return
       }
 
@@ -567,7 +459,7 @@ export class AuthService implements IAuthService {
         let gsiLoggerDetected = false
         
         // Capturar mensajes de error específicos de GSI
-        const originalConsoleError = console.error
+        const originalConsoleError = logger.error
         const checkForGSIError = (...args: any[]) => {
           const msg = args.join(' ')
           if (msg.includes('GSI') || msg.includes('gsi')) {
@@ -605,54 +497,18 @@ export class AuthService implements IAuthService {
           // 1. No hay iframe en absoluto O
           // 2. Se detectó GSI_LOGGER con error de origin
           if (googleIframes.length === 0 || gsiLoggerDetected) {
-            console.error('[Auth] ')
-            console.error('[Auth] ❌❌❌ ERROR DETECTADO: Posible problema de origen')
-            console.error('[Auth] ')
-            console.error('[Auth] 📋 INFORMACIÓN:')
-            console.error('[Auth]   🌐 Origin actual: ', window.location.origin)
-            console.error('[Auth] Client ID: [redacted]')
-            if (gsiLoggerDetected) {
-              console.error('[Auth]   ⚠️  GSI_LOGGER reportó: origin not allowed')
+            if (gsiLoggerDetected || googleIframes.length === 0) {
+              logger.error('[Auth] Diagnostico Google Sign-In fallido')
             }
-            if (googleIframes.length === 0) {
-              console.error('[Auth]   ⚠️  No se encontraron iframes de Google en el DOM')
-            }
-            console.error('[Auth] ')
-            console.error('[Auth] 🔧 VERIFICACIONES (en orden):')
-            console.error('[Auth] ')
-            console.error('[Auth] 1️⃣ Confirmar que el origen está en Google Cloud Console')
-            console.error('[Auth]    ▪ URL: https://console.cloud.google.com/apis/credentials')
-            console.error('[Auth]    - Busca Client ID: [redacted]')
-            console.error('[Auth]    ▪ Verifica "Authorized JavaScript origins" incluye:')
-            console.error('[Auth]       - http://localhost:5173')
-            console.error('[Auth]       - http://localhost')
-            console.error('[Auth]       - http://127.0.0.1:5173')
-            console.error('[Auth]       - http://127.0.0.1')
-            console.error('[Auth]    ▪ Presiona SAVE y espera 1-2 minutos')
-            console.error('[Auth] ')
-            console.error('[Auth] 2️⃣ Verificar que el header Referer se envía')
-            console.error('[Auth]    ▪ Chrome DevTools → Network → gsi/button')
-            console.error('[Auth]    ▪ Revisa Request Headers → Referer')
-            console.error('[Auth]    ▪ Debería mostrar: http://localhost:5173/...')
-            console.error('[Auth] ')
-            console.error('[Auth] 3️⃣ Si persiste, prueba hard reload')
-            console.error('[Auth]    ▪ Ctrl+Shift+R (Windows) o Cmd+Shift+R (Mac)')
-            console.error('[Auth] ')
-            console.error('[Auth] 📚 Guía completa: docs/GOOGLE_403_TROUBLESHOOTING_COMPLETE.md')
-          } else {
+                      } else {
           }
         }, 3000)
       } catch (renderError) {
-        console.error('[Auth] ❌ Error al renderizar botón de Google Sign-In:', renderError)
-        console.error('[Auth] Stack:', renderError instanceof Error ? renderError.stack : 'No disponible')
-        console.error('[Auth] Contenedor:', container)
-        console.warn('[Auth] El contenedor puede estar vacío o mal configurado')
+        logger.error('[Auth] Error al renderizar boton de Google Sign-In')
         throw renderError
       }
     } catch (error) {
-      console.error('[Auth] ❌ Error al inicializar Google Sign-In:', error)
-      console.error('[Auth] Stack:', error instanceof Error ? error.stack : 'No disponible')
-      console.error(`[Auth] 🌐 Origen actual: ${window.location.origin}`)
+      logger.error('[Auth] Error al inicializar Google Sign-In')
       this.authState.error = 'Error de inicialización de Google Sign-In'
       throw error
     }
@@ -679,7 +535,7 @@ declare global {
 }
 
 // Exportar clase y tipos
-export type { User, GoogleAuthResponse }
+export type { User }
 export type { IAuthService, IAuthQuery, IAuthCommand, AuthState, MutableAuthState, GoogleAuthConfig, AuthServiceConfig } from './IAuthService'
 
 // Ajustar tipo de credentials si es necesario
@@ -687,7 +543,7 @@ export async function authenticateUser(credentials: any) {
   try {
     // ...existing code...
   } catch (error) {
-    console.error('Error autenticando usuario', error)
+    logger.error('Error autenticando usuario', error)
     throw error
   }
 }
