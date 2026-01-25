@@ -64,19 +64,19 @@ fetchUpdates();
 </script>
 
 <template>
-  <div class="updates-view">
-    <section class="hero-section">
+  <div class="min-vh-100 bg-light">
+    <section class="py-5 text-center text-white" style="background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);">
       <div class="container">
-        <h1>{{ updatesViewContent.heroTitle }}</h1>
-        <p class="subtitle">{{ updatesViewContent.heroSubtitle }}</p>
-        <p class="stats">{{ sortedUpdates.length }} {{ updatesViewContent.statsLabel }}</p>
+        <h1 class="display-6 fw-bold mb-2">{{ updatesViewContent.heroTitle }}</h1>
+        <p class="lead mb-1">{{ updatesViewContent.heroSubtitle }}</p>
+        <p class="small mb-0">{{ sortedUpdates.length }} {{ updatesViewContent.statsLabel }}</p>
       </div>
     </section>
 
-    <section class="updates-section">
+    <section class="py-5">
       <div class="container">
         <!-- Filtros de categoría -->
-        <div class="filters">
+        <div class="d-flex gap-2 flex-wrap justify-content-center mb-4">
           <button
             v-for="cat in categories"
             :key="cat.value"
@@ -90,10 +90,11 @@ fetchUpdates();
         </div>
 
         <!-- Grid de updates -->
-        <div class="updates-grid">
+        <div class="row g-4">
           <div
             v-for="update in sortedUpdates"
             :key="update.id"
+            class="col-12 col-md-6 col-lg-4"
             @click="handleCardClick(update)"
             role="button"
             tabindex="0"
@@ -105,8 +106,8 @@ fetchUpdates();
         </div>
 
         <!-- Empty state -->
-        <div v-if="sortedUpdates.length === 0" class="empty-state">
-          <p>{{ updatesViewContent.emptyState }}</p>
+        <div v-if="sortedUpdates.length === 0" class="text-center py-5 text-muted">
+          <p class="mb-0">{{ updatesViewContent.emptyState }}</p>
         </div>
       </div>
     </section>
@@ -116,14 +117,14 @@ fetchUpdates();
       <div v-if="showModal && selectedUpdate" class="modal-backdrop" @click="handleCloseModal">
         <div class="modal-content" role="dialog" aria-modal="true" @click.stop>
           <header class="modal-header">
-            <div>
+            <div class="d-flex flex-column gap-2">
               <span
                 class="badge"
                 :style="categoryBadgeStyle(selectedUpdate.category)"
               >
                 {{ selectedUpdate.category }}
               </span>
-              <time class="date">
+              <time class="small text-muted">
                 {{ new Date(selectedUpdate.publishedAt).toLocaleDateString('es-AR', { 
                   year: 'numeric', 
                   month: 'long', 
@@ -140,8 +141,8 @@ fetchUpdates();
           </header>
 
           <div class="modal-body">
-            <h2>{{ selectedUpdate.title }}</h2>
-            <div class="content">
+            <h2 class="h3 mb-4">{{ selectedUpdate.title }}</h2>
+            <div class="lh-lg text-body-secondary" style="white-space: pre-line;">
               {{ selectedUpdate.content }}
             </div>
           </div>
@@ -155,125 +156,3 @@ fetchUpdates();
   </div>
 </template>
 
-<style scoped>
-.updates-view {
-  min-height: 100vh;
-  background-color: #f9fafb;
-}
-
-.hero-section {
-  padding: 60px 20px 40px;
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
-  color: white;
-  text-align: center;
-}
-
-/* container en components.css */
-
-.hero-section h1 {
-  font-size: 36px;
-  margin: 0 0 12px 0;
-  font-weight: 700;
-}
-
-.subtitle {
-  font-size: 18px;
-  margin: 0 0 8px 0;
-  opacity: 0.95;
-}
-
-.stats {
-  font-size: 14px;
-  margin: 0;
-  opacity: 0.85;
-}
-
-.updates-section {
-  padding: 60px 20px;
-}
-
-/* Filtros - usa filter-btn de components.css */
-.filters {
-  display: flex;
-  gap: 12px;
-  margin-bottom: 40px;
-  flex-wrap: wrap;
-  justify-content: center;
-}
-
-/* Grid */
-.updates-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 24px;
-}
-
-/* Empty state */
-.empty-state {
-  text-align: center;
-  padding: 60px 20px;
-  color: #999;
-}
-
-.empty-state p {
-  margin: 0;
-  font-size: 16px;
-}
-
-/* Modal - usa clases base de components.css */
-.modal-header > div {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.modal-header .date {
-  font-size: 13px;
-  color: #999;
-}
-
-.modal-body h2 {
-  margin: 0 0 24px 0;
-  font-size: 28px;
-  color: #111;
-  line-height: 1.3;
-}
-
-.modal-body .content {
-  font-size: 16px;
-  line-height: 1.8;
-  color: #444;
-  white-space: pre-line;
-}
-
-@media (max-width: 768px) {
-  .hero-section {
-    padding: 40px 20px 30px;
-  }
-
-  .hero-section h1 {
-    font-size: 28px;
-  }
-
-  .subtitle {
-    font-size: 16px;
-  }
-
-  .updates-section {
-    padding: 40px 20px;
-  }
-
-  .filters {
-    margin-bottom: 30px;
-  }
-
-  .updates-grid {
-    grid-template-columns: 1fr;
-    gap: 20px;
-  }
-
-  .modal-body h2 {
-    font-size: 24px;
-  }
-}
-</style>

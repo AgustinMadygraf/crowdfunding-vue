@@ -27,93 +27,23 @@ const formattedDate = new Date(props.update.publishedAt).toLocaleDateString('es-
 </script>
 
 <template>
-  <article class="card shadow-sm p-3 update-card cursor-pointer">
-    <div class="update-header">
+  <article class="card shadow-sm p-3 d-flex flex-column h-100 border-start border-4 border-transparent cursor-pointer update-card">
+    <div class="d-flex justify-content-between align-items-center gap-3 mb-3">
       <span 
         class="badge"
         :style="{ backgroundColor: categoryColors[update.category] }"
       >
         {{ categoryLabels[update.category] }}
       </span>
-      <time class="date">{{ formattedDate }}</time>
+      <time class="small text-muted text-nowrap">{{ formattedDate }}</time>
     </div>
 
-    <h3 class="title">{{ update.title }}</h3>
+    <h3 class="h5 fw-bold mb-3 text-truncate-2">{{ update.title }}</h3>
     
-    <p v-if="update.excerpt" class="excerpt">{{ update.excerpt }}</p>
+    <p v-if="update.excerpt" class="text-muted mb-0 text-truncate-3 flex-grow-1">{{ update.excerpt }}</p>
 
-    <div class="card-footer">
+    <div class="mt-3 pt-3 border-top d-flex justify-content-end">
       <span class="text-primary fw-semibold">{{ content.home.updateCard.readMoreLabel }}</span>
     </div>
   </article>
 </template>
-
-<style scoped>
-.update-card {
-  /* Usa card de Bootstrap */
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  border-left: 4px solid transparent;
-}
-
-.update-card:hover {
-  border-left-color: var(--color-primary);
-}
-
-.update-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
-  gap: 12px;
-}
-
-/* badge y text utilities en Bootstrap */
-
-.date {
-  font-size: 13px;
-  color: #999;
-  white-space: nowrap;
-}
-
-.title {
-  margin: 0 0 12px 0;
-  font-size: 20px;
-  font-weight: 700;
-  color: #111;
-  line-height: 1.3;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.excerpt {
-  margin: 0;
-  font-size: 14px;
-  color: #666;
-  line-height: 1.6;
-  flex-grow: 1;
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-/* card-footer ahora en components.css */
-
-@media (max-width: 600px) {
-  .title {
-    font-size: 18px;
-  }
-
-  .excerpt {
-    font-size: 13px;
-    -webkit-line-clamp: 2;
-    line-clamp: 2;
-  }
-}
-</style>

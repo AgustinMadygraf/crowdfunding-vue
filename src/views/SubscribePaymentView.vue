@@ -3,11 +3,11 @@ Path: src/views/SubscribePaymentView.vue
 -->
 
 <template>
-  <div class="subscribe-payment-container">
+  <div class="container py-4" style="max-width: 700px;">
     <!-- Header -->
-    <div class="payment-header">
-      <h1>{{ paymentContent.headerTitle }}</h1>
-      <p v-if="user" class="user-greeting">{{ paymentContent.greetingLabel }} {{ user.nombre }}</p>
+    <div class="text-center mb-4">
+      <h1 class="h2 mb-2">{{ paymentContent.headerTitle }}</h1>
+      <p v-if="user" class="text-muted mb-0">{{ paymentContent.greetingLabel }} {{ user.nombre }}</p>
     </div>
 
     <!-- Loading State -->
@@ -24,45 +24,45 @@ Path: src/views/SubscribePaymentView.vue
     <!-- Contribution Details -->
     <div v-if="contribution && !isLoading" class="card shadow-sm">
       <div class="card-body border-bottom d-flex justify-content-between align-items-center flex-wrap gap-2">
-        <h2>{{ paymentContent.detailsTitle }}</h2>
+        <h2 class="h5 mb-0">{{ paymentContent.detailsTitle }}</h2>
         <span class="badge" :class="getStatusBadgeClass(contribution.estado_pago)">
           {{ getStatusLabel(contribution.estado_pago) }}
         </span>
       </div>
 
       <div class="card-body border-bottom">
-        <div class="detail-row">
-          <span class="label">{{ paymentContent.detailLabels.level }}</span>
-          <span class="value">{{ contribution.nivel_nombre }}</span>
+        <div class="d-flex justify-content-between py-2 border-bottom">
+          <span class="fw-semibold text-muted">{{ paymentContent.detailLabels.level }}</span>
+          <span class="text-end">{{ contribution.nivel_nombre }}</span>
         </div>
 
-        <div class="detail-row">
-          <span class="label">{{ paymentContent.detailLabels.amount }}</span>
-          <span class="value">$ {{ formatAmount(contribution.monto) }}</span>
+        <div class="d-flex justify-content-between py-2 border-bottom">
+          <span class="fw-semibold text-muted">{{ paymentContent.detailLabels.amount }}</span>
+          <span class="text-end">$ {{ formatAmount(contribution.monto) }}</span>
         </div>
 
-        <div class="detail-row">
-          <span class="label">{{ paymentContent.detailLabels.created }}</span>
-          <span class="value">{{ formatDate(contribution.created_at) }}</span>
+        <div class="d-flex justify-content-between py-2 border-bottom">
+          <span class="fw-semibold text-muted">{{ paymentContent.detailLabels.created }}</span>
+          <span class="text-end">{{ formatDate(contribution.created_at) }}</span>
         </div>
 
-        <div v-if="contribution.completed_at" class="detail-row">
-          <span class="label">{{ paymentContent.detailLabels.completed }}</span>
-          <span class="value">{{ formatDate(contribution.completed_at) }}</span>
+        <div v-if="contribution.completed_at" class="d-flex justify-content-between py-2 border-bottom">
+          <span class="fw-semibold text-muted">{{ paymentContent.detailLabels.completed }}</span>
+          <span class="text-end">{{ formatDate(contribution.completed_at) }}</span>
         </div>
 
-        <div class="detail-row">
-          <span class="label">{{ paymentContent.detailLabels.token }}</span>
-          <span class="value token">{{ contribution.token }}</span>
+        <div class="d-flex justify-content-between py-2">
+          <span class="fw-semibold text-muted">{{ paymentContent.detailLabels.token }}</span>
+          <span class="text-end font-monospace small bg-light px-2 py-1 rounded">{{ contribution.token }}</span>
         </div>
       </div>
 
       <!-- Payment Section -->
       <div class="card-body border-bottom">
         <!-- Pending Payment -->
-        <div v-if="contribution.estado_pago === 'pendiente'" class="pending-payment">
-          <h3>{{ paymentContent.payment.pendingTitle }}</h3>
-          <p>{{ paymentContent.payment.pendingSubtitle }}</p>
+        <div v-if="contribution.estado_pago === 'pendiente'" class="text-center">
+          <h3 class="h6 mb-2">{{ paymentContent.payment.pendingTitle }}</h3>
+          <p class="text-muted mb-3">{{ paymentContent.payment.pendingSubtitle }}</p>
           
           <button 
             @click="initiatePayment"
@@ -74,27 +74,29 @@ Path: src/views/SubscribePaymentView.vue
         </div>
 
         <!-- Processing Payment -->
-        <div v-if="contribution.estado_pago === 'procesando'" class="processing-payment">
-          <h3>{{ paymentContent.payment.processingTitle }}</h3>
-          <p>{{ paymentContent.payment.processingSubtitle }}</p>
+        <div v-if="contribution.estado_pago === 'procesando'" class="text-center">
+          <h3 class="h6 mb-2">{{ paymentContent.payment.processingTitle }}</h3>
+          <p class="text-muted mb-3">{{ paymentContent.payment.processingSubtitle }}</p>
           <button @click="loadContribution" class="btn btn-outline-secondary">
             {{ paymentContent.payment.processingButton }}
           </button>
         </div>
 
         <!-- Completed Payment -->
-        <div v-if="contribution.estado_pago === 'completado'" class="completed-payment">
-          <h3>{{ paymentContent.payment.completedTitle }}</h3>
-          <p>{{ paymentContent.payment.completedSubtitle }}</p>
-          <p class="secondary-text">
+        <div v-if="contribution.estado_pago === 'completado'" class="text-center">
+          <div class="alert alert-success mb-0">
+            <h3 class="h6 mb-2">{{ paymentContent.payment.completedTitle }}</h3>
+            <p class="mb-2">{{ paymentContent.payment.completedSubtitle }}</p>
+            <p class="small mb-0">
             {{ paymentContent.payment.completedNote }}
-          </p>
+            </p>
+          </div>
         </div>
 
         <!-- Failed Payment -->
-        <div v-if="contribution.estado_pago === 'fallido'" class="failed-payment">
-          <h3>{{ paymentContent.payment.failedTitle }}</h3>
-          <p>{{ paymentContent.payment.failedSubtitle }}</p>
+        <div v-if="contribution.estado_pago === 'fallido'" class="text-center">
+          <h3 class="h6 mb-2">{{ paymentContent.payment.failedTitle }}</h3>
+          <p class="text-muted mb-3">{{ paymentContent.payment.failedSubtitle }}</p>
           <button 
             @click="initiatePayment"
             class="btn btn-primary"
@@ -105,9 +107,9 @@ Path: src/views/SubscribePaymentView.vue
         </div>
 
         <!-- Cancelled Payment -->
-        <div v-if="contribution.estado_pago === 'cancelado'" class="cancelled-payment">
-          <h3>{{ paymentContent.payment.cancelledTitle }}</h3>
-          <p>{{ paymentContent.payment.cancelledSubtitle }}</p>
+        <div v-if="contribution.estado_pago === 'cancelado'" class="text-center">
+          <h3 class="h6 mb-2">{{ paymentContent.payment.cancelledTitle }}</h3>
+          <p class="text-muted mb-3">{{ paymentContent.payment.cancelledSubtitle }}</p>
           <button 
             @click="initiatePayment"
             class="btn btn-primary"
@@ -132,7 +134,7 @@ Path: src/views/SubscribePaymentView.vue
     <!-- Not Found State -->
     <div v-if="!isLoading && !contribution && !error" class="alert alert-secondary text-center">
       <p class="mb-2">{{ paymentContent.notFoundLabel }}</p>
-      <router-link to="/subscribe" class="link">
+      <router-link to="/subscribe" class="link text-decoration-none">
         {{ paymentContent.notFoundCta }}
       </router-link>
     </div>
@@ -141,7 +143,7 @@ Path: src/views/SubscribePaymentView.vue
     <div v-if="showAuthInfo" class="alert alert-light text-center">
       <p class="mb-0">
         {{ paymentContent.authInfoPrefix }}
-        <router-link to="/account">{{ paymentContent.authInfoLink }}</router-link>
+        <router-link to="/account" class="text-decoration-none">{{ paymentContent.authInfoLink }}</router-link>
         {{ paymentContent.authInfoSuffix }}
       </p>
     </div>
@@ -297,124 +299,3 @@ onMounted(() => {
 })
 </script>
 
-<style scoped lang="css">
-.subscribe-payment-container {
-  max-width: 700px;
-  margin: 2rem auto;
-  padding: 0 1rem;
-}
-
-.payment-header {
-  text-align: center;
-  margin-bottom: 2rem;
-}
-
-.payment-header h1 {
-  font-size: 2rem;
-  margin: 0 0 0.5rem;
-  color: var(--color-text);
-}
-
-.user-greeting {
-  font-size: 1rem;
-  color: var(--color-text-secondary);
-  margin: 0;
-}
-
-.not-found .link {
-  color: var(--color-primary);
-  text-decoration: none;
-  margin-top: 1rem;
-  display: inline-block;
-}
-
-.card-body h2 {
-  margin: 0;
-  font-size: 1.25rem;
-  color: var(--color-text);
-}
-
-
-.detail-row {
-  display: flex;
-  justify-content: space-between;
-  padding: 0.75rem 0;
-  border-bottom: 1px solid #f0f0f0;
-}
-
-.detail-row:last-child {
-  border-bottom: none;
-}
-
-.label {
-  font-weight: 600;
-  color: var(--color-text-secondary);
-}
-
-.value {
-  color: var(--color-text);
-  text-align: right;
-}
-
-.value.token {
-  font-family: monospace;
-  font-size: 0.875rem;
-  background: #f5f5f5;
-  padding: 0.25rem 0.5rem;
-  border-radius: 0.25rem;
-}
-
-.pending-payment,
-.processing-payment,
-.completed-payment,
-.failed-payment,
-.cancelled-payment {
-  text-align: center;
-}
-
-.payment-section h3 {
-  margin: 0 0 0.5rem;
-  color: var(--color-text);
-}
-
-.payment-section p {
-  margin: 0.5rem 0;
-  color: var(--color-text-secondary);
-}
-
-.secondary-text {
-  font-size: 0.875rem;
-  color: #999;
-}
-
-
-.completed-payment {
-  background: #d4edda;
-  padding: 1.5rem;
-  border-radius: 0.5rem;
-  color: #155724;
-}
-
-.failed-payment {
-  background: #f8d7da;
-  padding: 1.5rem;
-  border-radius: 0.5rem;
-  color: #721c24;
-}
-
-.cancelled-payment {
-  background: #fff3cd;
-  padding: 1.5rem;
-  border-radius: 0.5rem;
-  color: #856404;
-}
-
-.auth-info a {
-  color: var(--color-primary);
-  text-decoration: none;
-}
-
-.auth-info a:hover {
-  text-decoration: underline;
-}
-</style>

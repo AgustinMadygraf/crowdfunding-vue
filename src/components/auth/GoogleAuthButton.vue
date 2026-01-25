@@ -3,26 +3,29 @@ Path: src/components/auth/GoogleAuthButton.vue
 -->
 
 <template>
-  <div class="google-auth-container">
+  <div class="d-flex flex-column gap-3 align-items-center">
     <div 
       v-if="!isAuthenticated"
       id="google-signin-button"
-      class="google-button-wrapper"
+      class="d-flex justify-content-center"
     ></div>
     
     <div 
       v-else
-      class="user-profile"
+      class="d-flex align-items-center gap-3 p-3 bg-light rounded-2 w-100"
+      style="max-width: 400px;"
     >
       <img 
         v-if="user?.avatar_url"
         :src="sanitizeAvatarUrl(user.avatar_url)"
         :alt="user.nombre"
-        class="avatar"
+        class="rounded-circle"
+        width="48"
+        height="48"
       >
-      <div class="user-info">
-        <p class="user-name">{{ user?.nombre }}</p>
-        <p class="user-email">{{ user?.email }}</p>
+      <div class="flex-grow-1">
+        <p class="fw-semibold mb-0">{{ user?.nombre }}</p>
+        <p class="text-muted small mb-0">{{ user?.email }}</p>
       </div>
       <button 
         @click="handleLogout"
@@ -32,7 +35,7 @@ Path: src/components/auth/GoogleAuthButton.vue
       </button>
     </div>
 
-    <div v-if="error" class="error-message">
+    <div v-if="error" class="alert alert-danger py-2 px-3 w-100" style="max-width: 400px;">
       {{ error }}
     </div>
   </div>
@@ -255,61 +258,3 @@ watch(error, (newError) => {
 })
 </script>
 
-<style scoped lang="css">
-.google-auth-container {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  align-items: center;
-}
-
-.google-button-wrapper {
-  display: flex;
-  justify-content: center;
-}
-
-.user-profile {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 1rem;
-  background: var(--color-background-soft);
-  border-radius: 0.5rem;
-  width: 100%;
-  max-width: 400px;
-}
-
-.avatar {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  object-fit: cover;
-}
-
-.user-info {
-  flex: 1;
-}
-
-.user-name {
-  font-weight: 600;
-  margin: 0;
-  color: var(--color-text);
-}
-
-.user-email {
-  font-size: 0.875rem;
-  margin: 0.25rem 0 0;
-  color: var(--color-text-secondary);
-}
-
-
-.error-message {
-  padding: 0.75rem;
-  background: #fee;
-  color: #c00;
-  border-radius: 0.25rem;
-  font-size: 0.875rem;
-  width: 100%;
-  max-width: 400px;
-}
-</style>
