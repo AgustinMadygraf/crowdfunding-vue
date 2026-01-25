@@ -216,26 +216,36 @@ const handlePayment = async () => {
     </section>
 
     <!-- Authentication Modal -->
-    <div v-if="isAuthenticationModalOpen && !isAuthenticated" class="modal-overlay" @click="isAuthenticationModalOpen = false">
-      <div class="modal-content" @click.stop>
-        <button
-          type="button"
-          class="btn-close"
-          :aria-label="subscribeContent.authModalClose"
-          @click="isAuthenticationModalOpen = false"
-        ></button>
-        <h2>{{ subscribeContent.authModalTitle }}</h2>
-        <p>{{ subscribeContent.authModalSubtitle }}</p>
-        <GoogleAuthButton 
-          @auth-success="handleAuthSuccess"
-          @logout="isAuthenticationModalOpen = false"
-        />
+    <div v-if="isAuthenticationModalOpen && !isAuthenticated">
+      <div class="modal fade show d-block" tabindex="-1" role="dialog" @click="isAuthenticationModalOpen = false">
+        <div class="modal-dialog modal-dialog-centered" @click.stop>
+          <div class="modal-content">
+            <div class="modal-header">
+              <h2 class="modal-title h5">{{ subscribeContent.authModalTitle }}</h2>
+              <button
+                type="button"
+                class="btn-close"
+                :aria-label="subscribeContent.authModalClose"
+                @click="isAuthenticationModalOpen = false"
+              ></button>
+            </div>
+            <div class="modal-body">
+              <p class="mb-4">{{ subscribeContent.authModalSubtitle }}</p>
+              <GoogleAuthButton 
+                @auth-success="handleAuthSuccess"
+                @logout="isAuthenticationModalOpen = false"
+              />
+            </div>
+          </div>
+        </div>
       </div>
+      <div class="modal-backdrop fade show"></div>
     </div>
 
     <section class="form-section">
       <div class="container">
-        <div v-if="isAuthenticated && user" class="auth-header">
+        <div v-if="isAuthenticated && user" class="card shadow-sm mb-4">
+          <div class="card-body d-flex justify-content-between align-items-center flex-wrap gap-2">
           <div class="user-badge">
             <img v-if="user.avatar_url" :src="sanitizeAvatarUrl(user.avatar_url)" :alt="user.nombre" class="avatar-sm">
             <div>
@@ -246,11 +256,13 @@ const handlePayment = async () => {
           <router-link to="/account" class="btn btn-primary btn-sm">
             {{ subscribeContent.dashboardLink }}
           </router-link>
+          </div>
         </div>
 
-        <div class="form-container">
+        <div class="card shadow-sm">
+          <div class="card-body p-4">
           <div v-if="selectedLevel && !contributionCreated" class="level-summary">
-            <h2>{{ subscribeContent.levelSelectedTitle }}</h2>
+            <h2 class="h4 mb-3">{{ subscribeContent.levelSelectedTitle }}</h2>
             <div class="level-info">
               <h3>{{ selectedLevel.name }}</h3>
               <p class="amount">${{ selectedLevel.amount.toLocaleString() }}</p>
@@ -262,22 +274,22 @@ const handlePayment = async () => {
           </div>
 
           <div v-if="!selectedLevel && !contributionCreated" class="level-selector">
-            <h2>{{ subscribeContent.levelSelectorTitle }}</h2>
-            <div class="levels-grid">
+            <h2 class="h4 mb-3">{{ subscribeContent.levelSelectorTitle }}</h2>
+            <div class="row g-3">
               <button
                 v-for="level in levels"
                 :key="level.name"
-                class="level-card"
+                class="btn btn-outline-secondary text-start"
                 @click="selectLevel(level)"
               >
-                <h3>{{ level.name }}</h3>
-                <p class="amount">${{ level.amount.toLocaleString() }}</p>
+                <span class="fw-semibold d-block">{{ level.name }}</span>
+                <span class="amount d-block">${{ level.amount.toLocaleString() }}</span>
               </button>
             </div>
           </div>
 
           <div v-if="selectedLevel && !contributionCreated" class="contribution-form">
-            <h2>{{ subscribeContent.authConfirmTitle }}</h2>
+            <h2 class="h4 mb-3">{{ subscribeContent.authConfirmTitle }}</h2>
 
             <div v-if="!isAuthenticated" class="auth-prompt">
               <p>{{ subscribeContent.authPrompt }}</p>
@@ -287,7 +299,7 @@ const handlePayment = async () => {
             </div>
 
             <div v-else>
-              <div v-if="submitError" class="form-error-banner">{{ submitError }}</div>
+              <div v-if="submitError" class="alert alert-danger text-center">{{ submitError }}</div>
               <button type="button" class="btn btn-success w-100" :disabled="isSubmitting" @click="handleSubmit">
                 {{ isSubmitting ? subscribeContent.submitLoadingLabel : subscribeContent.submitLabel }}
               </button>
@@ -295,28 +307,30 @@ const handlePayment = async () => {
           </div>
 
           <div v-if="contributionCreated && contributionToken" class="success-section">
-            <div class="success-message">
-              <h3>{{ subscribeContent.successTitle }}</h3>
-              <p>{{ subscribeContent.successSubtitle }}</p>
+            <div class="alert alert-success text-center">
+              <h3 class="h5 mb-2">{{ subscribeContent.successTitle }}</h3>
+              <p class="mb-0">{{ subscribeContent.successSubtitle }}</p>
             </div>
 
-            <div class="payment-summary">
-              <h4>{{ subscribeContent.summaryTitle }}</h4>
-              <div class="summary-row">
-                <span>{{ subscribeContent.summaryNameLabel }}</span>
-                <strong>{{ user?.nombre }}</strong>
-              </div>
-              <div class="summary-row">
-                <span>{{ subscribeContent.summaryEmailLabel }}</span>
-                <strong>{{ user?.email }}</strong>
-              </div>
-              <div class="summary-row">
-                <span>{{ subscribeContent.summaryLevelLabel }}</span>
-                <strong>{{ selectedLevel?.name }}</strong>
-              </div>
-              <div class="summary-row highlight">
-                <span>{{ subscribeContent.summaryAmountLabel }}</span>
-                <strong>${{ selectedLevel?.amount.toLocaleString() }}</strong>
+            <div class="card border-0 bg-light mb-3">
+              <div class="card-body">
+                <h4 class="h6 text-uppercase text-muted">{{ subscribeContent.summaryTitle }}</h4>
+                <div class="summary-row">
+                  <span>{{ subscribeContent.summaryNameLabel }}</span>
+                  <strong>{{ user?.nombre }}</strong>
+                </div>
+                <div class="summary-row">
+                  <span>{{ subscribeContent.summaryEmailLabel }}</span>
+                  <strong>{{ user?.email }}</strong>
+                </div>
+                <div class="summary-row">
+                  <span>{{ subscribeContent.summaryLevelLabel }}</span>
+                  <strong>{{ selectedLevel?.name }}</strong>
+                </div>
+                <div class="summary-row highlight">
+                  <span>{{ subscribeContent.summaryAmountLabel }}</span>
+                  <strong>${{ selectedLevel?.amount.toLocaleString() }}</strong>
+                </div>
               </div>
             </div>
 
@@ -328,6 +342,7 @@ const handlePayment = async () => {
             <p class="payment-note">
               {{ subscribeContent.payNote }}
             </p>
+          </div>
           </div>
         </div>
       </div>
@@ -364,60 +379,9 @@ const handlePayment = async () => {
   opacity: 0.9;
 }
 
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
-
-.modal-content {
-  background: white;
-  border-radius: 0.75rem;
-  padding: 2rem;
-  max-width: 500px;
-  width: 90%;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-  position: relative;
-}
-
-
-.modal-content h2 {
-  margin-top: 0;
-  color: var(--color-text);
-}
-
-.modal-content p {
-  color: var(--color-text-secondary);
-  margin-bottom: 1.5rem;
-}
-
 .form-section {
   background-color: #f5f5f5;
   padding: 2rem 1rem;
-}
-
-.form-container {
-  background: white;
-  border-radius: 8px;
-  padding: 3rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.auth-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 2rem;
-  padding: 1rem;
-  background: var(--color-background-soft);
-  border-radius: 0.5rem;
 }
 
 .user-badge {
@@ -453,13 +417,6 @@ const handlePayment = async () => {
   border-bottom: 2px solid #e0e0e0;
 }
 
-.level-summary h2,
-.level-selector h2 {
-  font-size: 1.5rem;
-  color: #2c3e50;
-  margin-bottom: 1rem;
-}
-
 .level-info {
   background: #f5f5f5;
   padding: 1.5rem;
@@ -485,52 +442,6 @@ const handlePayment = async () => {
 }
 
 
-.levels-grid {
-  display: grid;
-  gap: 1rem;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-}
-
-.level-card {
-  background: #f5f5f5;
-  border: 2px solid #e0e0e0;
-  border-radius: 8px;
-  padding: 1.5rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.level-card:hover {
-  border-color: #42b983;
-  transform: translateY(-2px);
-}
-
-.level-card h3 {
-  font-size: 1rem;
-  color: #2c3e50;
-  margin-bottom: 0.5rem;
-}
-
-.level-card .amount {
-  font-size: 1.25rem;
-}
-
-.contribution-form h2 {
-  font-size: 1.5rem;
-  color: #2c3e50;
-  margin-bottom: 2rem;
-}
-
-.form-error-banner {
-  background: #fee;
-  border: 1px solid #e74c3c;
-  border-radius: 4px;
-  padding: 1rem;
-  margin-bottom: 1rem;
-  color: #c0392b;
-  text-align: center;
-}
-
 
 .auth-prompt {
   background: #f0f8ff;
@@ -549,39 +460,6 @@ const handlePayment = async () => {
 
 .success-section {
   margin-top: 2rem;
-}
-
-.success-message {
-  background: linear-gradient(135deg, #42b983 0%, #35a372 100%);
-  color: white;
-  padding: 1.5rem;
-  border-radius: 8px;
-  margin-bottom: 1.5rem;
-  text-align: center;
-}
-
-.success-message h3 {
-  margin: 0 0 0.5rem 0;
-  font-size: 1.25rem;
-}
-
-.success-message p {
-  margin: 0;
-  opacity: 0.95;
-}
-
-.payment-summary {
-  background: #f8f9fa;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  padding: 1.5rem;
-  margin-bottom: 1.5rem;
-}
-
-.payment-summary h4 {
-  margin: 0 0 1rem 0;
-  color: #2c3e50;
-  font-size: 1.1rem;
 }
 
 .summary-row {
@@ -618,23 +496,4 @@ const handlePayment = async () => {
   font-style: italic;
 }
 
-@media (max-width: 768px) {
-  .form-container {
-    padding: 2rem 1.5rem;
-  }
-
-  .auth-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 1rem;
-  }
-
-  .levels-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .modal-content {
-    width: 95%;
-  }
-}
 </style>

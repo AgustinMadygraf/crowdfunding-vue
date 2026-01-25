@@ -108,6 +108,17 @@ const formatDate = (dateString: string) => {
     minute: '2-digit'
   })
 }
+
+const getStatusBadgeClass = (status: string) => {
+  const map: Record<string, string> = {
+    pending: 'text-bg-warning',
+    active: 'text-bg-success',
+    completed: 'text-bg-success',
+    draft: 'text-bg-secondary',
+    published: 'text-bg-success'
+  }
+  return map[status] || 'text-bg-secondary'
+}
 </script>
 
 <template>
@@ -133,13 +144,13 @@ const formatDate = (dateString: string) => {
     <main v-else class="admin-main">
       <div class="container">
         <!-- Loading State -->
-        <div v-if="isLoading" class="loading-state">
-          <p>{{ adminContent.loadingLabel }}</p>
+        <div v-if="isLoading" class="alert alert-info text-center">
+          {{ adminContent.loadingLabel }}
         </div>
 
         <!-- Error State -->
-        <div v-else-if="error" class="error-state">
-          <p>{{ error }}</p>
+        <div v-else-if="error" class="alert alert-danger d-flex flex-column align-items-center gap-2">
+          <div>{{ error }}</div>
           <button @click="retry" class="btn btn-danger">{{ adminContent.retryLabel }}</button>
         </div>
 
@@ -169,43 +180,66 @@ const formatDate = (dateString: string) => {
 
           <!-- Dashboard Tab -->
           <div v-show="activeTab === 'dashboard'" class="tab-content">
-            <div class="stats-grid">
-              <div class="stat-card">
-                <h3>{{ adminContent.statsTitles.totalMilestones }}</h3>
-                <p class="stat-value">{{ stats.totalMilestones }}</p>
-                <p class="stat-detail">{{ stats.activeMilestones }} {{ adminContent.statsLabels.activeMilestones }}</p>
+            <div class="row g-3">
+              <div class="col-12 col-sm-6 col-lg-3">
+                <div class="card shadow-sm h-100">
+                  <div class="card-body text-center">
+                    <h3 class="text-uppercase small text-muted mb-2">{{ adminContent.statsTitles.totalMilestones }}</h3>
+                    <p class="fs-2 fw-bold mb-1">{{ stats.totalMilestones }}</p>
+                    <p class="small text-muted mb-0">{{ stats.activeMilestones }} {{ adminContent.statsLabels.activeMilestones }}</p>
+                  </div>
+                </div>
               </div>
-              <div class="stat-card">
-                <h3>{{ adminContent.statsTitles.completedMilestones }}</h3>
-                <p class="stat-value">{{ stats.completedMilestones }}</p>
+              <div class="col-12 col-sm-6 col-lg-3">
+                <div class="card shadow-sm h-100">
+                  <div class="card-body text-center">
+                    <h3 class="text-uppercase small text-muted mb-2">{{ adminContent.statsTitles.completedMilestones }}</h3>
+                    <p class="fs-2 fw-bold mb-0">{{ stats.completedMilestones }}</p>
+                  </div>
+                </div>
               </div>
-              <div class="stat-card">
-                <h3>{{ adminContent.statsTitles.totalUpdates }}</h3>
-                <p class="stat-value">{{ stats.totalUpdates }}</p>
-                <p class="stat-detail">{{ stats.publishedUpdates }} {{ adminContent.statsLabels.publishedUpdates }}</p>
+              <div class="col-12 col-sm-6 col-lg-3">
+                <div class="card shadow-sm h-100">
+                  <div class="card-body text-center">
+                    <h3 class="text-uppercase small text-muted mb-2">{{ adminContent.statsTitles.totalUpdates }}</h3>
+                    <p class="fs-2 fw-bold mb-1">{{ stats.totalUpdates }}</p>
+                    <p class="small text-muted mb-0">{{ stats.publishedUpdates }} {{ adminContent.statsLabels.publishedUpdates }}</p>
+                  </div>
+                </div>
               </div>
-              <div class="stat-card">
-                <h3>{{ adminContent.statsTitles.status }}</h3>
-                <p class="stat-value status-ok">{{ adminContent.statsLabels.statusOk }}</p>
+              <div class="col-12 col-sm-6 col-lg-3">
+                <div class="card shadow-sm h-100">
+                  <div class="card-body text-center">
+                    <h3 class="text-uppercase small text-muted mb-2">{{ adminContent.statsTitles.status }}</h3>
+                    <p class="fs-2 fw-bold text-success mb-0">{{ adminContent.statsLabels.statusOk }}</p>
+                  </div>
+                </div>
               </div>
             </div>
 
             <section class="admin-section">
               <h2>{{ adminContent.shortcutsTitle }}</h2>
-              <div class="shortcuts">
-                <button class="shortcut" @click="activeTab = 'milestones'">
-                  <span class="icon">🎯</span>
-                  <span class="label">{{ adminContent.shortcuts.milestones }}</span>
-                </button>
-                <button class="shortcut" @click="activeTab = 'updates'">
-                  <span class="icon">📝</span>
-                  <span class="label">{{ adminContent.shortcuts.updates }}</span>
-                </button>
-                <a href="mailto:info@madypack.com.ar" class="shortcut">
-                  <span class="icon">📧</span>
-                  <span class="label">{{ adminContent.shortcuts.support }}</span>
-                </a>
+              <div class="row g-3">
+                <div class="col-12 col-sm-6 col-md-4">
+                  <button class="btn btn-outline-primary w-100 d-flex flex-column align-items-center gap-2 py-3" @click="activeTab = 'milestones'">
+                    <span class="fs-3">????</span>
+                    <span class="fw-semibold">{{ adminContent.shortcuts.milestones }}</span>
+                  </button>
+                </div>
+                <div class="col-12 col-sm-6 col-md-4">
+                  <button class="btn btn-outline-primary w-100 d-flex flex-column align-items-center gap-2 py-3" @click="activeTab = 'updates'">
+                    <span class="fs-3">????</span>
+                    <span class="fw-semibold">{{ adminContent.shortcuts.updates }}</span>
+                  </button>
+                </div>
+                <div class="col-12 col-sm-6 col-md-4">
+                  <a href="mailto:info@madypack.com.ar" class="btn btn-outline-primary w-100 d-flex flex-column align-items-center gap-2 py-3">
+                    <span class="fs-3">????</span>
+                    <span class="fw-semibold">{{ adminContent.shortcuts.support }}</span>
+                  </a>
+                </div>
               </div>
+
             </section>
           </div>
 
@@ -222,7 +256,7 @@ const formatDate = (dateString: string) => {
                 <div v-for="milestone in milestones" :key="milestone.id" class="item-card">
                   <div class="item-header">
                     <h3>{{ milestone.title }}</h3>
-                    <span :class="['status-badge', `status-${milestone.status}`]">
+                    <span class="badge" :class="getStatusBadgeClass(milestone.status)">
                       {{ milestone.status }}
                     </span>
                   </div>
@@ -250,7 +284,7 @@ const formatDate = (dateString: string) => {
                 <div v-for="update in updates" :key="update.id" class="item-card">
                   <div class="item-header">
                     <h3>{{ update.title }}</h3>
-                    <span :class="['status-badge', `status-${update.status}`]">
+                    <span class="badge" :class="getStatusBadgeClass(update.status)">
                       {{ update.status }}
                     </span>
                   </div>
@@ -335,22 +369,6 @@ const formatDate = (dateString: string) => {
   margin: 0 auto;
 }
 
-/* Loading & Error States */
-.loading-state,
-.error-state {
-  text-align: center;
-  padding: 3rem 2rem;
-  background: white;
-  border-radius: 8px;
-  margin-bottom: 2rem;
-}
-
-.error-state {
-  border-left: 4px solid #e74c3c;
-  color: #e74c3c;
-}
-
-
 /* Tabs */
 .tabs {
   display: flex;
@@ -393,87 +411,6 @@ const formatDate = (dateString: string) => {
     opacity: 1;
     transform: translateY(0);
   }
-}
-
-/* Stats Grid */
-.stats-grid {
-  display: grid;
-  gap: 1.5rem;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  margin-bottom: 3rem;
-}
-
-.stat-card {
-  background: white;
-  border-radius: 8px;
-  padding: 2rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  text-align: center;
-  border-top: 4px solid #42b983;
-}
-
-.stat-card h3 {
-  font-size: 0.875rem;
-  color: #666;
-  margin-bottom: 0.5rem;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.stat-value {
-  font-size: 2.5rem;
-  font-weight: bold;
-  color: #2c3e50;
-  margin: 0.5rem 0;
-}
-
-.stat-detail {
-  font-size: 0.875rem;
-  color: #999;
-  margin: 0;
-}
-
-.status-ok {
-  color: #42b983;
-}
-
-/* Shortcuts */
-.shortcuts {
-  display: grid;
-  gap: 1rem;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  margin-top: 1.5rem;
-}
-
-.shortcut {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 1.5rem;
-  background: white;
-  border: 2px solid #e0e0e0;
-  border-radius: 8px;
-  cursor: pointer;
-  text-decoration: none;
-  color: #2c3e50;
-  transition: all 0.2s ease;
-  font-family: inherit;
-}
-
-.shortcut:hover {
-  border-color: #42b983;
-  box-shadow: 0 4px 12px rgba(66, 185, 131, 0.1);
-}
-
-.shortcut .icon {
-  font-size: 2rem;
-}
-
-.shortcut .label {
-  font-weight: 600;
-  text-align: center;
-  font-size: 0.875rem;
 }
 
 /* Admin Section */
@@ -528,39 +465,6 @@ const formatDate = (dateString: string) => {
   flex: 1;
 }
 
-.status-badge {
-  padding: 0.375rem 0.75rem;
-  border-radius: 20px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-
-.status-pending {
-  background: #fef3c7;
-  color: #92400e;
-}
-
-.status-active {
-  background: #dcfce7;
-  color: #166534;
-}
-
-.status-completed {
-  background: #dbeafe;
-  color: #1e40af;
-}
-
-.status-draft {
-  background: #f3f4f6;
-  color: #374151;
-}
-
-.status-published {
-  background: #dcfce7;
-  color: #166534;
-}
 
 .item-description {
   color: #666;
@@ -604,10 +508,6 @@ const formatDate = (dateString: string) => {
     width: 100%;
   }
 
-  .stats-grid {
-    grid-template-columns: 1fr;
-  }
-
   .tabs {
     flex-wrap: wrap;
   }
@@ -621,7 +521,7 @@ const formatDate = (dateString: string) => {
     flex-direction: column;
   }
 
-  .status-badge {
+  .badge {
     align-self: flex-start;
   }
 

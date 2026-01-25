@@ -1,3 +1,7 @@
+/*
+Path: src/domain/content.ts
+*/
+
 export interface ContentLink {
   label: string;
   href: string;

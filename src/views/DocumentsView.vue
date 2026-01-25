@@ -91,13 +91,13 @@ onMounted(() => {
     <section class="documents-section py-5">
       <div class="container">
         <!-- Loading State -->
-        <div v-if="isLoading" class="loading-state">
-          <p>{{ documentsContent.loadingLabel }}</p>
+        <div v-if="isLoading" class="alert alert-info text-center">
+          {{ documentsContent.loadingLabel }}
         </div>
 
         <!-- Error State -->
-        <div v-else-if="error" class="error-state">
-          <p>{{ error }}</p>
+        <div v-else-if="error" class="alert alert-danger d-flex flex-column align-items-center gap-2">
+          <div>{{ error }}</div>
           <button @click="retry" class="btn btn-danger">{{ documentsContent.retryLabel }}</button>
         </div>
 
@@ -108,7 +108,7 @@ onMounted(() => {
             :key="category"
             class="category-section"
           >
-            <h2 class="category-title">{{ category }}</h2>
+            <h2 class="category-title mb-3">{{ category }}</h2>
             <div class="documents-grid">
               <a
                 v-for="doc in categorizedDocuments[category]"
@@ -116,7 +116,7 @@ onMounted(() => {
                 :href="doc.url"
                 target="_blank"
                 rel="noopener noreferrer"
-                class="card shadow-sm p-3 document-card"
+                class="card shadow-sm document-card text-reset text-decoration-none"
               >
                 <div class="document-icon">📄</div>
                 <h3>{{ doc.title }}</h3>
@@ -138,9 +138,9 @@ onMounted(() => {
         </div>
 
         <!-- Empty State -->
-        <div v-else class="empty-state">
-          <p>{{ documentsContent.emptyTitle }}</p>
-          <p class="subtitle">{{ documentsContent.emptySubtitle }}</p>
+        <div v-else class="text-center py-5">
+          <p class="fs-5 fw-semibold mb-1">{{ documentsContent.emptyTitle }}</p>
+          <p class="text-muted mb-0">{{ documentsContent.emptySubtitle }}</p>
         </div>
       </div>
     </section>
@@ -169,28 +169,6 @@ onMounted(() => {
 .subtitle {
   font-size: 1.2rem;
   opacity: 0.9;
-}
-
-/* Loading State */
-.loading-state {
-  text-align: center;
-  padding: 4rem 2rem;
-  font-size: 1.1rem;
-  color: #666;
-}
-
-/* Error State */
-.error-state {
-  text-align: center;
-  padding: 3rem 2rem;
-  background: #fef2f2;
-  border: 2px solid #fca5a5;
-  border-radius: 8px;
-  color: #dc2626;
-}
-
-.error-state p {
-  margin-bottom: 1.5rem;
 }
 
 
@@ -222,13 +200,8 @@ onMounted(() => {
 }
 
 .document-card {
-  display: flex;
-  flex-direction: column;
-  padding: 1.5rem;
   border: 1px solid #e0e0e0;
   border-radius: 8px;
-  text-decoration: none;
-  color: inherit;
   transition: all 0.2s ease;
   position: relative;
   overflow: hidden;
@@ -259,13 +232,6 @@ onMounted(() => {
 .document-icon {
   font-size: 2rem;
   margin-bottom: 0.75rem;
-}
-
-.document-card h3 {
-  font-size: 1.125rem;
-  color: #2c3e50;
-  margin: 0 0 0.5rem 0;
-  line-height: 1.4;
 }
 
 .description {
@@ -307,26 +273,6 @@ onMounted(() => {
 
 .document-card:hover .download-hint {
   opacity: 1;
-}
-
-/* Empty State */
-.empty-state {
-  text-align: center;
-  padding: 4rem 2rem;
-  background: #f5f5f5;
-  border-radius: 8px;
-}
-
-.empty-state p:first-child {
-  font-size: 1.25rem;
-  color: #2c3e50;
-  margin: 0 0 0.5rem 0;
-  font-weight: 600;
-}
-
-.empty-state .subtitle {
-  color: #666;
-  margin: 0;
 }
 
 @media (max-width: 768px) {

@@ -1,3 +1,7 @@
+/*
+Path: src/infrastructure/content.ts
+*/
+
 import type { Content } from '@/domain/content';
 
 export const content: Content = {

@@ -21,13 +21,13 @@
     </div>
 
     <!-- Loading State -->
-    <div v-if="isLoading" class="loading">
-      <p>{{ dashboardContent.loadingLabel }}</p>
+    <div v-if="isLoading" class="alert alert-info text-center">
+      {{ dashboardContent.loadingLabel }}
     </div>
 
     <!-- Error State -->
-    <div v-if="error && !isLoading" class="error-banner">
-      {{ error }}
+    <div v-if="error && !isLoading" class="alert alert-danger d-flex justify-content-between align-items-center flex-wrap gap-2">
+      <span>{{ error }}</span>
       <button @click="loadContributions" class="btn btn-danger btn-sm">{{ dashboardContent.retryLabel }}</button>
     </div>
 
@@ -43,79 +43,90 @@
         <div 
           v-for="contribution in contributions"
           :key="contribution.id"
-          class="contribution-item"
+          class="card shadow-sm"
         >
-          <div class="contribution-header">
-            <div>
-              <h3>{{ contribution.nivel_nombre }}</h3>
-              <p class="contribution-date">
-                {{ formatDate(contribution.created_at) }}
-              </p>
+          <div class="card-body d-flex flex-column gap-3">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+              <div>
+                <h3 class="h5 mb-1">{{ contribution.nivel_nombre }}</h3>
+                <p class="contribution-date mb-0">
+                  {{ formatDate(contribution.created_at) }}
+                </p>
+              </div>
+              <div class="contribution-amount">
+                $ {{ formatAmount(contribution.monto) }}
+              </div>
             </div>
-            <div class="contribution-amount">
-              $ {{ formatAmount(contribution.monto) }}
+            <div class="contribution-body p-0">
+              <div class="status-row d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <span class="status-label">{{ dashboardContent.statusLabel }}</span>
+                <span class="badge" :class="getStatusBadgeClass(contribution.estado_pago)">
+                  {{ getStatusLabel(contribution.estado_pago) }}
+                </span>
+              </div>
+              <div v-if="contribution.completed_at" class="completion-date">
+                {{ dashboardContent.completedAtLabel }} {{ formatDate(contribution.completed_at) }}
+              </div>
             </div>
-          </div>
+            <div class="contribution-actions d-flex gap-2 justify-content-end flex-wrap">
+              <router-link 
+                :to="`/suscribir/${contribution.token}`"
+                class="btn btn-outline-secondary"
+              >
+                {{ dashboardContent.viewDetailsLabel }}
+              </router-link>
 
-          <div class="contribution-body">
-            <div class="status-row">
-              <span class="status-label">{{ dashboardContent.statusLabel }}</span>
-              <span :class="['status-badge', `status-${contribution.estado_pago}`]">
-                {{ getStatusLabel(contribution.estado_pago) }}
-              </span>
+              <button 
+                v-if="contribution.estado_pago === 'pendiente' || contribution.estado_pago === 'fallido'"
+                @click="goToPayment(contribution.token)"
+                class="btn btn-primary"
+              >
+                {{ dashboardContent.payLabel }}
+              </button>
             </div>
-
-            <div v-if="contribution.completed_at" class="completion-date">
-              {{ dashboardContent.completedAtLabel }} {{ formatDate(contribution.completed_at) }}
-            </div>
-          </div>
-
-          <div class="contribution-actions">
-            <router-link 
-              :to="`/suscribir/${contribution.token}`"
-              class="btn btn-outline-secondary"
-            >
-              {{ dashboardContent.viewDetailsLabel }}
-            </router-link>
-
-            <button 
-              v-if="contribution.estado_pago === 'pendiente' || contribution.estado_pago === 'fallido'"
-              @click="goToPayment(contribution.token)"
-              class="btn btn-primary"
-            >
-              {{ dashboardContent.payLabel }}
-            </button>
           </div>
         </div>
       </div>
 
-      <div class="stats-summary">
-        <div class="stat">
-          <span class="stat-label">{{ dashboardContent.totalContributedLabel }}</span>
-          <span class="stat-value">${{ formatAmount(getTotalContributed()) }}</span>
+      <div class="row g-3">
+        <div class="col-12 col-md-4">
+          <div class="card shadow-sm text-center">
+            <div class="card-body">
+              <span class="small text-muted d-block mb-1">{{ dashboardContent.totalContributedLabel }}</span>
+              <span class="fs-4 fw-bold text-primary">${{ formatAmount(getTotalContributed()) }}</span>
+            </div>
+          </div>
         </div>
-        <div class="stat">
-          <span class="stat-label">{{ dashboardContent.completedPaymentsLabel }}</span>
-          <span class="stat-value">{{ getCompletedCount() }}</span>
+        <div class="col-12 col-md-4">
+          <div class="card shadow-sm text-center">
+            <div class="card-body">
+              <span class="small text-muted d-block mb-1">{{ dashboardContent.completedPaymentsLabel }}</span>
+              <span class="fs-4 fw-bold text-primary">{{ getCompletedCount() }}</span>
+            </div>
+          </div>
         </div>
-        <div class="stat">
-          <span class="stat-label">{{ dashboardContent.pendingPaymentsLabel }}</span>
-          <span class="stat-value">{{ getPendingCount() }}</span>
+        <div class="col-12 col-md-4">
+          <div class="card shadow-sm text-center">
+            <div class="card-body">
+              <span class="small text-muted d-block mb-1">{{ dashboardContent.pendingPaymentsLabel }}</span>
+              <span class="fs-4 fw-bold text-primary">{{ getPendingCount() }}</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
 
     <!-- Empty State -->
-    <div v-if="!isLoading && contributions.length === 0 && !error" class="empty-state">
+    <div v-if="!isLoading && contributions.length === 0 && !error" class="text-center py-5">
       <h2>{{ dashboardContent.emptyTitle }}</h2>
-      <p>{{ dashboardContent.emptySubtitle }}</p>
+      <p class="text-muted">{{ dashboardContent.emptySubtitle }}</p>
       <router-link to="/suscribir" class="btn btn-primary">
         {{ dashboardContent.emptyCta }}
       </router-link>
     </div>
 
     <!-- New Contribution Button -->
-    <div v-if="contributions.length > 0" class="actions-footer">
+    <div v-if="contributions.length > 0" class="actions-footer text-center">
       <router-link to="/suscribir" class="btn btn-outline-secondary">
         {{ dashboardContent.newContributionLabel }}
       </router-link>
@@ -164,6 +175,17 @@ const loadContributions = async () => {
  */
 const getStatusLabel = (status: string): string => {
   return dashboardContent.statusLabels[status] || status
+}
+
+const getStatusBadgeClass = (status: string): string => {
+  const map: Record<string, string> = {
+    pendiente: 'text-bg-warning',
+    procesando: 'text-bg-info',
+    completado: 'text-bg-success',
+    fallido: 'text-bg-danger',
+    cancelado: 'text-bg-secondary'
+  }
+  return map[status] || 'text-bg-secondary'
 }
 
 /**
@@ -307,28 +329,6 @@ const fetchUserData = async () => {
 }
 
 
-.loading,
-.error-banner {
-  padding: 1.5rem;
-  border-radius: 0.5rem;
-  text-align: center;
-  margin-bottom: 1rem;
-}
-
-.loading {
-  background: var(--color-background-soft);
-  color: var(--color-text-secondary);
-}
-
-.error-banner {
-  background: #fee;
-  border: 1px solid #fcc;
-  color: #c00;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
 
 .contributions-section h2 {
   font-size: 1.5rem;
@@ -347,32 +347,6 @@ const fetchUserData = async () => {
   margin-bottom: 2rem;
 }
 
-.contribution-item {
-  background: white;
-  border-radius: 0.5rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
-  transition: box-shadow 0.2s;
-}
-
-.contribution-item:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-.contribution-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1.5rem;
-  background: var(--color-background-soft);
-  border-bottom: 1px solid #eee;
-}
-
-.contribution-header h3 {
-  margin: 0;
-  color: var(--color-text);
-}
-
 .contribution-date {
   margin: 0.25rem 0 0;
   font-size: 0.875rem;
@@ -385,53 +359,11 @@ const fetchUserData = async () => {
   color: #27ae60;
 }
 
-.contribution-body {
-  padding: 1.5rem;
-}
-
-.status-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.75rem;
-}
-
 .status-label {
   color: var(--color-text-secondary);
   font-weight: 600;
 }
 
-.status-badge {
-  padding: 0.375rem 0.75rem;
-  border-radius: 9999px;
-  font-size: 0.875rem;
-  font-weight: 600;
-}
-
-.status-pendiente {
-  background: #fef3cd;
-  color: #856404;
-}
-
-.status-procesando {
-  background: #d1ecf1;
-  color: #0c5460;
-}
-
-.status-completado {
-  background: #d4edda;
-  color: #155724;
-}
-
-.status-fallido {
-  background: #f8d7da;
-  color: #721c24;
-}
-
-.status-cancelado {
-  background: #fff3cd;
-  color: #856404;
-}
 
 .completion-date {
   font-size: 0.875rem;
@@ -439,61 +371,6 @@ const fetchUserData = async () => {
   margin-top: 0.5rem;
 }
 
-.contribution-actions {
-  padding: 1rem 1.5rem 1.5rem;
-  background: #f9f9f9;
-  border-top: 1px solid #eee;
-  display: flex;
-  gap: 1rem;
-  justify-content: flex-end;
-}
-
-
-.stats-summary {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
-  margin-bottom: 2rem;
-}
-
-.stat {
-  padding: 1rem;
-  background: white;
-  border-radius: 0.5rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  text-align: center;
-}
-
-.stat-label {
-  display: block;
-  font-size: 0.875rem;
-  color: var(--color-text-secondary);
-  margin-bottom: 0.5rem;
-}
-
-.stat-value {
-  display: block;
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: var(--color-primary);
-}
-
-.empty-state {
-  text-align: center;
-  padding: 3rem 1rem;
-  background: var(--color-background-soft);
-  border-radius: 0.5rem;
-}
-
-.empty-state h2 {
-  margin: 0 0 0.5rem;
-  color: var(--color-text);
-}
-
-.empty-state p {
-  color: var(--color-text-secondary);
-  margin: 0 0 1.5rem;
-}
 
 
 .actions-footer {
@@ -511,26 +388,6 @@ const fetchUserData = async () => {
     width: 100%;
   }
 
-
-  .contribution-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.5rem;
-  }
-
-  .contribution-amount {
-    align-self: flex-end;
-  }
-
-  .status-row {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.5rem;
-  }
-
-  .contribution-actions {
-    flex-direction: column;
-  }
 
 }
 </style>

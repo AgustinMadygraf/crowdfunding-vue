@@ -7,26 +7,26 @@
     </div>
 
     <!-- Loading State -->
-    <div v-if="isLoading" class="loading">
-      <p>{{ paymentContent.loadingLabel }}</p>
+    <div v-if="isLoading" class="alert alert-info text-center">
+      {{ paymentContent.loadingLabel }}
     </div>
 
     <!-- Error State -->
-    <div v-if="error && !isLoading" class="error-banner">
-      {{ error }}
+    <div v-if="error && !isLoading" class="alert alert-danger d-flex justify-content-between align-items-center flex-wrap gap-2">
+      <span>{{ error }}</span>
       <button @click="loadContribution" class="btn btn-danger btn-sm">{{ paymentContent.retryLabel }}</button>
     </div>
 
     <!-- Contribution Details -->
-    <div v-if="contribution && !isLoading" class="contribution-card">
-      <div class="card-header">
+    <div v-if="contribution && !isLoading" class="card shadow-sm">
+      <div class="card-body border-bottom d-flex justify-content-between align-items-center flex-wrap gap-2">
         <h2>{{ paymentContent.detailsTitle }}</h2>
-        <span :class="['status-badge', `status-${contribution.estado_pago}`]">
+        <span class="badge" :class="getStatusBadgeClass(contribution.estado_pago)">
           {{ getStatusLabel(contribution.estado_pago) }}
         </span>
       </div>
 
-      <div class="contribution-details">
+      <div class="card-body border-bottom">
         <div class="detail-row">
           <span class="label">{{ paymentContent.detailLabels.level }}</span>
           <span class="value">{{ contribution.nivel_nombre }}</span>
@@ -54,7 +54,7 @@
       </div>
 
       <!-- Payment Section -->
-      <div class="payment-section">
+      <div class="card-body border-bottom">
         <!-- Pending Payment -->
         <div v-if="contribution.estado_pago === 'pendiente'" class="pending-payment">
           <h3>{{ paymentContent.payment.pendingTitle }}</h3>
@@ -115,25 +115,27 @@
       </div>
 
       <!-- Info Box -->
-      <div class="info-box">
-        <p>
-          <strong>{{ paymentContent.infoHelpTitle }}</strong>
-          {{ paymentContent.infoHelpSubtitle }}
-        </p>
+      <div class="card-body">
+        <div class="alert alert-info mb-0">
+          <p class="mb-0">
+            <strong>{{ paymentContent.infoHelpTitle }}</strong>
+            {{ paymentContent.infoHelpSubtitle }}
+          </p>
+        </div>
       </div>
     </div>
 
     <!-- Not Found State -->
-    <div v-if="!isLoading && !contribution && !error" class="not-found">
-      <p>{{ paymentContent.notFoundLabel }}</p>
+    <div v-if="!isLoading && !contribution && !error" class="alert alert-secondary text-center">
+      <p class="mb-2">{{ paymentContent.notFoundLabel }}</p>
       <router-link to="/subscribe" class="link">
         {{ paymentContent.notFoundCta }}
       </router-link>
     </div>
 
     <!-- Unauthenticated Info -->
-    <div v-if="showAuthInfo" class="auth-info">
-      <p>
+    <div v-if="showAuthInfo" class="alert alert-light text-center">
+      <p class="mb-0">
         {{ paymentContent.authInfoPrefix }}
         <router-link to="/account">{{ paymentContent.authInfoLink }}</router-link>
         {{ paymentContent.authInfoSuffix }}
@@ -270,6 +272,17 @@ const formatDate = (dateString: string): string => {
   })
 }
 
+const getStatusBadgeClass = (status: string) => {
+  const map: Record<string, string> = {
+    pendiente: 'text-bg-warning',
+    procesando: 'text-bg-info',
+    completado: 'text-bg-success',
+    fallido: 'text-bg-danger',
+    cancelado: 'text-bg-secondary'
+  }
+  return map[status] || 'text-bg-secondary'
+}
+
 /**
  * Carga usuario actual si está autenticado
  */
@@ -304,35 +317,6 @@ onMounted(() => {
   margin: 0;
 }
 
-.loading,
-.error-banner,
-.not-found {
-  padding: 1.5rem;
-  border-radius: 0.5rem;
-  text-align: center;
-}
-
-.loading {
-  background: var(--color-background-soft);
-  color: var(--color-text-secondary);
-}
-
-.error-banner {
-  background: #fee;
-  border: 1px solid #fcc;
-  color: #c00;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
-}
-
-
-.not-found {
-  background: var(--color-background-soft);
-  color: var(--color-text-secondary);
-}
-
 .not-found .link {
   color: var(--color-primary);
   text-decoration: none;
@@ -340,63 +324,12 @@ onMounted(() => {
   display: inline-block;
 }
 
-.contribution-card {
-  background: white;
-  border-radius: 0.5rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
-}
-
-.card-header {
-  padding: 1.5rem;
-  border-bottom: 1px solid #eee;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.card-header h2 {
+.card-body h2 {
   margin: 0;
   font-size: 1.25rem;
   color: var(--color-text);
 }
 
-.status-badge {
-  padding: 0.5rem 1rem;
-  border-radius: 9999px;
-  font-size: 0.875rem;
-  font-weight: 600;
-}
-
-.status-pendiente {
-  background: #fef3cd;
-  color: #856404;
-}
-
-.status-procesando {
-  background: #d1ecf1;
-  color: #0c5460;
-}
-
-.status-completado {
-  background: #d4edda;
-  color: #155724;
-}
-
-.status-fallido {
-  background: #f8d7da;
-  color: #721c24;
-}
-
-.status-cancelado {
-  background: #fff3cd;
-  color: #856404;
-}
-
-.contribution-details {
-  padding: 1.5rem;
-  border-bottom: 1px solid #eee;
-}
 
 .detail-row {
   display: flex;
@@ -425,11 +358,6 @@ onMounted(() => {
   background: #f5f5f5;
   padding: 0.25rem 0.5rem;
   border-radius: 0.25rem;
-}
-
-.payment-section {
-  padding: 1.5rem;
-  border-bottom: 1px solid #eee;
 }
 
 .pending-payment,
@@ -475,27 +403,6 @@ onMounted(() => {
   padding: 1.5rem;
   border-radius: 0.5rem;
   color: #856404;
-}
-
-.info-box {
-  padding: 1rem;
-  background: #f0f8ff;
-  border-left: 4px solid #009ee3;
-  color: var(--color-text);
-}
-
-.info-box p {
-  margin: 0;
-  font-size: 0.875rem;
-}
-
-.auth-info {
-  margin-top: 2rem;
-  padding: 1rem;
-  background: var(--color-background-soft);
-  border-radius: 0.5rem;
-  text-align: center;
-  color: var(--color-text-secondary);
 }
 
 .auth-info a {
