@@ -23,6 +23,12 @@ import { BuildAuthHeadersUseCase } from '@/application/usecases/BuildAuthHeaders
 import { RateLimitLoginUseCase } from '@/application/usecases/RateLimitLoginUseCase'
 import { GetGoogleConfigInfoUseCase } from '@/application/usecases/GetGoogleConfigInfoUseCase'
 import { DocumentQueryAdapter } from './dom/documentQueryAdapter'
+import type { PerformanceObserverPort } from '@/application/ports/PerformanceObserverPort'
+import { PerformanceObserverAdapter } from './dom/performanceObserverAdapter'
+import type { TimerPort } from '@/application/ports/TimerPort'
+import { TimerAdapter } from './dom/timerAdapter'
+import type { RuntimeEnvPort } from '@/application/ports/RuntimeEnvPort'
+import { RuntimeEnvAdapter } from './dom/runtimeEnvAdapter'
 
 const logger = import.meta.env.DEV
   ? console
@@ -57,6 +63,9 @@ export class AuthService implements IAuthService {
   private readonly rateLimitLoginUseCase: RateLimitLoginUseCase
   private readonly getGoogleConfigInfoUseCase: GetGoogleConfigInfoUseCase
   private readonly documentQuery: DocumentQueryPort
+  private readonly performanceObserver: PerformanceObserverPort
+  private readonly timer: TimerPort
+  private readonly runtimeEnv: RuntimeEnvPort
 
   constructor(
     config?: AuthServiceConfig,
@@ -74,6 +83,9 @@ export class AuthService implements IAuthService {
       rateLimitLoginUseCase?: RateLimitLoginUseCase
       getGoogleConfigInfoUseCase?: GetGoogleConfigInfoUseCase
       documentQuery?: DocumentQueryPort
+      performanceObserver?: PerformanceObserverPort
+      timer?: TimerPort
+      runtimeEnv?: RuntimeEnvPort
     }
   ) {
     // Aplicar configuración con fallback a variables de entorno
@@ -99,6 +111,9 @@ export class AuthService implements IAuthService {
       deps?.rateLimitLoginUseCase ?? new RateLimitLoginUseCase(this.MAX_LOGIN_ATTEMPTS, this.LOGIN_TIMEOUT_MS)
     this.getGoogleConfigInfoUseCase = deps?.getGoogleConfigInfoUseCase ?? new GetGoogleConfigInfoUseCase()
     this.documentQuery = deps?.documentQuery ?? new DocumentQueryAdapter()
+    this.performanceObserver = deps?.performanceObserver ?? new PerformanceObserverAdapter()
+    this.timer = deps?.timer ?? new TimerAdapter()
+    this.runtimeEnv = deps?.runtimeEnv ?? new RuntimeEnvAdapter()
 
     if (!this.API_BASE_URL) {
       throw new Error('AuthService requires apiBaseUrl in config.')
@@ -428,12 +443,13 @@ export class AuthService implements IAuthService {
           },
           (error: any) => {
             logger.error('[AUTH_GSI_ORIGIN_NOT_ALLOWED]')
-            this.authState.error = `Origen ${window.location.origin} no autorizado en Google Cloud Console. Ver consola para instrucciones.`
+            const origin = this.runtimeEnv.getOrigin()
+            this.authState.error = `Origen ${origin} no autorizado en Google Cloud Console. Ver consola para instrucciones.`
           }
         )
         
         // Monitorear errores de red de Google después de inicializar
-        setTimeout(() => {
+        this.timer.setTimeout(() => {
           if (this.authState.error && this.authState.error.includes('no autorizado')) {
             logger.error('[AUTH_GSI_403]')
           }
@@ -452,24 +468,17 @@ export class AuthService implements IAuthService {
       try {
         this.googleSignIn.renderButton(container)
 
-        // Monitorear errores de red en el Performance API
-        const observer = new PerformanceObserver((list) => {
-          for (const entry of list.getEntries()) {
-            if (entry.name.includes('accounts.google.com') && 
-                (entry as any).responseStatus === 403) {
+        const stopObserving = this.performanceObserver.observeResourceEntries((entries) => {
+          for (const entry of entries) {
+            if (entry.name.includes('accounts.google.com') && entry.responseStatus === 403) {
+              logger.error('[AUTH_GSI_403]')
             }
           }
         })
         
-        try {
-          observer.observe({ entryTypes: ['resource'] })
-        } catch (e) {
-          // Performance API no disponible o no soportado
-        }
-        
         // Verificar estado después de renderizar
-        setTimeout(() => {
-          observer.disconnect()
+        this.timer.setTimeout(() => {
+          stopObserving()
           // Buscar iframes de Google en el DOM
           const googleIframes = this.documentQuery.querySelectorAll('iframe[src*=\"accounts.google.com\"], iframe[id*=\"gsi\"]')
 
