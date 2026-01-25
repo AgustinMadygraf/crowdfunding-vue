@@ -160,9 +160,9 @@ jobs:
           set ftp:sync-mode off
           set dns:order "inet"
 
-          # Mirror directo sin validaciones previas
+          # Mirror directo, sincroniza y elimina archivos obsoletos
           echo "Iniciando sincronización..."
-          mirror -R --only-newer --verbose --no-perms --ignore-time \
+          mirror -R --delete --verbose --no-perms \
             --exclude-glob .ht_leame \
             --exclude-glob cgi-bin/ \
             dist/ $FTP_DIR/ || echo "Mirror completó con advertencias"
