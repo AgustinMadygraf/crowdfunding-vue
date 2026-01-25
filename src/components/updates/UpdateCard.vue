@@ -1,3 +1,7 @@
+<!--
+Path: src/components/updates/UpdateCard.vue
+-->
+
 <script setup lang="ts">
 import type { Update } from '@/domain/update';
 import { content } from '@/infrastructure/content';

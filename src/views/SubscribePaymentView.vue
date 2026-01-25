@@ -1,3 +1,7 @@
+<!--
+Path: src/views/SubscribePaymentView.vue
+-->
+
 <template>
   <div class="subscribe-payment-container">
     <!-- Header -->

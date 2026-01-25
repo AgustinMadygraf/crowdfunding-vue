@@ -1,3 +1,7 @@
+<!--
+Path: src/components/auth/GoogleAuthButton.vue
+-->
+
 <template>
   <div class="google-auth-container">
     <div 

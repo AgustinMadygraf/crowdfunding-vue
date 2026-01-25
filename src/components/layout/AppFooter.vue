@@ -9,83 +9,32 @@ const footerContent = content.app.footer;
 </script>
 
 <template>
-  <footer class="app-footer">
+  <footer class="bg-dark text-white py-5">
     <div class="container">
-      <div class="footer-info">
-        <div class="footer-logo">
+      <div class="row g-4 mb-4">
+        <div class="col-12 col-md-4">
           <img :alt="footerContent.logo.alt" :src="footerContent.logo.src" :width="footerContent.logo.width" />
-          <p>{{ footerContent.logo.text }}</p>
+          <p class="mt-3 mb-0">{{ footerContent.logo.text }}</p>
         </div>
-        <div class="footer-links">
-          <h4>{{ footerContent.links.title }}</h4>
-          <ul>
+        <div class="col-12 col-md-4">
+          <h4 class="h6 text-uppercase text-white-50 mb-3">{{ footerContent.links.title }}</h4>
+          <ul class="list-unstyled mb-0">
             <li v-for="(item, idx) in footerContent.links.items" :key="idx">
-              <a :href="item.href">{{ item.label }}</a>
+              <a :href="item.href" class="text-decoration-none text-white-50">{{ item.label }}</a>
             </li>
           </ul>
         </div>
-        <div class="footer-contact">
-          <h4>{{ footerContent.contact.title }}</h4>
-          <p>{{ footerContent.contact.emailLabel }} {{ footerContent.contact.email }}</p>
-          <div class="social-links">
-            <a v-for="(social, idx) in footerContent.contact.social" :key="idx" :href="social.href" :aria-label="social.aria">{{ social.short }}</a>
+        <div class="col-12 col-md-4">
+          <h4 class="h6 text-uppercase text-white-50 mb-3">{{ footerContent.contact.title }}</h4>
+          <p class="mb-2 text-white-50">{{ footerContent.contact.emailLabel }} {{ footerContent.contact.email }}</p>
+          <div class="d-flex gap-3">
+            <a v-for="(social, idx) in footerContent.contact.social" :key="idx" :href="social.href" :aria-label="social.aria" class="text-decoration-none text-white-50">{{ social.short }}</a>
           </div>
         </div>
       </div>
-      <div class="copyright">
-        <p>{{ footerContent.copyright }}</p>
+      <div class="border-top border-white-10 pt-3 text-center text-white-50 small">
+        <p class="mb-0">{{ footerContent.copyright }}</p>
       </div>
     </div>
   </footer>
 </template>
-
-<style scoped>
-.app-footer {
-  background-color: #333;
-  color: white;
-  padding: 60px 0 20px;
-}
-
-/* container en components.css */
-
-.footer-info {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 40px;
-  margin-bottom: 40px;
-}
-
-.footer-links ul {
-  list-style: none;
-  padding: 0;
-}
-
-.footer-links a,
-.social-links a {
-  color: #ddd;
-  text-decoration: none;
-}
-
-.social-links {
-  display: flex;
-  gap: 15px;
-  margin-top: 15px;
-}
-
-p {
-  margin: 0;
-}
-
-h4 {
-  margin-bottom: 15px;
-}
-
-.copyright {
-  text-align: center;
-  margin-top: 40px;
-  padding-top: 20px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  font-size: 0.9rem;
-  color: #999;
-}
-</style>

@@ -1,3 +1,7 @@
+<!--
+Path: src/views/UpdatesView.vue
+-->
+
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { useUpdates } from '@/application/useUpdates';

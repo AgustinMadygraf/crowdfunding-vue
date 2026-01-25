@@ -1,3 +1,7 @@
+<!--
+Path: src/components/sections/ContributionSection.vue
+-->
+
 <script setup lang="ts">
 import type { ContributionLevel } from '@/domain/contribution-level';
 import { content } from '@/infrastructure/content';
@@ -19,106 +23,56 @@ const contributionContent = content.home.contribution;
 </script>
 
 <template>
-  <section class="contribute py-5" id="contribute">
+  <section class="py-5" id="contribute">
     <div class="container">
-      <h2>{{ contributionContent.title }}</h2>
-      <p>{{ contributionContent.subtitle }}</p>
+      <h2 class="mb-2">{{ contributionContent.title }}</h2>
+      <p class="text-muted mb-4">{{ contributionContent.subtitle }}</p>
 
-      <div class="contribution-levels">
-        <article
+      <div class="row g-3 my-4">
+        <div
           v-for="level in props.levels"
           :key="level.amount"
-          :class="['card', 'shadow-sm', 'level-card', 'cursor-pointer', { selected: level.amount === props.selectedLevel.amount }]"
-          @click="emit('select', level)"
-          role="button"
-          tabindex="0"
+          class="col-12 col-md-6 col-lg-4"
         >
-          <h3>{{ level.name }}</h3>
-          <p class="amount">{{ formatCurrency(level.amount) }}</p>
-          <p class="benefit">
-            {{ contributionContent.benefitLabel.replace('{benefit}', String(level.benefit)) }}
-          </p>
-        </article>
+          <article
+            :class="['card', 'shadow-sm', 'cursor-pointer', { 'border-success border-2 bg-success-subtle': level.amount === props.selectedLevel.amount, 'border': level.amount !== props.selectedLevel.amount }]"
+            @click="emit('select', level)"
+            role="button"
+            tabindex="0"
+          >
+            <div class="card-body text-center">
+              <h3 class="h5 mb-2">{{ level.name }}</h3>
+              <p class="fs-4 fw-bold my-3">{{ formatCurrency(level.amount) }}</p>
+              <p class="text-success fw-semibold mb-0">
+                {{ contributionContent.benefitLabel.replace('{benefit}', String(level.benefit)) }}
+              </p>
+            </div>
+          </article>
+        </div>
       </div>
 
-      <aside class="selected-level-info" aria-live="polite">
-        <h3>{{ contributionContent.selectionTitle }}</h3>
-        <p>
+      <aside class="card bg-light border-0 text-center my-4" aria-live="polite">
+        <div class="card-body">
+          <h3 class="h5 mb-3">{{ contributionContent.selectionTitle }}</h3>
+          <p class="mb-2">
           {{ contributionContent.selectionAmountLabel }}
           <strong>{{ formatCurrency(props.selectedLevel.amount) }}</strong>
-        </p>
-        <p>
+          </p>
+          <p class="mb-3">
           {{ contributionContent.selectionBenefitLabel }}
           <strong>
             +{{ props.selectedLevel.benefit }}% ({{ formatCurrency(props.benefitAmount) }})
           </strong>
-        </p>
-        <button class="btn btn-primary btn-lg" type="button" @click="emit('start')">
+          </p>
+          <button class="btn btn-primary btn-lg" type="button" @click="emit('start')">
           {{ contributionContent.continueLabel }}
-        </button>
+          </button>
+        </div>
       </aside>
 
-      <p class="disclaimer">
+      <p class="bg-light border rounded-2 p-3 small text-muted">
         {{ contributionContent.disclaimer }}
       </p>
     </div>
   </section>
 </template>
-
-<style scoped>
-/* container en Bootstrap */
-
-.contribution-levels {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 20px;
-  margin: 40px 0;
-}
-
-/* card y shadow-sm en Bootstrap */
-.level-card {
-  text-align: center;
-  border: 2px solid #e0e0e0;
-}
-
-.level-card:hover {
-  border-color: var(--color-success);
-}
-
-.level-card.selected {
-  border-color: var(--color-success);
-  background-color: rgba(76, 175, 80, 0.1);
-}
-
-.amount {
-  font-size: 1.5rem;
-  font-weight: 700;
-  margin: 16px 0;
-}
-
-.benefit {
-  color: var(--color-success);
-  font-weight: 600;
-}
-
-.selected-level-info {
-  background-color: #f9f9f9;
-  border-radius: 8px;
-  padding: 24px;
-  margin: 30px 0;
-  text-align: center;
-}
-
-.btn-lg {
-  padding: 15px 30px;
-  font-size: 1.1rem;
-}
-
-.disclaimer {
-  background-color: #f0f0f0;
-  border-radius: 4px;
-  padding: 16px;
-  font-size: 0.9rem;
-  color: #555;
-}
-</style>

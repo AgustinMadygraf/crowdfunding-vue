@@ -1,3 +1,7 @@
+<!--
+Path: src/views/NotFoundView.vue
+-->
+
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
 import { content } from '@/infrastructure/content'
@@ -21,63 +25,12 @@ const handleNotFound = () => {
 </script>
 
 <template>
-  <div class="not-found-view">
-    <div class="container">
-      <h1 class="error-code">404</h1>
-      <h2>{{ notFoundContent.title }}</h2>
-      <p>{{ notFoundContent.subtitle }}</p>
+  <div class="d-flex align-items-center justify-content-center min-vh-80 text-center bg-light bg-gradient py-5">
+    <div class="container" style="max-width: 600px;">
+      <h1 class="display-1 fw-bold text-success mb-0">404</h1>
+      <h2 class="h2 my-3">{{ notFoundContent.title }}</h2>
+      <p class="lead text-muted mb-4">{{ notFoundContent.subtitle }}</p>
       <button @click="goHome" class="btn btn-primary btn-lg">{{ notFoundContent.cta }}</button>
     </div>
   </div>
 </template>
-
-<style scoped>
-.not-found-view {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 80vh;
-  background: linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%);
-  text-align: center;
-}
-
-.container {
-  max-width: 600px;
-  padding: 3rem;
-}
-
-.error-code {
-  font-size: 8rem;
-  font-weight: bold;
-  color: #42b983;
-  margin: 0;
-  line-height: 1;
-}
-
-h2 {
-  font-size: 2rem;
-  color: #2c3e50;
-  margin: 1rem 0;
-}
-
-p {
-  font-size: 1.25rem;
-  color: #666;
-  margin-bottom: 2rem;
-}
-
-
-@media (max-width: 768px) {
-  .error-code {
-    font-size: 5rem;
-  }
-
-  h2 {
-    font-size: 1.5rem;
-  }
-
-  p {
-    font-size: 1rem;
-  }
-}
-</style>

@@ -33,27 +33,31 @@ const milestonesContent = content.home.milestonesSection;
 </script>
 
 <template>
-  <section class="milestones py-5" id="milestones">
+  <section class="bg-light py-5" id="milestones">
     <div class="container">
-      <header class="section-header">
+      <header class="d-flex justify-content-between align-items-start gap-4 flex-column flex-lg-row">
         <div>
-          <h2>{{ milestonesContent.title }}</h2>
-          <p>{{ milestonesContent.subtitle }}</p>
+          <h2 class="mb-2">{{ milestonesContent.title }}</h2>
+          <p class="text-muted mb-0">{{ milestonesContent.subtitle }}</p>
         </div>
-        <div class="card shadow-sm p-3 summary" aria-live="polite">
-          <p><strong>{{ milestonesContent.summaryLabels.progress }}</strong> {{ props.progressPercentage }}%</p>
-          <p><strong>{{ milestonesContent.summaryLabels.raised }}</strong> {{ content.app.currencyLabel }} {{ props.totalRaisedAmount.toLocaleString() }}</p>
-          <p><strong>{{ milestonesContent.summaryLabels.target }}</strong> {{ content.app.currencyLabel }} {{ props.totalTargetAmount.toLocaleString() }}</p>
+        <div class="card shadow-sm p-3 w-100 w-lg-auto" aria-live="polite">
+          <p class="mb-1"><strong>{{ milestonesContent.summaryLabels.progress }}</strong> {{ props.progressPercentage }}%</p>
+          <p class="mb-1"><strong>{{ milestonesContent.summaryLabels.raised }}</strong> {{ content.app.currencyLabel }} {{ props.totalRaisedAmount.toLocaleString() }}</p>
+          <p class="mb-0"><strong>{{ milestonesContent.summaryLabels.target }}</strong> {{ content.app.currencyLabel }} {{ props.totalTargetAmount.toLocaleString() }}</p>
         </div>
       </header>
 
-      <div class="milestones-grid">
-        <MilestoneCard
+      <div class="row g-4 mt-4">
+        <div
           v-for="milestone in props.milestones"
           :key="milestone.id"
-          :milestone="milestone"
-          @show-details="handleShowDetails"
-        />
+          class="col-12 col-md-6 col-lg-4"
+        >
+          <MilestoneCard
+            :milestone="milestone"
+            @show-details="handleShowDetails"
+          />
+        </div>
       </div>
     </div>
 
@@ -66,47 +70,3 @@ const milestonesContent = content.home.milestonesSection;
     />
   </section>
 </template>
-
-<style scoped>
-/* container en Bootstrap */
-
-.milestones {
-  background: #f9fafb;
-}
-
-.section-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 24px;
-}
-
-.section-header h2 {
-  margin-bottom: 12px;
-}
-
-/* card en Bootstrap */
-.summary {
-  display: grid;
-  gap: 8px;
-  min-width: 260px;
-}
-
-.milestones-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 24px;
-  margin-top: 40px;
-}
-
-@media (max-width: 900px) {
-  .section-header {
-    flex-direction: column;
-  }
-
-  .summary {
-    width: 100%;
-    min-width: unset;
-  }
-}
-</style>

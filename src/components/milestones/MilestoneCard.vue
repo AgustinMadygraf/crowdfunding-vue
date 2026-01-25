@@ -1,3 +1,7 @@
+<!--
+Path: src/components/milestones/MilestoneCard.vue
+-->
+
 <script setup lang="ts">
 import { computed } from 'vue';
 import type { Milestone } from '@/domain/milestone';
@@ -30,87 +34,28 @@ const milestoneCardContent = content.home.milestoneCard;
 </script>
 
 <template>
-  <article class="card shadow-sm p-3 milestone-card cursor-pointer" @click="handleCardClick" role="button" tabindex="0" @keydown.enter="handleCardClick" @keydown.space="handleCardClick">
-    <h3>{{ props.milestone.name }}</h3>
-    <p v-if="props.milestone.description" class="description">{{ props.milestone.description }}</p>
+  <article class="card shadow-sm p-3 d-flex flex-column cursor-pointer" @click="handleCardClick" role="button" tabindex="0" @keydown.enter="handleCardClick" @keydown.space="handleCardClick">
+    <h3 class="h5 mb-2">{{ props.milestone.name }}</h3>
+    <p v-if="props.milestone.description" class="text-muted small mb-3">{{ props.milestone.description }}</p>
     <div class="progress-container" role="progressbar" :aria-valuenow="progress" aria-valuemin="0" aria-valuemax="100">
       <div class="progress-bar" :style="{ width: `${progress}%` }"></div>
     </div>
-    <dl class="milestone-details">
+    <dl class="d-grid gap-3 mt-3 mb-0 flex-grow-1">
       <div>
-        <dt>{{ milestoneCardContent.labels.target }}</dt>
-        <dd>{{ content.app.currencyLabel }} {{ props.milestone.targetAmount.toLocaleString() }}</dd>
+        <dt class="text-uppercase text-muted small fw-semibold">{{ milestoneCardContent.labels.target }}</dt>
+        <dd class="mb-0">{{ content.app.currencyLabel }} {{ props.milestone.targetAmount.toLocaleString() }}</dd>
       </div>
       <div>
-        <dt>{{ milestoneCardContent.labels.raised }}</dt>
-        <dd>{{ content.app.currencyLabel }} {{ props.milestone.raisedAmount.toLocaleString() }} ({{ progress }}%)</dd>
+        <dt class="text-uppercase text-muted small fw-semibold">{{ milestoneCardContent.labels.raised }}</dt>
+        <dd class="mb-0">{{ content.app.currencyLabel }} {{ props.milestone.raisedAmount.toLocaleString() }} ({{ progress }}%)</dd>
       </div>
       <div>
-        <dt>{{ milestoneCardContent.labels.targetDate }}</dt>
-        <dd>{{ new Date(props.milestone.targetDate).toLocaleDateString() }}</dd>
+        <dt class="text-uppercase text-muted small fw-semibold">{{ milestoneCardContent.labels.targetDate }}</dt>
+        <dd class="mb-0">{{ new Date(props.milestone.targetDate).toLocaleDateString() }}</dd>
       </div>
     </dl>
-    <div class="card-footer">
+    <div class="mt-3 pt-3 border-top d-flex justify-content-end">
       <span class="text-primary fw-semibold">{{ milestoneCardContent.viewDetailsLabel }}</span>
     </div>
   </article>
 </template>
-
-<style scoped>
-.milestone-card {
-  /* Usa estilos base de components.css */
-  display: flex;
-  flex-direction: column;
-}
-
-h3 {
-  margin: 0 0 8px 0;
-  font-size: 18px;
-  color: #111;
-}
-
-.description {
-  margin: 0 0 12px 0;
-  font-size: 14px;
-  color: #666;
-  line-height: 1.4;
-}
-
-/* progress-container y progress-bar ahora en components.css */
-
-.milestone-details {
-  display: grid;
-  gap: 12px;
-  margin: 12px 0 0 0;
-  flex-grow: 1;
-}
-
-.milestone-details > div {
-  display: grid;
-  grid-template-columns: 120px 1fr;
-  gap: 8px;
-}
-
-.milestone-details dt {
-  font-weight: 600;
-  font-size: 12px;
-  color: #999;
-  text-transform: uppercase;
-}
-
-.milestone-details dd {
-  margin: 0;
-  color: #333;
-  font-size: 14px;
-}
-
-.card-footer {
-  margin-top: 16px;
-  padding-top: 16px;
-  border-top: 1px solid #e0e0e0;
-  display: flex;
-  justify-content: flex-end;
-}
-
-/* link-text ahora en components.css */
-</style>

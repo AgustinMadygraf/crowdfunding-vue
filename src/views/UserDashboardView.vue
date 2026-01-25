@@ -1,23 +1,31 @@
+<!--
+Path: src/views/UserDashboardView.vue
+-->
+
 <template>
-  <div class="dashboard-container">
+  <div class="container py-4">
     <!-- Header -->
-    <div class="dashboard-header">
-      <div class="header-content">
+    <div class="card shadow-sm mb-4">
+      <div class="card-body d-flex justify-content-between align-items-start flex-wrap gap-3">
+        <div class="d-flex gap-3 align-items-center">
         <img 
           v-if="user?.avatar_url"
           :src="sanitizeAvatarUrl(user.avatar_url)"
           :alt="user?.nombre"
-          class="avatar"
+          class="rounded-circle"
+          width="80"
+          height="80"
         >
         <div>
-          <h1>{{ dashboardContent.title }}</h1>
-          <p class="greeting">{{ dashboardContent.greetingLabel }} {{ user?.nombre }}</p>
-          <p class="email">{{ user?.email }}</p>
+          <h1 class="h3 mb-1">{{ dashboardContent.title }}</h1>
+          <p class="fw-semibold mb-0">{{ dashboardContent.greetingLabel }} {{ user?.nombre }}</p>
+          <p class="text-muted mb-0">{{ user?.email }}</p>
         </div>
       </div>
       <button @click="handleLogout" class="btn btn-danger">
         {{ dashboardContent.logoutLabel }}
       </button>
+    </div>
     </div>
 
     <!-- Loading State -->
@@ -33,13 +41,13 @@
 
     <!-- Contributions Section -->
     <div v-if="!isLoading && contributions.length > 0" class="contributions-section">
-      <h2>{{ dashboardContent.contributionsTitle }}</h2>
-      <p class="subtitle">
+      <h2 class="h4 mb-2">{{ dashboardContent.contributionsTitle }}</h2>
+      <p class="text-muted mb-3">
         {{ dashboardContent.contributionsPrefix }} {{ contributions.length }} 
         {{ contributions.length === 1 ? dashboardContent.contributionsSingle : dashboardContent.contributionsPlural }}
       </p>
 
-      <div class="contributions-list">
+      <div class="d-grid gap-3 mb-4">
         <div 
           v-for="contribution in contributions"
           :key="contribution.id"
@@ -49,22 +57,22 @@
             <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
               <div>
                 <h3 class="h5 mb-1">{{ contribution.nivel_nombre }}</h3>
-                <p class="contribution-date mb-0">
+                <p class="text-muted small mb-0">
                   {{ formatDate(contribution.created_at) }}
                 </p>
               </div>
-              <div class="contribution-amount">
+              <div class="fs-4 fw-bold text-success">
                 $ {{ formatAmount(contribution.monto) }}
               </div>
             </div>
             <div class="contribution-body p-0">
               <div class="status-row d-flex justify-content-between align-items-center flex-wrap gap-2">
-                <span class="status-label">{{ dashboardContent.statusLabel }}</span>
+                <span class="text-muted fw-semibold">{{ dashboardContent.statusLabel }}</span>
                 <span class="badge" :class="getStatusBadgeClass(contribution.estado_pago)">
                   {{ getStatusLabel(contribution.estado_pago) }}
                 </span>
               </div>
-              <div v-if="contribution.completed_at" class="completion-date">
+              <div v-if="contribution.completed_at" class="small text-success mt-2">
                 {{ dashboardContent.completedAtLabel }} {{ formatDate(contribution.completed_at) }}
               </div>
             </div>
@@ -126,7 +134,7 @@
     </div>
 
     <!-- New Contribution Button -->
-    <div v-if="contributions.length > 0" class="actions-footer text-center">
+    <div v-if="contributions.length > 0" class="border-top pt-3 text-center">
       <router-link to="/suscribir" class="btn btn-outline-secondary">
         {{ dashboardContent.newContributionLabel }}
       </router-link>
@@ -279,115 +287,3 @@ const fetchUserData = async () => {
 }
 </script>
 
-<style scoped lang="css">
-.dashboard-container {
-  max-width: 1000px;
-  margin: 0 auto;
-  padding: 2rem 1rem;
-}
-
-.dashboard-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 2rem;
-  padding: 1.5rem;
-  background: var(--color-background-soft);
-  border-radius: 0.5rem;
-}
-
-.header-content {
-  display: flex;
-  gap: 1.5rem;
-  align-items: center;
-}
-
-.avatar {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  object-fit: cover;
-}
-
-.dashboard-header h1 {
-  margin: 0;
-  font-size: 1.75rem;
-  color: var(--color-text);
-}
-
-.greeting {
-  margin: 0.5rem 0 0;
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--color-text);
-}
-
-.email {
-  margin: 0.25rem 0 0;
-  font-size: 0.875rem;
-  color: var(--color-text-secondary);
-}
-
-
-
-.contributions-section h2 {
-  font-size: 1.5rem;
-  margin: 2rem 0 0.5rem;
-  color: var(--color-text);
-}
-
-.subtitle {
-  color: var(--color-text-secondary);
-  margin: 0 0 1.5rem;
-}
-
-.contributions-list {
-  display: grid;
-  gap: 1rem;
-  margin-bottom: 2rem;
-}
-
-.contribution-date {
-  margin: 0.25rem 0 0;
-  font-size: 0.875rem;
-  color: var(--color-text-secondary);
-}
-
-.contribution-amount {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #27ae60;
-}
-
-.status-label {
-  color: var(--color-text-secondary);
-  font-weight: 600;
-}
-
-
-.completion-date {
-  font-size: 0.875rem;
-  color: #27ae60;
-  margin-top: 0.5rem;
-}
-
-
-
-.actions-footer {
-  padding: 1rem;
-  text-align: center;
-  border-top: 1px solid #eee;
-}
-
-@media (max-width: 768px) {
-  .dashboard-header {
-    flex-direction: column;
-  }
-
-  .header-content {
-    width: 100%;
-  }
-
-
-}
-</style>

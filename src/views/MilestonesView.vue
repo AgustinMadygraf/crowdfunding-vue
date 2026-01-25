@@ -1,3 +1,7 @@
+<!--
+Path: src/views/MilestonesView.vue
+-->
+
 <script setup lang="ts">
 import { useMilestones } from '@/application/useMilestones'
 import MilestoneCard from '@/components/milestones/MilestoneCard.vue'
