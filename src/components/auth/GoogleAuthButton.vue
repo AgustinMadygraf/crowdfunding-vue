@@ -22,7 +22,7 @@
       </div>
       <button 
         @click="handleLogout"
-        class="logout-button"
+        class="btn btn-danger btn-sm"
       >
         {{ content.auth.google.logoutLabel }}
       </button>
@@ -298,20 +298,6 @@ watch(error, (newError) => {
   color: var(--color-text-secondary);
 }
 
-.logout-button {
-  padding: 0.5rem 1rem;
-  background: var(--color-danger);
-  color: white;
-  border: none;
-  border-radius: 0.25rem;
-  cursor: pointer;
-  font-size: 0.875rem;
-  transition: background 0.2s;
-}
-
-.logout-button:hover {
-  background: var(--color-danger-darker);
-}
 
 .error-message {
   padding: 0.75rem;

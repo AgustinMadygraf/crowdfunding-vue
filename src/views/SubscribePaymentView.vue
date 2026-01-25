@@ -14,7 +14,7 @@
     <!-- Error State -->
     <div v-if="error && !isLoading" class="error-banner">
       {{ error }}
-      <button @click="loadContribution" class="retry-btn">{{ paymentContent.retryLabel }}</button>
+      <button @click="loadContribution" class="btn btn-danger btn-sm">{{ paymentContent.retryLabel }}</button>
     </div>
 
     <!-- Contribution Details -->
@@ -62,7 +62,7 @@
           
           <button 
             @click="initiatePayment"
-            class="mercadopago-button"
+            class="btn btn-primary"
             :disabled="isProcessing"
           >
             {{ isProcessing ? subscribeContent.submitLoadingLabel : paymentContent.payment.pendingButton }}
@@ -73,7 +73,7 @@
         <div v-if="contribution.estado_pago === 'procesando'" class="processing-payment">
           <h3>{{ paymentContent.payment.processingTitle }}</h3>
           <p>{{ paymentContent.payment.processingSubtitle }}</p>
-          <button @click="loadContribution" class="secondary-button">
+          <button @click="loadContribution" class="btn btn-outline-secondary">
             {{ paymentContent.payment.processingButton }}
           </button>
         </div>
@@ -93,7 +93,7 @@
           <p>{{ paymentContent.payment.failedSubtitle }}</p>
           <button 
             @click="initiatePayment"
-            class="mercadopago-button"
+            class="btn btn-primary"
             :disabled="isProcessing"
           >
             {{ isProcessing ? subscribeContent.submitLoadingLabel : paymentContent.payment.failedButton }}
@@ -106,7 +106,7 @@
           <p>{{ paymentContent.payment.cancelledSubtitle }}</p>
           <button 
             @click="initiatePayment"
-            class="mercadopago-button"
+            class="btn btn-primary"
             :disabled="isProcessing"
           >
             {{ isProcessing ? subscribeContent.submitLoadingLabel : paymentContent.payment.cancelledButton }}
@@ -327,19 +327,6 @@ onMounted(() => {
   margin-bottom: 1rem;
 }
 
-.retry-btn {
-  padding: 0.5rem 1rem;
-  background: #c00;
-  color: white;
-  border: none;
-  border-radius: 0.25rem;
-  cursor: pointer;
-  font-size: 0.875rem;
-}
-
-.retry-btn:hover {
-  background: #a00;
-}
 
 .not-found {
   background: var(--color-background-soft);
@@ -468,40 +455,6 @@ onMounted(() => {
   color: #999;
 }
 
-.mercadopago-button,
-.secondary-button {
-  margin-top: 1rem;
-  padding: 0.75rem 2rem;
-  border: none;
-  border-radius: 0.5rem;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.mercadopago-button {
-  background: #009ee3;
-  color: white;
-}
-
-.mercadopago-button:hover:not(:disabled) {
-  background: #007ab8;
-}
-
-.mercadopago-button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.secondary-button {
-  background: var(--color-background-soft);
-  color: var(--color-text);
-  border: 1px solid #ddd;
-}
-
-.secondary-button:hover {
-  background: #e8e8e8;
-}
 
 .completed-payment {
   background: #d4edda;

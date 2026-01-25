@@ -1,4 +1,8 @@
-import './assets/main.css'
+/*
+Path: src/main.ts
+*/
+
+import './assets/main.scss'
 import './assets/components.css' // Componentes reutilizables
 
 import { createApp } from 'vue'

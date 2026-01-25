@@ -82,14 +82,14 @@ onMounted(() => {
 <template>
   <div class="documents-view">
     <section class="hero-section">
-      <div class="container-narrow">
+      <div class="container">
         <h1>{{ documentsContent.heroTitle }}</h1>
         <p class="subtitle">{{ documentsContent.heroSubtitle }}</p>
       </div>
     </section>
 
-    <section class="documents-section section-padding">
-      <div class="container-narrow">
+    <section class="documents-section py-5">
+      <div class="container">
         <!-- Loading State -->
         <div v-if="isLoading" class="loading-state">
           <p>{{ documentsContent.loadingLabel }}</p>
@@ -98,7 +98,7 @@ onMounted(() => {
         <!-- Error State -->
         <div v-else-if="error" class="error-state">
           <p>{{ error }}</p>
-          <button @click="retry" class="btn-retry">{{ documentsContent.retryLabel }}</button>
+          <button @click="retry" class="btn btn-danger">{{ documentsContent.retryLabel }}</button>
         </div>
 
         <!-- Success State -->
@@ -116,7 +116,7 @@ onMounted(() => {
                 :href="doc.url"
                 target="_blank"
                 rel="noopener noreferrer"
-                class="card-base document-card"
+                class="card shadow-sm p-3 document-card"
               >
                 <div class="document-icon">📄</div>
                 <h3>{{ doc.title }}</h3>
@@ -193,20 +193,6 @@ onMounted(() => {
   margin-bottom: 1.5rem;
 }
 
-.btn-retry {
-  padding: 0.75rem 1.5rem;
-  background: #dc2626;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-weight: 600;
-  transition: background 0.2s ease;
-}
-
-.btn-retry:hover {
-  background: #b91c1c;
-}
 
 /* Documents Container */
 .documents-container {

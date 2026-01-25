@@ -20,6 +20,15 @@ const progress = computed(() => {
   );
 });
 
+const statusBadgeClass = computed(() => {
+  const map: Record<string, string> = {
+    active: 'text-bg-success',
+    pending: 'text-bg-warning',
+    completed: 'text-bg-success'
+  };
+  return map[props.milestone.status] || 'text-bg-secondary';
+});
+
 const handleBackdropClick = (e: MouseEvent) => {
   if (e.target === e.currentTarget) {
     emit('close');
@@ -41,9 +50,12 @@ const milestoneModalContent = content.home.milestoneModal;
         <!-- Header -->
         <header class="modal-header">
           <h2>{{ milestone.name }}</h2>
-          <button class="btn-close" @click="$emit('close')" :aria-label="milestoneModalContent.closeLabel">
-            <span aria-hidden="true">&times;</span>
-          </button>
+          <button
+            type="button"
+            class="btn-close"
+            :aria-label="milestoneModalContent.closeLabel"
+            @click="$emit('close')"
+          ></button>
         </header>
 
         <!-- Body -->
@@ -78,7 +90,7 @@ const milestoneModalContent = content.home.milestoneModal;
               <div>
                 <dt>{{ milestoneModalContent.statsLabels.status }}</dt>
                 <dd>
-                  <span class="badge-status" :class="`status-${milestone.status}`">
+                  <span class="badge" :class="statusBadgeClass">
                     {{
                       milestone.status === 'active'
                         ? milestoneModalContent.statusLabels.active
@@ -224,8 +236,6 @@ const milestoneModalContent = content.home.milestoneModal;
   color: #111;
   font-weight: 500;
 }
-
-/* badge-status en components.css */
 
 /* Timeline */
 .timeline-section {
@@ -377,7 +387,7 @@ const milestoneModalContent = content.home.milestoneModal;
   justify-content: flex-end;
 }
 
-/* btn-primary, btn-secondary en components.css */
+/* btn-primary, btn-secondary en Bootstrap */
 
 @media (max-width: 600px) {
   .modal-content {

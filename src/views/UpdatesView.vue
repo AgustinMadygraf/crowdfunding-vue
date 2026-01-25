@@ -43,6 +43,10 @@ const handleCloseModal = () => {
   selectedUpdate.value = null;
 };
 
+const categoryBadgeStyle = (category: string) => ({
+  backgroundColor: `var(--category-${category})`
+});
+
 const fetchUpdates = async () => {
   try {
     // Lógica para obtener updates
@@ -109,9 +113,9 @@ fetchUpdates();
         <div class="modal-content" role="dialog" aria-modal="true" @click.stop>
           <header class="modal-header">
             <div>
-              <span 
-                class="badge-category" 
-                :class="`category-${selectedUpdate.category}`"
+              <span
+                class="badge"
+                :style="categoryBadgeStyle(selectedUpdate.category)"
               >
                 {{ selectedUpdate.category }}
               </span>
@@ -123,7 +127,12 @@ fetchUpdates();
                 }) }}
               </time>
             </div>
-            <button class="btn-close" @click="handleCloseModal" :aria-label="updatesViewContent.modalCloseLabel">×</button>
+            <button
+              type="button"
+              class="btn-close"
+              :aria-label="updatesViewContent.modalCloseLabel"
+              @click="handleCloseModal"
+            ></button>
           </header>
 
           <div class="modal-body">
@@ -134,7 +143,7 @@ fetchUpdates();
           </div>
 
           <footer class="modal-footer">
-            <button class="btn-primary" @click="handleCloseModal">{{ updatesViewContent.modalCloseLabel }}</button>
+            <button class="btn btn-primary" @click="handleCloseModal">{{ updatesViewContent.modalCloseLabel }}</button>
           </footer>
         </div>
       </div>
@@ -212,23 +221,6 @@ fetchUpdates();
   display: flex;
   flex-direction: column;
   gap: 8px;
-}
-
-/* Colores específicos para badges de categoría */
-.badge-category.category-comercial {
-  background-color: var(--category-comercial);
-}
-
-.badge-category.category-tecnico {
-  background-color: var(--category-tecnico);
-}
-
-.badge-category.category-logistica {
-  background-color: var(--category-logistica);
-}
-
-.badge-category.category-legal {
-  background-color: var(--category-legal);
 }
 
 .modal-header .date {

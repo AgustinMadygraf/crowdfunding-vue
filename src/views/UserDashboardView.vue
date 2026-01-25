@@ -15,7 +15,7 @@
           <p class="email">{{ user?.email }}</p>
         </div>
       </div>
-      <button @click="handleLogout" class="logout-button">
+      <button @click="handleLogout" class="btn btn-danger">
         {{ dashboardContent.logoutLabel }}
       </button>
     </div>
@@ -28,7 +28,7 @@
     <!-- Error State -->
     <div v-if="error && !isLoading" class="error-banner">
       {{ error }}
-      <button @click="loadContributions" class="retry-btn">{{ dashboardContent.retryLabel }}</button>
+      <button @click="loadContributions" class="btn btn-danger btn-sm">{{ dashboardContent.retryLabel }}</button>
     </div>
 
     <!-- Contributions Section -->
@@ -73,7 +73,7 @@
           <div class="contribution-actions">
             <router-link 
               :to="`/suscribir/${contribution.token}`"
-              class="view-link"
+              class="btn btn-outline-secondary"
             >
               {{ dashboardContent.viewDetailsLabel }}
             </router-link>
@@ -81,7 +81,7 @@
             <button 
               v-if="contribution.estado_pago === 'pendiente' || contribution.estado_pago === 'fallido'"
               @click="goToPayment(contribution.token)"
-              class="pay-button"
+              class="btn btn-primary"
             >
               {{ dashboardContent.payLabel }}
             </button>
@@ -109,14 +109,14 @@
     <div v-if="!isLoading && contributions.length === 0 && !error" class="empty-state">
       <h2>{{ dashboardContent.emptyTitle }}</h2>
       <p>{{ dashboardContent.emptySubtitle }}</p>
-      <router-link to="/suscribir" class="primary-button">
+      <router-link to="/suscribir" class="btn btn-primary">
         {{ dashboardContent.emptyCta }}
       </router-link>
     </div>
 
     <!-- New Contribution Button -->
     <div v-if="contributions.length > 0" class="actions-footer">
-      <router-link to="/suscribir" class="secondary-button">
+      <router-link to="/suscribir" class="btn btn-outline-secondary">
         {{ dashboardContent.newContributionLabel }}
       </router-link>
     </div>
@@ -306,20 +306,6 @@ const fetchUserData = async () => {
   color: var(--color-text-secondary);
 }
 
-.logout-button {
-  padding: 0.75rem 1.5rem;
-  background: #c00;
-  color: white;
-  border: none;
-  border-radius: 0.5rem;
-  cursor: pointer;
-  font-size: 0.875rem;
-  transition: background 0.2s;
-}
-
-.logout-button:hover {
-  background: #a00;
-}
 
 .loading,
 .error-banner {
@@ -343,20 +329,6 @@ const fetchUserData = async () => {
   align-items: center;
 }
 
-.retry-btn {
-  padding: 0.5rem 1rem;
-  background: #c00;
-  color: white;
-  border: none;
-  border-radius: 0.25rem;
-  cursor: pointer;
-  font-size: 0.875rem;
-  flex-shrink: 0;
-}
-
-.retry-btn:hover {
-  background: #a00;
-}
 
 .contributions-section h2 {
   font-size: 1.5rem;
@@ -476,35 +448,6 @@ const fetchUserData = async () => {
   justify-content: flex-end;
 }
 
-.view-link,
-.pay-button {
-  padding: 0.5rem 1rem;
-  border: none;
-  border-radius: 0.25rem;
-  cursor: pointer;
-  font-size: 0.875rem;
-  text-decoration: none;
-  transition: all 0.2s;
-}
-
-.view-link {
-  background: var(--color-background-soft);
-  color: var(--color-text);
-  border: 1px solid #ddd;
-}
-
-.view-link:hover {
-  background: #e8e8e8;
-}
-
-.pay-button {
-  background: #009ee3;
-  color: white;
-}
-
-.pay-button:hover {
-  background: #007ab8;
-}
 
 .stats-summary {
   display: grid;
@@ -552,36 +495,6 @@ const fetchUserData = async () => {
   margin: 0 0 1.5rem;
 }
 
-.primary-button,
-.secondary-button {
-  padding: 0.75rem 1.5rem;
-  border: none;
-  border-radius: 0.5rem;
-  cursor: pointer;
-  font-size: 0.875rem;
-  text-decoration: none;
-  transition: all 0.2s;
-  display: inline-block;
-}
-
-.primary-button {
-  background: var(--color-primary);
-  color: white;
-}
-
-.primary-button:hover {
-  opacity: 0.9;
-}
-
-.secondary-button {
-  background: var(--color-background-soft);
-  color: var(--color-text);
-  border: 1px solid #ddd;
-}
-
-.secondary-button:hover {
-  background: #e8e8e8;
-}
 
 .actions-footer {
   padding: 1rem;
@@ -598,9 +511,6 @@ const fetchUserData = async () => {
     width: 100%;
   }
 
-  .logout-button {
-    align-self: flex-start;
-  }
 
   .contribution-header {
     flex-direction: column;
@@ -622,10 +532,5 @@ const fetchUserData = async () => {
     flex-direction: column;
   }
 
-  .view-link,
-  .pay-button {
-    width: 100%;
-    text-align: center;
-  }
 }
 </style>

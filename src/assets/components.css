@@ -6,146 +6,6 @@
  */
 
 /* ============================================
-   CARDS
-   ============================================ */
-
-.card-base {
-  background-color: #fff;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  padding: 24px;
-  transition: all 0.3s ease;
-}
-
-.card-base:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
-}
-
-.card-clickable {
-  cursor: pointer;
-}
-
-.card-clickable:focus-visible {
-  outline: 2px solid var(--color-primary);
-  outline-offset: 2px;
-}
-
-/* ============================================
-   BADGES
-   ============================================ */
-
-.badge-base {
-  display: inline-block;
-  padding: 4px 12px;
-  border-radius: 12px;
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: white;
-}
-
-.badge-category {
-  padding: 4px 12px;
-  border-radius: 12px;
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: white;
-}
-
-.badge-status {
-  display: inline-block;
-  padding: 4px 12px;
-  border-radius: 12px;
-  font-size: 12px;
-  font-weight: 600;
-  text-transform: uppercase;
-}
-
-/* Status colors */
-.badge-status.active {
-  background-color: #c8e6c9;
-  color: #2e7d32;
-}
-
-.badge-status.pending {
-  background-color: #fff9c4;
-  color: #f57f17;
-}
-
-.badge-status.completed {
-  background-color: #c8e6c9;
-  color: #2e7d32;
-}
-
-.badge-status.in-progress {
-  background-color: #bbdefb;
-  color: #1565c0;
-}
-
-/* ============================================
-   BUTTONS
-   ============================================ */
-
-.btn-base {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 12px 24px;
-  border-radius: 8px;
-  font-weight: 600;
-  font-size: 14px;
-  cursor: pointer;
-  border: none;
-  transition: all 0.2s ease;
-  text-decoration: none;
-}
-
-.btn-primary {
-  background-color: var(--color-primary);
-  color: white;
-}
-
-.btn-primary:hover {
-  background-color: var(--color-primary-dark);
-  transform: translateY(-1px);
-}
-
-.btn-secondary {
-  background-color: #f5f5f5;
-  color: #333;
-}
-
-.btn-secondary:hover {
-  background-color: #e0e0e0;
-}
-
-.btn-close {
-  background: none;
-  border: none;
-  font-size: 32px;
-  color: #999;
-  cursor: pointer;
-  padding: 0;
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  transition: all 0.2s;
-  flex-shrink: 0;
-}
-
-.btn-close:hover {
-  background-color: #f5f5f5;
-  color: #111;
-}
-
-/* ============================================
    MODALS
    ============================================ */
 
@@ -341,43 +201,13 @@
    ============================================ */
 
 @media (max-width: 768px) {
-  .card-base {
-    padding: 20px;
-  }
-
   .modal-header,
   .modal-body,
   .modal-footer {
     padding: 24px;
-  }
-
-  .btn-base {
-    width: 100%;
   }
 }
 
 /* ============================================
    LAYOUT UTILITIES
    ============================================ */
-
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 20px;
-}
-
-.container-narrow {
-  max-width: 960px;
-  margin: 0 auto;
-  padding: 0 20px;
-}
-
-.section-padding {
-  padding: 80px 20px;
-}
-
-@media (max-width: 768px) {
-  .section-padding {
-    padding: 60px 20px;
-  }
-}

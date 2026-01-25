@@ -118,7 +118,7 @@ const formatDate = (dateString: string) => {
         <h1>{{ adminContent.title }}</h1>
         <div class="header-info">
           <span class="user-info">👤 {{ authStore.user?.nombre || authStore.user?.email }}</span>
-          <button @click="handleLogout" class="logout-button">{{ adminContent.logoutLabel }}</button>
+          <button @click="handleLogout" class="btn btn-danger btn-sm">{{ adminContent.logoutLabel }}</button>
         </div>
       </div>
     </header>
@@ -126,7 +126,7 @@ const formatDate = (dateString: string) => {
     <!-- Auth Check Message -->
     <div v-if="!authStore.isAuthenticated" class="auth-required">
       <p>{{ adminContent.authRequired }}</p>
-      <router-link to="/login" class="btn-login">{{ adminContent.authCta }}</router-link>
+      <router-link to="/login" class="btn btn-success">{{ adminContent.authCta }}</router-link>
     </div>
 
     <!-- Main Content -->
@@ -140,7 +140,7 @@ const formatDate = (dateString: string) => {
         <!-- Error State -->
         <div v-else-if="error" class="error-state">
           <p>{{ error }}</p>
-          <button @click="retry" class="btn-retry">{{ adminContent.retryLabel }}</button>
+          <button @click="retry" class="btn btn-danger">{{ adminContent.retryLabel }}</button>
         </div>
 
         <!-- Dashboard -->
@@ -309,20 +309,6 @@ const formatDate = (dateString: string) => {
   opacity: 0.9;
 }
 
-.logout-button {
-  background: #e74c3c;
-  color: white;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  cursor: pointer;
-  font-weight: 600;
-  transition: background 0.2s ease;
-}
-
-.logout-button:hover {
-  background: #c0392b;
-}
 
 .auth-required {
   text-align: center;
@@ -339,20 +325,6 @@ const formatDate = (dateString: string) => {
   font-size: 1.1rem;
 }
 
-.btn-login {
-  display: inline-block;
-  padding: 0.75rem 1.5rem;
-  background: #42b983;
-  color: white;
-  text-decoration: none;
-  border-radius: 4px;
-  font-weight: 600;
-  transition: background 0.2s ease;
-}
-
-.btn-login:hover {
-  background: #359268;
-}
 
 .admin-main {
   padding: 2rem 20px;
@@ -378,20 +350,6 @@ const formatDate = (dateString: string) => {
   color: #e74c3c;
 }
 
-.btn-retry {
-  margin-top: 1rem;
-  padding: 0.75rem 1.5rem;
-  background: #e74c3c;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-weight: 600;
-}
-
-.btn-retry:hover {
-  background: #c0392b;
-}
 
 /* Tabs */
 .tabs {

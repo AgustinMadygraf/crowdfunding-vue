@@ -24,6 +24,15 @@ const progress = computed(() => {
   );
 });
 
+const statusBadgeClass = computed(() => {
+  const map: Record<string, string> = {
+    active: 'text-bg-success',
+    pending: 'text-bg-warning',
+    completed: 'text-bg-success'
+  };
+  return map[milestone.value?.status || ''] || 'text-bg-secondary';
+});
+
 const dependentMilestones = computed(() => {
   if (!milestone.value?.dependencies?.length) return [];
   return milestones.value.filter((m) => milestone.value!.dependencies?.includes(m.id));
@@ -58,8 +67,8 @@ const fetchMilestoneDetail = async () => {
   <div v-if="milestone" class="milestone-detail-page">
     <!-- Header -->
     <header class="header">
-      <div class="container-narrow">
-        <button class="btn-back" @click="handleGoBack" :aria-label="milestoneDetailContent.backLabel">
+      <div class="container">
+        <button class="btn btn-link p-0 mb-2 text-decoration-none" @click="handleGoBack" :aria-label="milestoneDetailContent.backLabel">
           {{ milestoneDetailContent.backLabel }}
         </button>
         <h1>{{ milestone.name }}</h1>
@@ -68,17 +77,17 @@ const fetchMilestoneDetail = async () => {
     </header>
 
     <!-- Main Content -->
-    <main class="container-narrow">
+    <main class="container">
       <!-- Detalles -->
       <section class="section">
         <h2>{{ milestoneDetailContent.infoTitle }}</h2>
         <div class="content-grid">
-          <div v-if="milestone.details" class="card-base">
+          <div v-if="milestone.details" class="card shadow-sm p-3">
             <h3>{{ milestoneDetailContent.detailsTitle }}</h3>
             <p>{{ milestone.details }}</p>
           </div>
 
-          <div class="card-base">
+          <div class="card shadow-sm p-3">
             <h3>{{ milestoneDetailContent.statusTitle }}</h3>
             <dl class="stats">
               <div>
@@ -105,7 +114,7 @@ const fetchMilestoneDetail = async () => {
               <div>
                 <dt>{{ milestoneDetailContent.statsLabels.status }}</dt>
                 <dd>
-                  <span class="badge-status" :class="`status-${milestone.status}`">
+                  <span class="badge" :class="statusBadgeClass">
                     {{
                       milestone.status === 'active'
                         ? milestoneDetailContent.statusLabels.active
@@ -195,7 +204,7 @@ const fetchMilestoneDetail = async () => {
         <div class="cta-card">
           <h2>{{ milestoneDetailContent.ctaTitle }}</h2>
           <p>{{ milestoneDetailContent.ctaSubtitle }}</p>
-          <router-link to="/suscribir" class="btn btn-primary">
+          <router-link to="/suscribir" class="btn btn-light text-primary fw-semibold">
             {{ milestoneDetailContent.ctaButton }}
           </router-link>
         </div>
@@ -228,22 +237,8 @@ const fetchMilestoneDetail = async () => {
   margin-bottom: 40px;
 }
 
-/* container-narrow en components.css */
+/* container en components.css */
 
-.btn-back {
-  background: none;
-  border: none;
-  color: var(--color-primary);
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  padding: 0;
-  margin-bottom: 12px;
-}
-
-.btn-back:hover {
-  text-decoration: underline;
-}
 
 .header h1 {
   margin: 0 0 8px 0;
@@ -258,7 +253,7 @@ const fetchMilestoneDetail = async () => {
   line-height: 1.6;
 }
 
-/* container-narrow en components.css */
+/* container en components.css */
 
 .section {
   margin-bottom: 48px;
@@ -278,15 +273,15 @@ const fetchMilestoneDetail = async () => {
   gap: 24px;
 }
 
-/* card-base en components.css */
-.card-base h3 {
+/* card en Bootstrap */
+.card h3 {
   margin: 0 0 16px 0;
   font-size: 16px;
   font-weight: 600;
   color: #333;
 }
 
-.card-base p {
+.card p {
   margin: 0;
   color: #666;
   line-height: 1.6;
@@ -328,8 +323,6 @@ const fetchMilestoneDetail = async () => {
   font-size: 12px;
   color: #999;
 }
-
-/* badge-status en components.css */
 
 /* Timeline - usa timeline-marker y timeline-content de components.css */
 .timeline {
@@ -495,27 +488,6 @@ const fetchMilestoneDetail = async () => {
   line-height: 1.6;
 }
 
-/* btn-primary en components.css */
-.btn {
-  display: inline-flex;
-  padding: 12px 24px;
-  border-radius: 6px;
-  font-weight: 600;
-  font-size: 14px;
-  text-decoration: none;
-  cursor: pointer;
-  border: none;
-  transition: all 0.2s;
-}
-
-.cta-card .btn-primary {
-  background-color: white;
-  color: var(--color-primary);
-}
-
-.cta-card .btn-primary:hover {
-  background-color: #f5f5f5;
-}
 
 /* Not Found */
 .not-found {

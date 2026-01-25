@@ -23,10 +23,10 @@ const formattedDate = new Date(props.update.publishedAt).toLocaleDateString('es-
 </script>
 
 <template>
-  <article class="card-base card-clickable update-card">
+  <article class="card shadow-sm p-3 update-card cursor-pointer">
     <div class="update-header">
       <span 
-        class="badge-category" 
+        class="badge"
         :style="{ backgroundColor: categoryColors[update.category] }"
       >
         {{ categoryLabels[update.category] }}
@@ -39,14 +39,14 @@ const formattedDate = new Date(props.update.publishedAt).toLocaleDateString('es-
     <p v-if="update.excerpt" class="excerpt">{{ update.excerpt }}</p>
 
     <div class="card-footer">
-      <span class="link-text">{{ content.home.updateCard.readMoreLabel }}</span>
+      <span class="text-primary fw-semibold">{{ content.home.updateCard.readMoreLabel }}</span>
     </div>
   </article>
 </template>
 
 <style scoped>
 .update-card {
-  /* Usa card-base de components.css */
+  /* Usa card de Bootstrap */
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -65,7 +65,7 @@ const formattedDate = new Date(props.update.publishedAt).toLocaleDateString('es-
   gap: 12px;
 }
 
-/* badge-category y link-text ahora en components.css */
+/* badge y text utilities en Bootstrap */
 
 .date {
   font-size: 13px;

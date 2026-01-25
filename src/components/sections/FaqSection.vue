@@ -9,8 +9,8 @@ const faqSection = content.home.faq;
 </script>
 
 <template>
-  <section class="faq section-padding" id="faq">
-    <div class="container-narrow">
+  <section class="faq py-5" id="faq">
+    <div class="container">
       <h2>{{ faqSection.title }}</h2>
       <div v-for="(item, idx) in faqSection.items" :key="idx" class="faq-item">
         <h3>{{ item.question }}</h3>
@@ -21,7 +21,7 @@ const faqSection = content.home.faq;
 </template>
 
 <style scoped>
-/* section-padding y container-narrow en components.css */
+/* container en components.css */
 
 .faq {
   background-color: #f9fafb;

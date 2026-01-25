@@ -26,7 +26,7 @@ const handleNotFound = () => {
       <h1 class="error-code">404</h1>
       <h2>{{ notFoundContent.title }}</h2>
       <p>{{ notFoundContent.subtitle }}</p>
-      <button @click="goHome" class="home-button">{{ notFoundContent.cta }}</button>
+      <button @click="goHome" class="btn btn-primary btn-lg">{{ notFoundContent.cta }}</button>
     </div>
   </div>
 </template>
@@ -66,21 +66,6 @@ p {
   margin-bottom: 2rem;
 }
 
-.home-button {
-  background: #42b983;
-  color: white;
-  border: none;
-  padding: 1rem 2rem;
-  border-radius: 4px;
-  font-size: 1.1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.2s ease;
-}
-
-.home-button:hover {
-  background: #359268;
-}
 
 @media (max-width: 768px) {
   .error-code {

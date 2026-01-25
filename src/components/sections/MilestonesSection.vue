@@ -29,14 +29,14 @@ const milestonesContent = content.home.milestonesSection;
 </script>
 
 <template>
-  <section class="milestones section-padding" id="milestones">
+  <section class="milestones py-5" id="milestones">
     <div class="container">
       <header class="section-header">
         <div>
           <h2>{{ milestonesContent.title }}</h2>
           <p>{{ milestonesContent.subtitle }}</p>
         </div>
-        <div class="card-base summary" aria-live="polite">
+        <div class="card shadow-sm p-3 summary" aria-live="polite">
           <p><strong>{{ milestonesContent.summaryLabels.progress }}</strong> {{ props.progressPercentage }}%</p>
           <p><strong>{{ milestonesContent.summaryLabels.raised }}</strong> {{ content.app.currencyLabel }} {{ props.totalRaisedAmount.toLocaleString() }}</p>
           <p><strong>{{ milestonesContent.summaryLabels.target }}</strong> {{ content.app.currencyLabel }} {{ props.totalTargetAmount.toLocaleString() }}</p>
@@ -64,7 +64,7 @@ const milestonesContent = content.home.milestonesSection;
 </template>
 
 <style scoped>
-/* section-padding y container en components.css */
+/* container en Bootstrap */
 
 .milestones {
   background: #f9fafb;
@@ -81,7 +81,7 @@ const milestonesContent = content.home.milestonesSection;
   margin-bottom: 12px;
 }
 
-/* card-base en components.css */
+/* card en Bootstrap */
 .summary {
   display: grid;
   gap: 8px;

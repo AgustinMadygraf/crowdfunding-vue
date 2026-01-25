@@ -5,8 +5,8 @@ const updatesContent = content.home.updatesSection;
 </script>
 
 <template>
-  <section class="updates section-padding" id="updates">
-    <div class="container-narrow">
+  <section class="updates py-5" id="updates">
+    <div class="container">
       <h2>{{ updatesContent.title }}</h2>
       <p>{{ updatesContent.nextUpdateLabel }} {{ updatesContent.nextUpdateDate }}</p>
       <div class="updates-placeholder">
@@ -17,7 +17,7 @@ const updatesContent = content.home.updatesSection;
 </template>
 
 <style scoped>
-/* section-padding y container-narrow en components.css */
+/* container en components.css */
 
 .updates-placeholder {
   margin-top: 24px;

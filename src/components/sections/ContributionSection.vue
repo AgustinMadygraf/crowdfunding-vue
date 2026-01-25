@@ -19,7 +19,7 @@ const contributionContent = content.home.contribution;
 </script>
 
 <template>
-  <section class="contribute section-padding" id="contribute">
+  <section class="contribute py-5" id="contribute">
     <div class="container">
       <h2>{{ contributionContent.title }}</h2>
       <p>{{ contributionContent.subtitle }}</p>
@@ -28,7 +28,7 @@ const contributionContent = content.home.contribution;
         <article
           v-for="level in props.levels"
           :key="level.amount"
-          :class="['card-base', 'card-clickable', 'level-card', { selected: level.amount === props.selectedLevel.amount }]"
+          :class="['card', 'shadow-sm', 'level-card', 'cursor-pointer', { selected: level.amount === props.selectedLevel.amount }]"
           @click="emit('select', level)"
           role="button"
           tabindex="0"
@@ -66,7 +66,7 @@ const contributionContent = content.home.contribution;
 </template>
 
 <style scoped>
-/* section-padding y container en components.css */
+/* container en Bootstrap */
 
 .contribution-levels {
   display: grid;
@@ -75,7 +75,7 @@ const contributionContent = content.home.contribution;
   margin: 40px 0;
 }
 
-/* card-base y card-clickable en components.css */
+/* card y shadow-sm en Bootstrap */
 .level-card {
   text-align: center;
   border: 2px solid #e0e0e0;
@@ -107,15 +107,6 @@ const contributionContent = content.home.contribution;
   padding: 24px;
   margin: 30px 0;
   text-align: center;
-}
-
-/* btn-primary en components.css */
-.btn-primary {
-  background-color: var(--color-success);
-}
-
-.btn-primary:hover {
-  background-color: var(--color-success-dark);
 }
 
 .btn-lg {

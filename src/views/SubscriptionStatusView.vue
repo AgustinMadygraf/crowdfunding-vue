@@ -86,8 +86,8 @@ onMounted(() => {
           <h2>{{ statusContent.errorTitle }}</h2>
           <p>{{ error }}</p>
           <div class="actions">
-            <button @click="retry" class="btn-primary">{{ statusContent.retryLabel }}</button>
-            <router-link to="/" class="btn-secondary">{{ statusContent.backHomeLabel }}</router-link>
+            <button @click="retry" class="btn btn-primary">{{ statusContent.retryLabel }}</button>
+            <router-link to="/" class="btn btn-secondary">{{ statusContent.backHomeLabel }}</router-link>
           </div>
         </div>
       </div>
@@ -100,7 +100,7 @@ onMounted(() => {
           <div class="status-header">
             <h2>{{ statusContent.statusTitle }}</h2>
             <span
-              class="status-badge"
+              class="badge rounded-pill text-white"
               :style="{ backgroundColor: statusColors[contribution.estado_pago] }"
             >
               {{ statusLabels[contribution.estado_pago] }}
@@ -169,15 +169,15 @@ onMounted(() => {
             <router-link
               v-if="contribution.estado_pago === 'pendiente'"
               :to="`/suscribir/pago/${contribution.token}`"
-              class="btn-primary"
+              class="btn btn-primary"
             >
               {{ statusContent.actions.completePayment }}
             </router-link>
-            <button v-if="contribution.estado_pago === 'procesando'" @click="retry" class="btn-primary">
+            <button v-if="contribution.estado_pago === 'procesando'" @click="retry" class="btn btn-primary">
               {{ statusContent.actions.refreshStatus }}
             </button>
-            <router-link to="/" class="btn-secondary">{{ statusContent.backHomeLabel }}</router-link>
-            <a href="mailto:info@madypack.com.ar" class="btn-secondary">{{ statusContent.actions.contactSupport }}</a>
+            <router-link to="/" class="btn btn-secondary">{{ statusContent.backHomeLabel }}</router-link>
+            <a href="mailto:info@madypack.com.ar" class="btn btn-secondary">{{ statusContent.actions.contactSupport }}</a>
           </div>
         </div>
       </div>
@@ -257,13 +257,6 @@ onMounted(() => {
   color: #2c3e50;
 }
 
-.status-badge {
-  padding: 0.5rem 1.5rem;
-  color: white;
-  border-radius: 20px;
-  font-weight: 600;
-  font-size: 0.875rem;
-}
 
 .status-details {
   margin-bottom: 2rem;
@@ -320,38 +313,6 @@ onMounted(() => {
   flex-wrap: wrap;
 }
 
-.btn-primary,
-.btn-secondary {
-  padding: 0.75rem 1.5rem;
-  border-radius: 4px;
-  text-decoration: none;
-  font-weight: 600;
-  transition: all 0.2s ease;
-  border: none;
-  cursor: pointer;
-  font-size: 1rem;
-}
-
-.btn-primary {
-  background: #42b983;
-  color: white;
-}
-
-.btn-primary:hover {
-  background: #359268;
-}
-
-.btn-secondary {
-  background: white;
-  color: #2c3e50;
-  border: 2px solid #2c3e50;
-}
-
-.btn-secondary:hover {
-  background: #2c3e50;
-  color: white;
-}
-
 @media (max-width: 768px) {
   .status-card {
     padding: 2rem 1.5rem;
@@ -372,8 +333,7 @@ onMounted(() => {
     flex-direction: column;
   }
 
-  .btn-primary,
-  .btn-secondary {
+  .btn {
     width: 100%;
     text-align: center;
   }

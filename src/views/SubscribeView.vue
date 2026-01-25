@@ -209,7 +209,7 @@ const handlePayment = async () => {
 <template>
   <div class="subscribe-view">
     <section class="hero-section">
-      <div class="container-narrow">
+      <div class="container">
         <h1>{{ subscribeContent.heroTitle }}</h1>
         <p class="subtitle">{{ subscribeContent.heroSubtitle }}</p>
       </div>
@@ -218,9 +218,12 @@ const handlePayment = async () => {
     <!-- Authentication Modal -->
     <div v-if="isAuthenticationModalOpen && !isAuthenticated" class="modal-overlay" @click="isAuthenticationModalOpen = false">
       <div class="modal-content" @click.stop>
-        <button class="close-button" @click="isAuthenticationModalOpen = false">
-          {{ subscribeContent.authModalClose }}
-        </button>
+        <button
+          type="button"
+          class="btn-close"
+          :aria-label="subscribeContent.authModalClose"
+          @click="isAuthenticationModalOpen = false"
+        ></button>
         <h2>{{ subscribeContent.authModalTitle }}</h2>
         <p>{{ subscribeContent.authModalSubtitle }}</p>
         <GoogleAuthButton 
@@ -231,7 +234,7 @@ const handlePayment = async () => {
     </div>
 
     <section class="form-section">
-      <div class="container-narrow">
+      <div class="container">
         <div v-if="isAuthenticated && user" class="auth-header">
           <div class="user-badge">
             <img v-if="user.avatar_url" :src="sanitizeAvatarUrl(user.avatar_url)" :alt="user.nombre" class="avatar-sm">
@@ -240,7 +243,7 @@ const handlePayment = async () => {
               <p class="email">{{ user.email }}</p>
             </div>
           </div>
-          <router-link to="/account" class="dashboard-link">
+          <router-link to="/account" class="btn btn-primary btn-sm">
             {{ subscribeContent.dashboardLink }}
           </router-link>
         </div>
@@ -253,7 +256,7 @@ const handlePayment = async () => {
               <p class="amount">${{ selectedLevel.amount.toLocaleString() }}</p>
               <p class="benefit">{{ subscribeContent.levelBenefitLabel }} {{ benefitAmount }}</p>
             </div>
-            <button @click="selectLevel(levels[0])" class="change-level-btn">
+            <button @click="selectLevel(levels[0])" class="btn btn-outline-secondary btn-sm">
               {{ subscribeContent.changeLevelLabel }}
             </button>
           </div>
@@ -278,14 +281,14 @@ const handlePayment = async () => {
 
             <div v-if="!isAuthenticated" class="auth-prompt">
               <p>{{ subscribeContent.authPrompt }}</p>
-              <button type="button" class="auth-button" @click="isAuthenticationModalOpen = true">
+              <button type="button" class="btn btn-primary" @click="isAuthenticationModalOpen = true">
                 {{ subscribeContent.authPromptButton }}
               </button>
             </div>
 
             <div v-else>
               <div v-if="submitError" class="form-error-banner">{{ submitError }}</div>
-              <button type="button" class="submit-button" :disabled="isSubmitting" @click="handleSubmit">
+              <button type="button" class="btn btn-success w-100" :disabled="isSubmitting" @click="handleSubmit">
                 {{ isSubmitting ? subscribeContent.submitLoadingLabel : subscribeContent.submitLabel }}
               </button>
             </div>
@@ -317,7 +320,7 @@ const handlePayment = async () => {
               </div>
             </div>
 
-            <button type="button" class="payment-button" @click="handlePayment" :disabled="isProcessingPayment">
+            <button type="button" class="btn btn-primary btn-lg w-100" @click="handlePayment" :disabled="isProcessingPayment">
               <span v-if="!isProcessingPayment">{{ subscribeContent.payLabel }}</span>
               <span v-else>{{ subscribeContent.payLoadingLabel }}</span>
             </button>
@@ -346,7 +349,7 @@ const handlePayment = async () => {
   text-align: center;
 }
 
-.container-narrow {
+.container {
   max-width: 700px;
   margin: 0 auto;
 }
@@ -384,20 +387,6 @@ const handlePayment = async () => {
   position: relative;
 }
 
-.close-button {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  background: none;
-  border: none;
-  font-size: 2rem;
-  cursor: pointer;
-  color: #666;
-}
-
-.close-button:hover {
-  color: #000;
-}
 
 .modal-content h2 {
   margin-top: 0;
@@ -456,19 +445,6 @@ const handlePayment = async () => {
   color: var(--color-text-secondary);
 }
 
-.dashboard-link {
-  padding: 0.5rem 1rem;
-  background: var(--color-primary);
-  color: white;
-  border-radius: 0.25rem;
-  text-decoration: none;
-  font-size: 0.875rem;
-  transition: background 0.2s;
-}
-
-.dashboard-link:hover {
-  opacity: 0.9;
-}
 
 .level-summary,
 .level-selector {
@@ -508,19 +484,6 @@ const handlePayment = async () => {
   color: #666;
 }
 
-.change-level-btn {
-  padding: 0.5rem 1rem;
-  background: #ddd;
-  border: none;
-  border-radius: 0.25rem;
-  cursor: pointer;
-  font-size: 0.875rem;
-  transition: background 0.2s;
-}
-
-.change-level-btn:hover {
-  background: #ccc;
-}
 
 .levels-grid {
   display: grid;
@@ -583,104 +546,6 @@ const handlePayment = async () => {
   color: var(--color-text-secondary);
 }
 
-.auth-button {
-  padding: 0.75rem 1.5rem;
-  background: var(--color-primary);
-  color: white;
-  border: none;
-  border-radius: 0.5rem;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-.auth-button:hover {
-  opacity: 0.9;
-}
-
-.submit-button {
-  width: 100%;
-  padding: 1rem;
-  background: #42b983;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  font-size: 1.1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.2s ease;
-}
-
-.submit-button:hover:not(:disabled) {
-  background: #359268;
-}
-
-.submit-button:disabled {
-  background: #ccc;
-  cursor: not-allowed;
-}
-
-/* Testing Mode Styles */
-.testing-mode-section {
-  margin-bottom: 2rem;
-}
-
-.testing-mode-banner {
-  background: linear-gradient(135deg, #f9a825 0%, #ff8c00 100%);
-  color: white;
-  padding: 1.5rem;
-  border-radius: 8px;
-  border-left: 4px solid #ff6b00;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 1rem;
-}
-
-.testing-mode-banner p {
-  margin: 0;
-  font-weight: 500;
-}
-
-.testing-mode-button {
-  padding: 0.75rem 1.5rem;
-  background: white;
-  color: #ff8c00;
-  border: none;
-  border-radius: 6px;
-  font-weight: 600;
-  font-size: 0.95rem;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  white-space: nowrap;
-}
-
-.testing-mode-button:hover {
-  background: #fff;
-  transform: scale(1.05);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-}
-
-.testing-mode-active {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  flex-grow: 1;
-}
-
-.testing-mode-active .badge {
-  display: inline-block;
-  padding: 0.5rem 1rem;
-  background: rgba(255, 255, 255, 0.3);
-  border-radius: 20px;
-  font-weight: 600;
-  font-size: 0.9rem;
-}
-
-.testing-mode-active p {
-  margin: 0;
-  font-size: 0.95rem;
-}
 
 .success-section {
   margin-top: 2rem;
@@ -744,32 +609,6 @@ const handlePayment = async () => {
   color: #2c3e50;
 }
 
-.payment-button {
-  width: 100%;
-  padding: 1rem 2rem;
-  background: linear-gradient(135deg, #009ee3 0%, #0077cc 100%);
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-size: 1.1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 2px 8px rgba(0, 136, 204, 0.2);
-}
-
-.payment-button:hover:not(:disabled) {
-  background: linear-gradient(135deg, #0088cc 0%, #0066bb 100%);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 136, 204, 0.3);
-}
-
-.payment-button:disabled {
-  background: #ccc;
-  cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
-}
 
 .payment-note {
   text-align: center;

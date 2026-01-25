@@ -30,7 +30,7 @@ const milestoneCardContent = content.home.milestoneCard;
 </script>
 
 <template>
-  <article class="card-base card-clickable milestone-card" @click="handleCardClick" role="button" tabindex="0" @keydown.enter="handleCardClick" @keydown.space="handleCardClick">
+  <article class="card shadow-sm p-3 milestone-card cursor-pointer" @click="handleCardClick" role="button" tabindex="0" @keydown.enter="handleCardClick" @keydown.space="handleCardClick">
     <h3>{{ props.milestone.name }}</h3>
     <p v-if="props.milestone.description" class="description">{{ props.milestone.description }}</p>
     <div class="progress-container" role="progressbar" :aria-valuenow="progress" aria-valuemin="0" aria-valuemax="100">
@@ -51,7 +51,7 @@ const milestoneCardContent = content.home.milestoneCard;
       </div>
     </dl>
     <div class="card-footer">
-      <span class="link-text">{{ milestoneCardContent.viewDetailsLabel }}</span>
+      <span class="text-primary fw-semibold">{{ milestoneCardContent.viewDetailsLabel }}</span>
     </div>
   </article>
 </template>
