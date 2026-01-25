@@ -129,7 +129,7 @@ jobs:
           EOF
           fi
 
-      - name: Deploy con lftp mirror (dist -> /public_html) [IPv4 + excludes]
+      - name: Deploy con lftp mirror (dist -> /public_html/crowdfunding) [IPv4 + excludes]
         shell: bash
         env:
           FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
@@ -137,7 +137,7 @@ jobs:
         run: |
           set -euo pipefail
           # Debug: muestra la URL de conexion (sin credenciales)
-          echo "::notice::Conectando a: $FTP_CONNECT_URL (destino: /public_html)"
+          echo "::notice::Conectando a: $FTP_CONNECT_URL (destino: /public_html/crowdfunding)"
           echo "::notice::Tamaño de dist/: $(du -sh dist/ | cut -f1)"
 
           lftp -u "$FTP_USERNAME","$FTP_PASSWORD" "$FTP_CONNECT_URL" <<'EOF'
@@ -158,7 +158,7 @@ jobs:
           mirror -R --delete --verbose --no-perms \
             --exclude-glob .ht_leame \
             --exclude-glob cgi-bin/ \
-            dist/ /public_html/ || echo "Mirror completó con advertencias"
+            dist/ /public_html/crowdfunding/ || echo "Mirror completó con advertencias"
 
           echo "Proceso finalizado"
           bye
