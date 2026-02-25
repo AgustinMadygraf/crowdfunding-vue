@@ -56,6 +56,7 @@ DoD: casos de uso de `src/application/usecases/*` y adaptadores clave de infraes
 - [x] Validar `dist/index.html` y tamano minimo antes de publicar.
 - [x] Versionar `.htaccess` en `public/.htaccess` y eliminar generacion inline en workflow.
 - [x] Agregar `deploy-smoke` opcional con URL explicita (`DEPLOY_HEALTHCHECK_URL`).
+- [x] Agregar smoke test funcional automatizado en CI sobre `dist` via `vite preview`.
 - [x] Crear `build-validate` para validar solo variables de build.
 - [x] Separar pipeline en jobs de build y deploy, conectados por artifact inmutable.
 - [x] Crear `build-typecheck` como job dedicado.
