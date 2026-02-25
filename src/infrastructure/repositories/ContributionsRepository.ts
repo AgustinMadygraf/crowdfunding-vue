@@ -13,6 +13,7 @@ import { authService } from '@/infrastructure/services/authServiceFactory'
 import { csrfService } from '@/infrastructure/services/csrfService'
 import { DEFAULT_TIMEOUT_MS } from '@/config/api'
 import { getAppConfig } from '@/config/appConfig'
+import { logger } from '@/infrastructure/logging/logger'
 
 export class ContributionsRepository implements ContributionsRepositoryPort {
   private readonly apiBaseUrl: string
@@ -31,7 +32,7 @@ export class ContributionsRepository implements ContributionsRepositoryPort {
     try {
       await this.fetchWithGuard(url, { method: 'GET' })
     } catch (error) {
-      console.warn('[ContributionsRepository] Health check failed:', url, error)
+      logger.warn('[ContributionsRepository] Health check failed:', url, error)
     }
   }
 
@@ -72,12 +73,12 @@ export class ContributionsRepository implements ContributionsRepositoryPort {
     // Log request details for debugging
     if (this.debugHttp) {
       const hasAuthorization = !!requestHeaders.get('Authorization')
-      console.log(`[ContributionsRepository] ðŸ“¤ REQUEST [${requestId}]`)
-      console.log(`  URL: ${safeUrlForLogs}`)
-      console.log(`  Method: ${init?.method || 'GET'}`)
-      console.log(`  Accept: ${requestHeaders.get('Accept') || 'not set'}`)
-      console.log(`  Authorization: ${hasAuthorization ? 'present' : 'none'}`)
-      console.log(`  Content-Type: ${requestHeaders.get('Content-Type') || 'not set'}`)
+      logger.info(`[ContributionsRepository] ðŸ“¤ REQUEST [${requestId}]`)
+      logger.info(`  URL: ${safeUrlForLogs}`)
+      logger.info(`  Method: ${init?.method || 'GET'}`)
+      logger.info(`  Accept: ${requestHeaders.get('Accept') || 'not set'}`)
+      logger.info(`  Authorization: ${hasAuthorization ? 'present' : 'none'}`)
+      logger.info(`  Content-Type: ${requestHeaders.get('Content-Type') || 'not set'}`)
     }
     
     try {
@@ -88,16 +89,16 @@ export class ContributionsRepository implements ContributionsRepositoryPort {
       // Log response details for debugging
       if (this.debugHttp) {
         const safeResponseUrl = this.sanitizeUrlForLogs(response.url)
-        console.log(`[ContributionsRepository] ðŸ“¥ RESPONSE [${requestId}] (${elapsedMs}ms)`)
-        console.log(`  Status: ${response.status} ${response.statusText}`)
-        console.log(`  Final URL: ${safeResponseUrl}`)
-        console.log(`  Redirected: ${response.redirected}`)
-        console.log(`  Content-Type: ${contentType}`)
-        console.log(`  Location header: ${response.headers.get('location') || 'none'}`)
+        logger.info(`[ContributionsRepository] ðŸ“¥ RESPONSE [${requestId}] (${elapsedMs}ms)`)
+        logger.info(`  Status: ${response.status} ${response.statusText}`)
+        logger.info(`  Final URL: ${safeResponseUrl}`)
+        logger.info(`  Redirected: ${response.redirected}`)
+        logger.info(`  Content-Type: ${contentType}`)
+        logger.info(`  Location header: ${response.headers.get('location') || 'none'}`)
         if (response.redirected && response.url !== urlStr) {
-          console.warn(`[ContributionsRepository] âš ï¸ REDIRECT CHAIN DETECTED`)
-          console.warn(`  Original: ${safeUrlForLogs}`)
-          console.warn(`  Final: ${safeResponseUrl}`)
+          logger.warn(`[ContributionsRepository] âš ï¸ REDIRECT CHAIN DETECTED`)
+          logger.warn(`  Original: ${safeUrlForLogs}`)
+          logger.warn(`  Final: ${safeResponseUrl}`)
         }
       }
 
@@ -139,27 +140,27 @@ export class ContributionsRepository implements ContributionsRepositoryPort {
           }
         }
         
-        console.error('[ContributionsRepository] ðŸš¨ CRITICAL - HTML response when JSON expected')
-        console.error(`[ContributionsRepository] [${requestId}] Requested URL: ${safeUrlForLogs}`)
-        console.error(`[ContributionsRepository] [${requestId}] Response URL: ${safeResponseUrl}`)
-        console.error(`[ContributionsRepository] [${requestId}] API Base URL: ${this.apiBaseUrl}`)
-        console.error(`[ContributionsRepository] [${requestId}] Page Origin: ${pageOrigin}`)
-        console.error(`[ContributionsRepository] [${requestId}] Status: ${response.status}`)
-        console.error(`[ContributionsRepository] [${requestId}] Content-Type: ${contentType}`)
-        console.error(`[ContributionsRepository] [${requestId}] Redirected: ${response.redirected}`)
+        logger.error('[ContributionsRepository] ðŸš¨ CRITICAL - HTML response when JSON expected')
+        logger.error(`[ContributionsRepository] [${requestId}] Requested URL: ${safeUrlForLogs}`)
+        logger.error(`[ContributionsRepository] [${requestId}] Response URL: ${safeResponseUrl}`)
+        logger.error(`[ContributionsRepository] [${requestId}] API Base URL: ${this.apiBaseUrl}`)
+        logger.error(`[ContributionsRepository] [${requestId}] Page Origin: ${pageOrigin}`)
+        logger.error(`[ContributionsRepository] [${requestId}] Status: ${response.status}`)
+        logger.error(`[ContributionsRepository] [${requestId}] Content-Type: ${contentType}`)
+        logger.error(`[ContributionsRepository] [${requestId}] Redirected: ${response.redirected}`)
         if (response.redirected && response.url !== urlStr) {
-          console.error(`[ContributionsRepository] [${requestId}] âš ï¸ REDIRECT: ${safeUrlForLogs} -> ${safeResponseUrl}`)
+          logger.error(`[ContributionsRepository] [${requestId}] âš ï¸ REDIRECT: ${safeUrlForLogs} -> ${safeResponseUrl}`)
         }
         if (htmlTitle) {
-          console.error(`[ContributionsRepository] [${requestId}] HTML Title: ${htmlTitle}`)
+          logger.error(`[ContributionsRepository] [${requestId}] HTML Title: ${htmlTitle}`)
         }
         if (ngrokWarning) {
-          console.error('[ContributionsRepository] ðŸ†˜ Detected ngrok HTML response - this might be ngrok interstitial page')
-          console.error('[ContributionsRepository]    Try adding ngrok-skip-browser-warning header (should be automatic now)')
+          logger.error('[ContributionsRepository] ðŸ†˜ Detected ngrok HTML response - this might be ngrok interstitial page')
+          logger.error('[ContributionsRepository]    Try adding ngrok-skip-browser-warning header (should be automatic now)')
         }
-        console.error(`[ContributionsRepository] [${requestId}] Response preview (200 chars):`)
-        console.error(body.slice(0, 200))
-        console.error('[ContributionsRepository] Full error details:', errorDetails)
+        logger.error(`[ContributionsRepository] [${requestId}] Response preview (200 chars):`)
+        logger.error(body.slice(0, 200))
+        logger.error('[ContributionsRepository] Full error details:', errorDetails)
         
         throw new ContributionRepositoryError(
           'Respuesta HTML recibida del endpoint. Revisa VITE_API_BASE_URL o el proxy.',
@@ -176,7 +177,7 @@ export class ContributionsRepository implements ContributionsRepositoryPort {
 
       // Timeout u otro error de fetch
       if (error instanceof TypeError && error.message.includes('abort')) {
-        console.error('[ContributionsRepository] â±ï¸ TIMEOUT en request:', safeUrlForLogs)
+        logger.error('[ContributionsRepository] â±ï¸ TIMEOUT en request:', safeUrlForLogs)
         throw new ContributionRepositoryError(
           `Timeout despuÃ©s de ${DEFAULT_TIMEOUT_MS}ms en ${safeUrlForLogs}`,
           undefined,
@@ -184,7 +185,7 @@ export class ContributionsRepository implements ContributionsRepositoryPort {
         )
       }
 
-      console.error('[ContributionsRepository] ðŸ”Œ Fetch error:', error)
+      logger.error('[ContributionsRepository] ðŸ”Œ Fetch error:', error)
       throw error
     } finally {
       clearTimeout(timeout)
@@ -227,8 +228,8 @@ export class ContributionsRepository implements ContributionsRepositoryPort {
           errorData = { message: text || response.statusText }
         }
 
-        console.error('[ContributionsRepository] âŒ Error HTTP', response.status)
-        console.error('[ContributionsRepository] Error response:', errorData)
+        logger.error('[ContributionsRepository] âŒ Error HTTP', response.status)
+        logger.error('[ContributionsRepository] Error response:', errorData)
 
         throw new ContributionRepositoryError(
           this.extractErrorMessage(errorData) || `HTTP ${response.status}`,
@@ -246,8 +247,8 @@ export class ContributionsRepository implements ContributionsRepositoryPort {
       }
 
       const errMsg = error instanceof Error ? error.message : 'Error desconocido'
-      console.error('[ContributionsRepository] âŒ ConexiÃ³n o parsing error:', errMsg)
-      console.error('[ContributionsRepository] Error details:', error)
+      logger.error('[ContributionsRepository] âŒ ConexiÃ³n o parsing error:', errMsg)
+      logger.error('[ContributionsRepository] Error details:', error)
       throw new ContributionRepositoryError(
         `No se pudo conectar a ${url}: ${errMsg}`,
         undefined,
@@ -285,7 +286,7 @@ export class ContributionsRepository implements ContributionsRepositoryPort {
             : null
 
       if (!list) {
-        console.error('[ContributionsRepository] âŒ Formato de respuesta invÃ¡lido:', data)
+        logger.error('[ContributionsRepository] âŒ Formato de respuesta invÃ¡lido:', data)
         throw new ContributionRepositoryError('Formato de respuesta invÃ¡lido para contribuciones')
       }
       return list
@@ -294,7 +295,7 @@ export class ContributionsRepository implements ContributionsRepositoryPort {
         throw error
       }
 
-      console.error('[ContributionsRepository] âŒ Error al obtener contribuciones:', error)
+      logger.error('[ContributionsRepository] âŒ Error al obtener contribuciones:', error)
       throw new ContributionRepositoryError(
         error instanceof Error ? error.message : 'Error desconocido'
       )
@@ -318,10 +319,10 @@ export class ContributionsRepository implements ContributionsRepositoryPort {
     
     // Log mÃ©todo y parÃ¡metros
     if (this.debugHttp) {
-      console.log('[ContributionsRepository] ðŸ” getByToken() called')
-      console.log(`  Token length: ${token.length}`)
-      console.log(`  URL: ${this.sanitizeUrlForLogs(url)}`)
-      console.log(`  Authorization: ${headers.Authorization ? 'present' : 'none'}`)
+      logger.info('[ContributionsRepository] ðŸ” getByToken() called')
+      logger.info(`  Token length: ${token.length}`)
+      logger.info(`  URL: ${this.sanitizeUrlForLogs(url)}`)
+      logger.info(`  Authorization: ${headers.Authorization ? 'present' : 'none'}`)
     }
     
     try {
@@ -329,7 +330,7 @@ export class ContributionsRepository implements ContributionsRepositoryPort {
 
       if (!response.ok) {
         const statusText = response.statusText || 'Unknown error'
-        console.error('[ContributionsRepository] âŒ HTTP Error:', response.status, statusText)
+        logger.error('[ContributionsRepository] âŒ HTTP Error:', response.status, statusText)
         throw new ContributionRepositoryError(
           `Error ${response.status}: No se pudo cargar la contribuciÃ³n`,
           response.status,
@@ -340,8 +341,8 @@ export class ContributionsRepository implements ContributionsRepositoryPort {
       const contribution: UserContribution = await response.json()
       
       if (this.debugHttp) {
-        console.log('[ContributionsRepository] âœ… getByToken() success')
-        console.log(`  Contribution ID: ${contribution.id}`)
+        logger.info('[ContributionsRepository] âœ… getByToken() success')
+        logger.info(`  Contribution ID: ${contribution.id}`)
       }
       
       return contribution
@@ -351,13 +352,13 @@ export class ContributionsRepository implements ContributionsRepositoryPort {
       }
 
       const errMsg = error instanceof Error ? error.message : 'Error desconocido'
-      console.error('[ContributionsRepository] âŒ ConexiÃ³n o parsing error:', errMsg)
-      console.error('[ContributionsRepository] Error details:', error)
-      console.error('[ContributionsRepository] URL:', this.sanitizeUrlForLogs(url))
-      console.error('[ContributionsRepository] âš ï¸ DIAGNOSTIC INFO:')
-      console.error('[ContributionsRepository]   - Is it an ngrok URL?', url.includes('ngrok'))
-      console.error('[ContributionsRepository]   - Authorization header sent?', !!headers.Authorization)
-      console.error('[ContributionsRepository]   - API Base URL config:', this.apiBaseUrl)
+      logger.error('[ContributionsRepository] âŒ ConexiÃ³n o parsing error:', errMsg)
+      logger.error('[ContributionsRepository] Error details:', error)
+      logger.error('[ContributionsRepository] URL:', this.sanitizeUrlForLogs(url))
+      logger.error('[ContributionsRepository] âš ï¸ DIAGNOSTIC INFO:')
+      logger.error('[ContributionsRepository]   - Is it an ngrok URL?', url.includes('ngrok'))
+      logger.error('[ContributionsRepository]   - Authorization header sent?', !!headers.Authorization)
+      logger.error('[ContributionsRepository]   - API Base URL config:', this.apiBaseUrl)
       
       throw new ContributionRepositoryError(
         `No se pudo obtener la contribuciÃ³n desde ${this.sanitizeUrlForLogs(url)}: ${errMsg}`,
@@ -370,4 +371,5 @@ export class ContributionsRepository implements ContributionsRepositoryPort {
 
 // Instancia singleton por conveniencia (se puede inyectar despuÃ©s)
 export const contributionsRepository = new ContributionsRepository()
+
 

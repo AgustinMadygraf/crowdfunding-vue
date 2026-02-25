@@ -112,6 +112,24 @@ jobs:
           VITE_DEBUG_HTTP: ${{ github.event.inputs.enable_debug_http || 'false' }}
         run: npm run build
 
+      - name: Validar dist antes de deploy
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [ ! -f "dist/index.html" ]; then
+            echo "::error::Falta dist/index.html. El build no generó artefacto válido."
+            exit 1
+          fi
+
+          dist_size_bytes="$(du -sb dist | cut -f1)"
+          if [ "$dist_size_bytes" -lt 10240 ]; then
+            echo "::error::dist tiene tamaño inesperadamente bajo (${dist_size_bytes} bytes)."
+            exit 1
+          fi
+
+          echo "::notice::dist validado (${dist_size_bytes} bytes)"
+
       - name: Ensure dist/assets folder exists
         run: mkdir -p dist/assets
 

@@ -7,6 +7,7 @@ import { ref, computed, onMounted } from 'vue'
 import { documentsRepository, DocumentRepositoryError } from '@/infrastructure/repositories/DocumentsRepository'
 import { content } from '@/infrastructure/content'
 import { sanitizeExternalLink } from '@/utils/urlSanitizer'
+import { logger } from '@/infrastructure/logging/logger'
 
 import type { DocumentDTO } from '@/infrastructure/dto'
 
@@ -18,7 +19,6 @@ type DocumentViewModel = DocumentDTO & {
 const documents = ref<DocumentViewModel[]>([])
 const isLoading = ref(false)
 const error = ref<string | null>(null)
-const isDev = import.meta.env.DEV
 const documentsContent = content.documentsView
 
 // Computed: agrupar documentos por categoría
@@ -65,9 +65,7 @@ const loadDocuments = async () => {
       safeUrl: sanitizeExternalLink(doc.url)
     }))
   } catch (err: unknown) {
-    if (isDev) {
-      console.error('[DocumentsView] Error al cargar documentos:', err)
-    }
+    logger.error('[DocumentsView] Error al cargar documentos:', err)
     
     if (err instanceof DocumentRepositoryError) {
       error.value = err.message || documentsContent.errorFallback

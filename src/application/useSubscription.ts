@@ -12,6 +12,7 @@ import { CreateContributionUseCase } from '@/application/usecases/CreateContribu
 import { GetContributionByTokenUseCase } from '@/application/usecases/GetContributionByTokenUseCase'
 import { ListUserContributionsUseCase } from '@/application/usecases/ListUserContributionsUseCase'
 import { mapContributionError } from '@/application/errors/contributionErrorMapper'
+import { logger } from '@/infrastructure/logging/logger'
 
 
 export interface ContributionState {
@@ -22,7 +23,6 @@ export interface ContributionState {
 }
 
 export function useSubscription() {
-  const isDev = import.meta.env.DEV
   const contributionsRepository = getContributionsRepository()
   const createContributionUseCase = new CreateContributionUseCase(contributionsRepository)
   const getContributionByTokenUseCase = new GetContributionByTokenUseCase(contributionsRepository)
@@ -38,11 +38,7 @@ export function useSubscription() {
   const hasError = computed(() => !!error.value)
 
   const logError = (context: string, err: unknown) => {
-    if (!isDev) {
-      return
-    }
-
-    console.error(`[useSubscription] ${context}:`, err)
+    logger.error(`[useSubscription] ${context}:`, err)
   }
 
   /**
