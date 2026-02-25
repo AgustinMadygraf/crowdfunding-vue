@@ -10,15 +10,15 @@
 ## Pendiente
 
 ### Bloque Build
-- [ ] Separar pipeline en jobs de build y deploy, conectados por artifact inmutable.
+- [x] Separar pipeline en jobs de build y deploy, conectados por artifact inmutable.
 - [ ] Crear `build-typecheck` como job dedicado.
 - [ ] Crear `build-test` como job dedicado.
 - [ ] Crear `build-package` para generar `dist/` y subir artifact.
 - [ ] Evitar doble type-check en empaquetado (usar `npm run build-only` donde corresponda).
 
 ### Bloque Deploy
-- [ ] Crear `deploy-preflight` para validar vars/secrets FTP, resolver IPv4 y chequear puerto.
-- [ ] Crear `deploy-release` que consuma artifact y haga deploy.
+- [x] Crear `deploy-preflight` para validar vars/secrets FTP, resolver IPv4 y chequear puerto.
+- [x] Crear `deploy-release` que consuma artifact y haga deploy.
 
 ### Hardening
 - [ ] Pinnear actions por SHA para reducir riesgo de supply chain.

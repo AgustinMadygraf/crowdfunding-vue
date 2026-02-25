@@ -18,9 +18,9 @@ permissions:
   contents: read
 
 jobs:
-  build-and-deploy:
+  build-package:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 20
 
     steps:
       - name: Checkout
@@ -31,33 +31,6 @@ jobs:
         with:
           node-version: "20"
           cache: "npm"
-
-      - name: Validar config de deploy requerida
-        shell: bash
-        env:
-          FTP_SERVER: ${{ vars.FTP_SERVER }}
-          FTP_PORT: ${{ vars.FTP_PORT }}
-          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
-          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
-        run: |
-          set -euo pipefail
-
-          # Validar credenciales de deploy obligatorias
-          for v in FTP_USERNAME FTP_PASSWORD; do
-            if [ -z "${!v:-}" ]; then
-              echo "::error::Falta $v (requerido para deploy)"
-              exit 1
-            fi
-          done
-
-          echo "::notice::Credenciales de deploy validadas"
-
-          if [ -z "${FTP_SERVER:-}" ]; then
-            echo "::error::Falta FTP_SERVER (var). Ej: vps-5455262-x.dattaweb.com"
-            exit 1
-          fi
-
-          echo "FTP_PORT=${FTP_PORT:-21}" >> "$GITHUB_ENV"
 
       - name: Validar config de build requerida
         shell: bash
@@ -78,36 +51,6 @@ jobs:
           done
 
           echo "::notice::Variables de build validadas"
-      - name: Resolver IP (forzar IPv4) y armar URL de conexiÃ³n
-        shell: bash
-        env:
-          FTP_SERVER: ${{ vars.FTP_SERVER }}
-          FTP_SERVER_IP: ${{ vars.FTP_SERVER_IP }}
-        run: |
-          set -euo pipefail
-          sudo apt-get update -y
-          sudo apt-get install -y dnsutils lftp
-
-          ip4="$(dig +short "$FTP_SERVER" A | head -n 1 || true)"
-          if [ -z "$ip4" ] && [ -n "${FTP_SERVER_IP:-}" ]; then
-            ip4="$FTP_SERVER_IP"
-            echo "::notice::No encontrÃ© A record; usando FTP_SERVER_IP fallback: $ip4"
-          fi
-
-          if [ -z "$ip4" ]; then
-            echo "::error::No pude obtener IPv4 (A). CargÃ¡ FTP_SERVER_IP (ej: 200.58.103.24)."
-            exit 1
-          fi
-
-          echo "FTP_IPv4_EFFECTIVE=$ip4" >> "$GITHUB_ENV"
-          echo "FTP_CONNECT_URL=ftp://${ip4}:${FTP_PORT}" >> "$GITHUB_ENV"
-          echo "::notice::FTP_CONNECT_URL=ftp://${ip4}:${FTP_PORT}"
-
-      - name: Preflight puerto 21 (IPv4)
-        shell: bash
-        run: |
-          set -euo pipefail
-          nc -zv "$FTP_IPv4_EFFECTIVE" "$FTP_PORT"
 
       - name: Instalar dependencias
         run: npm ci
@@ -157,6 +100,82 @@ jobs:
           fi
 
           cp public/.htaccess dist/.htaccess
+
+      - name: Upload artifact dist
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-dist
+          path: dist
+          if-no-files-found: error
+          retention-days: 1
+
+  deploy-release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: build-package
+
+    steps:
+      - name: Download artifact dist
+        uses: actions/download-artifact@v4
+        with:
+          name: app-dist
+          path: dist
+
+      - name: Validar config de deploy requerida
+        shell: bash
+        env:
+          FTP_SERVER: ${{ vars.FTP_SERVER }}
+          FTP_PORT: ${{ vars.FTP_PORT }}
+          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+        run: |
+          set -euo pipefail
+
+          for v in FTP_USERNAME FTP_PASSWORD; do
+            if [ -z "${!v:-}" ]; then
+              echo "::error::Falta $v (requerido para deploy)"
+              exit 1
+            fi
+          done
+
+          if [ -z "${FTP_SERVER:-}" ]; then
+            echo "::error::Falta FTP_SERVER (var). Ej: vps-5455262-x.dattaweb.com"
+            exit 1
+          fi
+
+          echo "FTP_PORT=${FTP_PORT:-21}" >> "$GITHUB_ENV"
+          echo "::notice::Credenciales/vars de deploy validadas"
+
+      - name: Resolver IP (forzar IPv4) y armar URL de conexión
+        shell: bash
+        env:
+          FTP_SERVER: ${{ vars.FTP_SERVER }}
+          FTP_SERVER_IP: ${{ vars.FTP_SERVER_IP }}
+        run: |
+          set -euo pipefail
+          sudo apt-get update -y
+          sudo apt-get install -y dnsutils lftp
+
+          ip4="$(dig +short "$FTP_SERVER" A | head -n 1 || true)"
+          if [ -z "$ip4" ] && [ -n "${FTP_SERVER_IP:-}" ]; then
+            ip4="$FTP_SERVER_IP"
+            echo "::notice::No encontré A record; usando FTP_SERVER_IP fallback: $ip4"
+          fi
+
+          if [ -z "$ip4" ]; then
+            echo "::error::No pude obtener IPv4 (A). Cargá FTP_SERVER_IP (ej: 200.58.103.24)."
+            exit 1
+          fi
+
+          echo "FTP_IPv4_EFFECTIVE=$ip4" >> "$GITHUB_ENV"
+          echo "FTP_CONNECT_URL=ftp://${ip4}:${FTP_PORT}" >> "$GITHUB_ENV"
+          echo "::notice::FTP_CONNECT_URL=ftp://${ip4}:${FTP_PORT}"
+
+      - name: Preflight puerto FTP (IPv4)
+        shell: bash
+        run: |
+          set -euo pipefail
+          nc -zv "$FTP_IPv4_EFFECTIVE" "$FTP_PORT"
 
       - name: Deploy con lftp mirror (dist -> /public_html/crowdfunding) [IPv4 + excludes]
         shell: bash
