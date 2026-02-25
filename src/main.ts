@@ -1,4 +1,4 @@
-/*
+﻿/*
 Path: src/main.ts
 */
 
@@ -13,17 +13,14 @@ import { AUTH_SERVICE_KEY } from '@/application/useAuthService'
 import { getAppConfig } from '@/config/appConfig'
 import { setContributionsRepository } from '@/application/ports/contributionsRepositoryProvider'
 import { contributionsRepository } from '@/infrastructure/repositories/ContributionsRepository'
+import { logger } from '@/infrastructure/logging/logger'
 
-// Load API diagnostic utility in development
 if (import.meta.env.DEV) {
-  import('@/utils/apiDiagnostic').catch(err => {
-    console.warn('[main] Failed to load API diagnostic utility:', err)
+  import('@/utils/apiDiagnostic').catch((err) => {
+    logger.warn('[main] Failed to load API diagnostic utility:', err)
   })
 }
 
-// ============================================================
-// DIAGNÓSTICO DE CONFIGURACIÓN - Crítico para debugging
-// ============================================================
 const appConfig = getAppConfig()
 const diagnosticInfo = {
   environment: import.meta.env.MODE,
@@ -35,16 +32,11 @@ const diagnosticInfo = {
   userAgent: navigator.userAgent
 }
 
-console.info('VITE_DEBUG_HTTP:', import.meta.env.VITE_DEBUG_HTTP === 'true')
-console.group('🚀 CROWDFUNDING FRONTEND - Diagnostic Info')
-console.info('Environment:', diagnosticInfo.environment)
-console.info('Mode:', diagnosticInfo.prod ? 'PRODUCTION' : 'DEVELOPMENT')
-console.info('API Base URL:', diagnosticInfo.apiBaseUrl)
-console.info('Site URL:', diagnosticInfo.siteUrl)
-console.info('Loaded at:', diagnosticInfo.timestamp)
-console.groupEnd()
+if (import.meta.env.DEV) {
+  logger.info('VITE_DEBUG_HTTP:', import.meta.env.VITE_DEBUG_HTTP === 'true')
+  logger.info('CROWDFUNDING FRONTEND - Diagnostic Info', diagnosticInfo)
+}
 
-// Captura UTM parameters en la carga inicial (NFR-MKT-001)
 const captureUTMParameters = () => {
   const urlParams = new URLSearchParams(window.location.search)
   const utmParams: Record<string, string> = {}
@@ -66,15 +58,13 @@ const captureUTMParameters = () => {
     }
   })
 
-  // Guardar en sessionStorage si hay parámetros UTM
   if (Object.keys(utmParams).length > 0) {
     sessionStorage.setItem('utm_params', JSON.stringify(utmParams))
     sessionStorage.setItem('utm_captured_at', new Date().toISOString())
-    console.info('UTM parameters captured:', utmParams)
+    logger.info('UTM parameters captured')
   }
 }
 
-// Ejecutar captura antes de montar la app
 captureUTMParameters()
 
 const app = createApp(App)
@@ -85,14 +75,19 @@ app.use(router)
 app.provide(AUTH_SERVICE_KEY, authService)
 setContributionsRepository(contributionsRepository)
 
-// Captura global de errores no manejados
 type GlobalError = ErrorEvent | PromiseRejectionEvent | Event
 
-window.addEventListener('error', (event: GlobalError) => {
-  console.error('Global error', event)
+window.addEventListener('error', (_event: GlobalError) => {
+  logger.event('error', {
+    code: 'APP_GLOBAL_ERROR',
+    context: 'Global error event capturado'
+  })
 })
-window.addEventListener('unhandledrejection', (event: PromiseRejectionEvent) => {
-  console.error('Unhandled promise rejection', event.reason)
+window.addEventListener('unhandledrejection', (_event: PromiseRejectionEvent) => {
+  logger.event('error', {
+    code: 'APP_UNHANDLED_REJECTION',
+    context: 'Unhandled promise rejection capturado'
+  })
 })
 
 app.mount('#app')
