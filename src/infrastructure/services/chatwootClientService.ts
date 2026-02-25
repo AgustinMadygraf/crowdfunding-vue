@@ -244,10 +244,15 @@ export const chatwootClientService = {
 
       // Loguear éxito
       // Normalizar respuesta
+      const normalizedSourceId = contact.source_id ?? contact.identifier
+      if (!normalizedSourceId) {
+        throw new ChatwootException(500, {}, 'Missing source_id/identifier in Chatwoot response')
+      }
+
       return {
         contact: {
           id: contact.id,
-          source_id: contact.source_id || contact.identifier,
+          source_id: normalizedSourceId,
           name: contact.name,
           email: contact.email,
           phone_number: contact.phone_number,
