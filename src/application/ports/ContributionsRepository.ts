@@ -6,6 +6,14 @@ export interface CreateContributionDTO {
   utm_params: Record<string, string>
 }
 
+export interface CreateContributionInput {
+  user_id: string
+  monto: number
+  nivel_id: string
+  nivel_nombre: string
+  utm_params?: Record<string, string>
+}
+
 export interface ContributionResponse {
   token: string
   preference_id: string

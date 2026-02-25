@@ -172,7 +172,7 @@ onMounted(() => {
           <div class="d-flex gap-2 justify-content-center flex-wrap">
             <router-link
               v-if="contribution.estado_pago === 'pendiente'"
-              :to="`/suscribir/pago/${contribution.token}`"
+              :to="{ name: 'subscribe-payment', params: { token: contribution.token } }"
               class="btn btn-primary"
             >
               {{ statusContent.actions.completePayment }}

@@ -3,21 +3,16 @@
  */
 
 import { ref, computed } from 'vue'
-import type { UserContribution } from '@/application/ports/ContributionsRepository'
+import type {
+  UserContribution,
+  CreateContributionInput
+} from '@/application/ports/ContributionsRepository'
 import { getContributionsRepository } from '@/application/ports/contributionsRepositoryProvider'
 import { CreateContributionUseCase } from '@/application/usecases/CreateContributionUseCase'
 import { GetContributionByTokenUseCase } from '@/application/usecases/GetContributionByTokenUseCase'
 import { ListUserContributionsUseCase } from '@/application/usecases/ListUserContributionsUseCase'
 import { mapContributionError } from '@/application/errors/contributionErrorMapper'
 
-
-export interface CreateContributionData {
-  user_id: string
-  monto: number
-  nivel_id: string
-  nivel_nombre: string
-  utm_params?: Record<string, string>
-}
 
 export interface ContributionState {
   contribution: UserContribution | null
@@ -44,7 +39,7 @@ export function useSubscription() {
   /**
    * Crea una nueva contribución
    */
-  const createContribution = async (data: CreateContributionData): Promise<string> => {
+  const createContribution = async (data: CreateContributionInput): Promise<string> => {
     isLoading.value = true
     error.value = null
 

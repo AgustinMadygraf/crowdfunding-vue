@@ -93,10 +93,10 @@ class ApiDiagnostic {
       const details = {
         hasAuthHeaders: !!headers,
         hasAuthorization: !!headers['Authorization'],
-        authHeaderValue: headers['Authorization'] ? headers['Authorization'].slice(0, 50) + '...' : 'none',
+        authHeaderValue: headers['Authorization'] ? 'present' : 'none',
         tokenExists: !!token,
         tokenLength: token?.length || 0,
-        tokenPreview: token ? token.slice(0, 30) + '...' : 'none',
+        tokenPreview: token ? '[redacted]' : 'none',
         isAuthenticated: isAuth,
         user: state.user ? { id: state.user.id, email: state.user.email } : null
       }
@@ -349,7 +349,11 @@ class ApiDiagnostic {
       }
 
       console.log(`URL: ${url}`)
-      console.log('Headers:', Object.fromEntries(headers.entries()))
+      const loggableHeaders = Object.fromEntries(headers.entries())
+      if (loggableHeaders.Authorization) {
+        loggableHeaders.Authorization = 'Bearer [redacted]'
+      }
+      console.log('Headers:', loggableHeaders)
 
       const response = await fetch(url, {
         method: 'GET',

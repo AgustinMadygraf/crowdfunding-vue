@@ -10,8 +10,8 @@ export class ValidateJwtUseCase {
     if (!payload) {
       return { isValid: false, reason: 'invalid_format' }
     }
-    if (!payload.exp) {
-      return { isValid: true, payload, reason: 'missing_exp' }
+    if (typeof payload.exp !== 'number' || !Number.isFinite(payload.exp)) {
+      return { isValid: false, payload, reason: 'missing_exp' }
     }
 
     const now = Math.floor(Date.now() / 1000)

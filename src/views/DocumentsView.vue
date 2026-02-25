@@ -6,18 +6,23 @@ Path: src/views/DocumentsView.vue
 import { ref, computed, onMounted } from 'vue'
 import { documentsRepository, DocumentRepositoryError } from '@/infrastructure/repositories/DocumentsRepository'
 import { content } from '@/infrastructure/content'
+import { sanitizeExternalLink } from '@/utils/urlSanitizer'
 
 import type { DocumentDTO } from '@/infrastructure/dto'
 
+type DocumentViewModel = DocumentDTO & {
+  safeUrl: string | null
+}
+
 // State
-const documents = ref<DocumentDTO[]>([])
+const documents = ref<DocumentViewModel[]>([])
 const isLoading = ref(false)
 const error = ref<string | null>(null)
 const documentsContent = content.documentsView
 
 // Computed: agrupar documentos por categoría
 const categorizedDocuments = computed(() => {
-  const grouped: Record<string, DocumentDTO[]> = {}
+  const grouped: Record<string, DocumentViewModel[]> = {}
   
   documents.value.forEach(doc => {
     const category = doc.category || documentsContent.uncategorizedLabel
@@ -55,7 +60,11 @@ const loadDocuments = async () => {
   try {
     if (import.meta.env.DEV) {
     }
-    documents.value = await documentsRepository.getAll()
+    const response = await documentsRepository.getAll()
+    documents.value = response.map((doc) => ({
+      ...doc,
+      safeUrl: sanitizeExternalLink(doc.url)
+    }))
     if (import.meta.env.DEV) {
     }
   } catch (err) {
@@ -114,12 +123,13 @@ onMounted(() => {
           >
             <h2 class="h4 border-bottom border-3 border-success pb-2 mb-3">{{ category }}</h2>
             <div class="row g-3">
-              <a
+              <component
                 v-for="doc in categorizedDocuments[category]"
                 :key="doc.id"
-                :href="doc.url"
-                target="_blank"
-                rel="noopener noreferrer"
+                :is="doc.safeUrl ? 'a' : 'div'"
+                :href="doc.safeUrl || undefined"
+                :target="doc.safeUrl ? '_blank' : undefined"
+                :rel="doc.safeUrl ? 'noopener noreferrer' : undefined"
                 class="col-12 col-md-6 col-lg-4 text-reset text-decoration-none"
               >
                 <div class="card shadow-sm document-card h-100">
@@ -137,10 +147,21 @@ onMounted(() => {
                       }}</span>
                       <span v-if="doc.version" class="version text-nowrap">v{{ doc.version }}</span>
                     </div>
-                    <div class="text-success fw-semibold small text-center">{{ documentsContent.downloadLabel }}</div>
+                    <div
+                      v-if="doc.safeUrl"
+                      class="text-success fw-semibold small text-center"
+                    >
+                      {{ documentsContent.downloadLabel }}
+                    </div>
+                    <div
+                      v-else
+                      class="text-danger fw-semibold small text-center"
+                    >
+                      Enlace bloqueado por seguridad
+                    </div>
                   </div>
                 </div>
-              </a>
+              </component>
             </div>
           </div>
         </div>

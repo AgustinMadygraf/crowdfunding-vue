@@ -78,7 +78,7 @@ Path: src/views/UserDashboardView.vue
             </div>
             <div class="contribution-actions d-flex gap-2 justify-content-end flex-wrap">
               <router-link 
-                :to="`/suscribir/${contribution.token}`"
+                :to="{ name: 'subscribe-payment', params: { token: contribution.token } }"
                 class="btn btn-outline-secondary"
               >
                 {{ dashboardContent.viewDetailsLabel }}
@@ -244,7 +244,7 @@ const getPendingCount = (): number => {
  * Navega a la página de pago
  */
 const goToPayment = (token: string) => {
-  router.push(`/suscribir/${token}`)
+  router.push({ name: 'subscribe-payment', params: { token } })
 }
 
 /**

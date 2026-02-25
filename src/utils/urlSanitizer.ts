@@ -7,6 +7,7 @@
  * Lista blanca de protocolos permitidos para URLs
  */
 const ALLOWED_PROTOCOLS = ['http:', 'https:', 'data:']
+const ALLOWED_EXTERNAL_LINK_PROTOCOLS = ['http:', 'https:']
 
 /**
  * Lista blanca de dominios confiables para avatares
@@ -104,6 +105,42 @@ export function isUrlSafe(url: string | undefined | null): boolean {
 }
 
 /**
+ * Valida si una URL externa (por ejemplo links de documentos) es segura.
+ * Permite protocolos http/https y bloquea esquemas activos como javascript:.
+ */
+export function isExternalLinkSafe(url: string | undefined | null): boolean {
+  if (!url || typeof url !== 'string') {
+    return false
+  }
+
+  const trimmedUrl = url.trim()
+  if (trimmedUrl.length === 0) {
+    return false
+  }
+
+  const lowerUrl = trimmedUrl.toLowerCase()
+  if (
+    lowerUrl.startsWith('javascript:') ||
+    lowerUrl.startsWith('vbscript:') ||
+    lowerUrl.startsWith('data:') ||
+    lowerUrl.includes('<script') ||
+    /[\u0000-\u001F\u007F]/.test(trimmedUrl)
+  ) {
+    return false
+  }
+
+  try {
+    const baseUrl =
+      typeof window !== 'undefined' ? window.location.origin : 'https://localhost'
+    const parsed = new URL(trimmedUrl, baseUrl)
+
+    return ALLOWED_EXTERNAL_LINK_PROTOCOLS.includes(parsed.protocol)
+  } catch {
+    return false
+  }
+}
+
+/**
  * Sanitiza una URL de avatar
  * Si la URL no es segura, retorna un avatar por defecto
  * 
@@ -144,4 +181,16 @@ export function sanitizeUrl(url: string | undefined | null): string | null {
     console.error('Error sanitizando URL', error)
     throw error
   }
+}
+
+/**
+ * Sanitiza una URL para enlaces externos.
+ * Retorna null cuando el enlace no es seguro.
+ */
+export function sanitizeExternalLink(url: string | undefined | null): string | null {
+  if (!isExternalLinkSafe(url)) {
+    return null
+  }
+
+  return url!.trim()
 }

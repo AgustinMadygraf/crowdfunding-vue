@@ -27,7 +27,7 @@ export class LoadStoredAuthUseCase {
     }
 
     const validation = this.validateJwt.execute(token)
-    if (!validation.isValid && validation.reason === 'expired') {
+    if (!validation.isValid) {
       return {
         user: null,
         token: null,

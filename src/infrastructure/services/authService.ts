@@ -149,18 +149,14 @@ export class AuthService implements IAuthService {
   private isTokenValid(token: string): boolean {
     const validation = this.validateJwtUseCase.execute(token)
 
-    if (validation.reason === 'invalid_format' || validation.reason === 'decode_error') {
-      logger.warn('[AUTH_JWT_DECODE_FAIL]')
-      return true
-    }
-
-    if (validation.reason === 'missing_exp') {
-      logger.warn('[AUTH_JWT_NO_EXP]')
-      return true
-    }
-
-    if (validation.reason === 'expired') {
-      logger.warn('[AUTH_JWT_EXPIRED]')
+    if (!validation.isValid) {
+      if (validation.reason === 'invalid_format' || validation.reason === 'decode_error') {
+        logger.warn('[AUTH_JWT_DECODE_FAIL]')
+      } else if (validation.reason === 'missing_exp') {
+        logger.warn('[AUTH_JWT_NO_EXP]')
+      } else if (validation.reason === 'expired') {
+        logger.warn('[AUTH_JWT_EXPIRED]')
+      }
       return false
     }
 

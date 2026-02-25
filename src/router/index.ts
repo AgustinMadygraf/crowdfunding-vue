@@ -65,6 +65,7 @@ const router = createRouter({
     },
     {
       path: '/suscribir',
+      alias: ['/subscribe'],
       name: 'subscribe',
       component: () => import('../views/SubscribeView.vue'),
       meta: {
@@ -74,6 +75,7 @@ const router = createRouter({
     },
     {
       path: '/subscribe/:token',
+      alias: ['/suscribir/:token', '/suscribir/pago/:token'],
       name: 'subscribe-payment',
       component: () => import('../views/SubscribePaymentView.vue'),
       meta: {
@@ -93,6 +95,7 @@ const router = createRouter({
     },
     {
       path: '/suscribir/estado/:id',
+      alias: ['/subscribe/status/:id'],
       name: 'subscription-status',
       component: () => import('../views/SubscriptionStatusView.vue'),
       meta: {
