@@ -3,7 +3,7 @@ Path: src/views/MilestonesView.vue
 -->
 
 <script setup lang="ts">
-import { useMilestones } from '@/application/useMilestones'
+import { useMilestones } from '@/presentation/composables/useMilestones'
 import MilestoneCard from '@/components/milestones/MilestoneCard.vue'
 import { content } from '@/presentation/content'
 

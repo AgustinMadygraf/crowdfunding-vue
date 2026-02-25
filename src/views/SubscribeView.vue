@@ -5,10 +5,10 @@ Path: src/views/SubscribeView.vue
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { useContributionLevels } from '@/application/useContributionLevels'
+import { useContributionLevels } from '@/presentation/composables/useContributionLevels'
 import { getUTMFromSessionStorage, type UTMParams } from '@/utils/utm'
 import { initMercadoPago } from '@/infrastructure/mercadopagoService'
-import { useSubscription } from '@/application/useSubscription'
+import { useSubscription } from '@/presentation/composables/useSubscription'
 import { ContributionRepositoryError } from '@/application/ports/ContributionsRepository'
 import { validateContribution } from '@/application/schemas/contributionSchema'
 import GoogleAuthButton from '@/components/auth/GoogleAuthButton.vue'

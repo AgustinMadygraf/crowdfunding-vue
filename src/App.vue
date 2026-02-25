@@ -7,7 +7,7 @@ import { computed } from 'vue'
 import AppFooter from '@/components/layout/AppFooter.vue'
 import AppHeader from '@/components/layout/AppHeader.vue'
 import { useAuthStore } from '@/stores/authStore'
-import { useCsrfToken } from '@/application/composables/useCsrfToken'
+import { useCsrfToken } from '@/presentation/composables/useCsrfToken'
 import { content } from '@/presentation/content'
 
 const authStore = useAuthStore()

@@ -1,22 +1,31 @@
 import { AppError } from '@/application/errors/appError'
 import { ContributionRepositoryError } from '@/application/ports/ContributionsRepository'
-import { DocumentRepositoryError } from '@/infrastructure/repositories/DocumentsRepository'
-import { MilestoneRepositoryError } from '@/infrastructure/repositories/MilestonesRepository'
-import { UpdateRepositoryError } from '@/infrastructure/repositories/UpdatesRepository'
 
-type RepositoryError =
-  | ContributionRepositoryError
-  | DocumentRepositoryError
-  | MilestoneRepositoryError
-  | UpdateRepositoryError
+interface ErrorLikeWithStatus {
+  name?: string
+  message?: string
+  statusCode?: number
+}
 
-const isRepositoryError = (err: unknown): err is RepositoryError => {
+const isErrorLikeWithStatus = (err: unknown): err is ErrorLikeWithStatus => {
   return (
-    err instanceof ContributionRepositoryError ||
-    err instanceof DocumentRepositoryError ||
-    err instanceof MilestoneRepositoryError ||
-    err instanceof UpdateRepositoryError
+    typeof err === 'object' &&
+    err !== null &&
+    ('message' in err || 'statusCode' in err || 'name' in err)
   )
+}
+
+const isRepositoryError = (err: unknown): err is ErrorLikeWithStatus => {
+  if (err instanceof ContributionRepositoryError) {
+    return true
+  }
+
+  if (!isErrorLikeWithStatus(err)) {
+    return false
+  }
+
+  const name = err.name ?? ''
+  return name.endsWith('RepositoryError')
 }
 
 const resolveTypeByStatus = (statusCode?: number) => {
@@ -34,12 +43,14 @@ export const toAppError = (err: unknown, fallbackMessage = 'Error desconocido'):
   }
 
   if (isRepositoryError(err)) {
+    const source = err.name ?? 'RepositoryError'
+    const statusCode = err.statusCode
     return new AppError({
       message: err.message || fallbackMessage,
-      type: resolveTypeByStatus(err.statusCode),
-      code: `REPO_${resolveTypeByStatus(err.statusCode)}`,
-      statusCode: err.statusCode,
-      safeDetails: { source: err.name }
+      type: resolveTypeByStatus(statusCode),
+      code: `REPO_${resolveTypeByStatus(statusCode)}`,
+      statusCode,
+      safeDetails: { source }
     })
   }
 

@@ -145,8 +145,8 @@ Path: src/views/UserDashboardView.vue
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { useAuthService } from '@/application/useAuthService'
-import { useSubscription } from '@/application/useSubscription'
+import { useAuthService } from '@/presentation/composables/useAuthService'
+import { useSubscription } from '@/presentation/composables/useSubscription'
 import { content } from '@/presentation/content'
 import type { UserContribution } from '@/application/ports/ContributionsRepository'
 import type { User } from '@/domain/user'

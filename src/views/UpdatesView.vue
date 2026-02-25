@@ -4,7 +4,7 @@ Path: src/views/UpdatesView.vue
 
 <script setup lang="ts">
 import { ref, computed } from 'vue';
-import { useUpdates } from '@/application/useUpdates';
+import { useUpdates } from '@/presentation/composables/useUpdates';
 import UpdateCard from '@/components/updates/UpdateCard.vue';
 import type { Update, UpdateCategory } from '@/domain/update';
 import { content } from '@/presentation/content';

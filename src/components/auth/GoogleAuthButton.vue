@@ -43,7 +43,7 @@ Path: src/components/auth/GoogleAuthButton.vue
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
-import { useAuthService } from '@/application/useAuthService'
+import { useAuthService } from '@/presentation/composables/useAuthService'
 import type { User } from '@/domain/user'
 import { sanitizeAvatarUrl } from '@/utils/urlSanitizer'
 import { useAuthStore } from '@/stores/authStore'

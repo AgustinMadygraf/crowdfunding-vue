@@ -37,10 +37,10 @@ DoD: workflow sin advertencias de parser relacionadas al bloque heredoc.
 ## Backlog Arquitectura Limpia (auditoria 2026-02-25)
 
 ### P0 - Critico
-- [ ] [P0][High][todo] Aislar `src/application` de `@/infrastructure` y de imports directos de `vue`.
+- [x] [P0][High][todo] Aislar `src/application` de `@/infrastructure` y de imports directos de `vue`.
 DoD: no existen imports desde `src/application` a `@/infrastructure`; los casos de uso/servicios de aplicacion no importan `vue`; la composicion de dependencias queda en `main.ts` o un composition root dedicado.
 
-- [ ] [P0][High][todo] Desacoplar `src/application/errors/toAppError.ts` de errores concretos de infraestructura.
+- [x] [P0][High][todo] Desacoplar `src/application/errors/toAppError.ts` de errores concretos de infraestructura.
 DoD: `toAppError` usa un contrato de error comun (ej. interface/error code compartido) sin importar clases de `src/infrastructure/repositories/*`.
 
 ### P1 - Alto

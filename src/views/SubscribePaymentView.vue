@@ -140,8 +140,8 @@ Path: src/views/SubscribePaymentView.vue
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
-import { useSubscription } from '@/application/useSubscription'
-import { useAuthService } from '@/application/useAuthService'
+import { useSubscription } from '@/presentation/composables/useSubscription'
+import { useAuthService } from '@/presentation/composables/useAuthService'
 import { toAppError } from '@/application/errors/toAppError'
 import type { User } from '@/domain/user'
 import { content } from '@/presentation/content'
