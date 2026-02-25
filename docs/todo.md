@@ -34,6 +34,38 @@ DoD: workflow dedicado falla en vulnerabilidades altas/criticas o deteccion de s
 - [ ] [P2][Low][todo] Reescribir bloque heredoc de `.htaccess` para evitar advertencias del parser YAML local.
 DoD: workflow sin advertencias de parser relacionadas al bloque heredoc.
 
+## Backlog Arquitectura Limpia (auditoria 2026-02-25)
+
+### P0 - Critico
+- [ ] [P0][High][todo] Aislar `src/application` de `@/infrastructure` y de imports directos de `vue`.
+DoD: no existen imports desde `src/application` a `@/infrastructure`; los casos de uso/servicios de aplicacion no importan `vue`; la composicion de dependencias queda en `main.ts` o un composition root dedicado.
+
+- [ ] [P0][High][todo] Desacoplar `src/application/errors/toAppError.ts` de errores concretos de infraestructura.
+DoD: `toAppError` usa un contrato de error comun (ej. interface/error code compartido) sin importar clases de `src/infrastructure/repositories/*`.
+
+### P1 - Alto
+- [ ] [P1][High][todo] Evitar acceso directo de vistas a repositorios/DTS de infraestructura.
+DoD: `src/views/AdminView.vue` y `src/views/DocumentsView.vue` consumen casos de uso o adapters de aplicacion; no importan `@/infrastructure/repositories/*` ni `@/infrastructure/dto`.
+
+- [ ] [P1][High][todo] Consolidar en un solo stack HTTP y retirar implementaciones paralelas.
+DoD: queda una sola via activa para requests (sin coexistencia entre `src/infrastructure/api.ts` y `src/infrastructure/http/*`); `ContributionsRepository.refactored.ts` deja de estar como variante aislada (se integra o se elimina).
+
+- [ ] [P1][Medium][todo] Centralizar inyeccion de dependencias para auth y repositorios.
+DoD: `router` y `stores` no dependen de singletons concretos de infraestructura; consumen contratos inyectados desde composition root.
+
+- [ ] [P1][Medium][todo] Reubicar `content` fuera de infraestructura para evitar dependencia inversa desde UI.
+DoD: componentes/vistas no importan `@/infrastructure/content`; contenido estatico queda en un modulo de presentacion/configuracion.
+
+- [ ] [P1][Low][todo] Eliminar codigo muerto de vistas legacy duplicadas.
+DoD: se eliminan `src/views/App.vue`, `src/views/HeroSection.vue`, `src/views/MilestonesSection.vue`, `src/views/ContributionSection.vue`, `src/views/FaqSection.vue`, `src/views/UpdatesSection.vue` si no tienen referencias en build.
+
+### P2 - Medio
+- [ ] [P2][Medium][todo] Agregar reglas automaticas de fronteras de arquitectura en CI.
+DoD: existe chequeo automatizado (eslint boundaries o dependency-cruiser) que falla si `domain/application` dependen de `infrastructure` o de frameworks UI.
+
+- [ ] [P2][Medium][todo] Aumentar cobertura de pruebas en capas internas.
+DoD: casos de uso de `src/application/usecases/*` y adaptadores clave de infraestructura tienen pruebas unitarias; el pipeline ejecuta esas pruebas en CI.
+
 ## Hecho (historico)
 - [x] Hacer fail-fast real en deploy lftp (`set cmd:fail-exit true` y remover `|| echo` en `mirror`).
 - [x] Validar `dist/index.html` y tamano minimo antes de publicar.
