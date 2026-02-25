@@ -56,7 +56,7 @@ DoD: `router` y `stores` no dependen de singletons concretos de infraestructura;
 - [ ] [P1][Medium][todo] Reubicar `content` fuera de infraestructura para evitar dependencia inversa desde UI.
 DoD: componentes/vistas no importan `@/infrastructure/content`; contenido estatico queda en un modulo de presentacion/configuracion.
 
-- [ ] [P1][Low][todo] Eliminar codigo muerto de vistas legacy duplicadas.
+- [x] [P1][Low][todo] Eliminar codigo muerto de vistas legacy duplicadas.
 DoD: se eliminan `src/views/App.vue`, `src/views/HeroSection.vue`, `src/views/MilestonesSection.vue`, `src/views/ContributionSection.vue`, `src/views/FaqSection.vue`, `src/views/UpdatesSection.vue` si no tienen referencias en build.
 
 ### P2 - Medio
