@@ -13,7 +13,7 @@
     "build-only": "vite build",
     "type-check": "vue-tsc --build",
     "check:arch-boundaries": "bash scripts/check-architecture-boundaries.sh",
-    "test": "vitest",
+    "test": "vitest --passWithNoTests",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest --coverage"
   },
