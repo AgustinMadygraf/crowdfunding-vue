@@ -37,35 +37,6 @@
   <body>
     <div id="app"></div>
     <script type="module" src="/src/main.ts"></script>
-    <script>
-      (function(d,t) {
-        var BASE_URL="%VITE_CHATWOOT_BASE_URL%";
-        var TOKEN="%VITE_CHATWOOT_TOKEN%";
-        var INTEGRITY="%VITE_CHATWOOT_SDK_INTEGRITY%";
-        
-        // Verificar si las credenciales están configuradas
-        if (!BASE_URL || BASE_URL.includes("%VITE_") || !TOKEN || TOKEN.includes("%VITE_")) {
-          console.warn("[Chatwoot] No configurado - Las variables de entorno VITE_CHATWOOT_BASE_URL y VITE_CHATWOOT_TOKEN no están definidas en el archivo .env");
-          return;
-        }
-        var normalizedBaseUrl = BASE_URL.trim().replace(/\/+$/, "");
-        var g=d.createElement(t),s=d.getElementsByTagName(t)[0];
-        g.src=normalizedBaseUrl+"/packs/js/sdk.js";
-        g.async = true;
-        // Preparar para SRI si se provee hash
-        if (INTEGRITY && !INTEGRITY.includes('%VITE_')) {
-          g.integrity = INTEGRITY;
-          g.crossOrigin = 'anonymous';
-        }
-        // NO establecer crossOrigin sin integrity; puede causar CORS issues
-        s.parentNode.insertBefore(g,s);
-        g.onload=function(){
-          window.chatwootSDK.run({
-            websiteToken: TOKEN,
-            baseUrl: normalizedBaseUrl
-          })
-        }
-      })(document,"script");
-    </script>
   </body>
 </html>
+

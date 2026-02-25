@@ -14,6 +14,7 @@ import { getAppConfig } from '@/config/appConfig'
 import { setContributionsRepository } from '@/application/ports/contributionsRepositoryProvider'
 import { contributionsRepository } from '@/infrastructure/repositories/ContributionsRepository'
 import { logger } from '@/infrastructure/logging/logger'
+import { initChatwoot } from '@/infrastructure/services/chatwootBootstrap'
 
 if (import.meta.env.DEV) {
   import('@/utils/apiDiagnostic').catch((err) => {
@@ -66,6 +67,7 @@ const captureUTMParameters = () => {
 }
 
 captureUTMParameters()
+initChatwoot()
 
 const app = createApp(App)
 const pinia = createPinia()

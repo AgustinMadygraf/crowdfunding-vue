@@ -46,11 +46,15 @@ class ApiClient {
     } catch (error) {
       console.error('Error en fetchWithRefresh:', error); // Log the error for debugging
       if (error instanceof ApiException && error.status === 401) {
-        console.log('[ApiClient] Token expired, attempting refresh...')
+        if (import.meta.env.DEV) {
+          console.log('[ApiClient] Token expired, attempting refresh...')
+        }
         // Intentar refresh
         try {
           await this.refreshToken();
-          console.log('[ApiClient] Token refreshed successfully, retrying request...')
+          if (import.meta.env.DEV) {
+            console.log('[ApiClient] Token refreshed successfully, retrying request...')
+          }
           // Reintentar la request original una vez
           return await fn();
         } catch (refreshError) {
@@ -78,7 +82,9 @@ class ApiClient {
 
   constructor(baseUrl: string) {
     this.baseUrl = baseUrl
-    console.log('[ApiClient] Initialized with baseUrl:', baseUrl)
+    if (import.meta.env.DEV) {
+      console.log('[ApiClient] Initialized with baseUrl:', baseUrl)
+    }
   }
 
   /**
@@ -186,7 +192,9 @@ class ApiClient {
    * GET request con retry automático
    */
   async get<T>(endpoint: string, params?: Record<string, string>): Promise<T> {
-    console.log('[ApiClient] GET', endpoint, params)
+    if (import.meta.env.DEV) {
+      console.log('[ApiClient] GET', endpoint, params)
+    }
     return this.fetchWithRefresh(() => this._get<T>(endpoint, params));
   }
 
@@ -210,7 +218,9 @@ class ApiClient {
   }
 
   async post<T>(endpoint: string, data?: unknown): Promise<T> {
-    console.log('[ApiClient] POST', endpoint, data)
+    if (import.meta.env.DEV) {
+      console.log('[ApiClient] POST', endpoint, data)
+    }
     return this.fetchWithRefresh(() => this._post<T>(endpoint, data));
   }
 
@@ -238,7 +248,9 @@ class ApiClient {
   /* Incluye token CSRF automáticamente
    */
   async put<T>(endpoint: string, data?: unknown): Promise<T> {
-    console.log('[ApiClient] PUT', endpoint, data)
+    if (import.meta.env.DEV) {
+      console.log('[ApiClient] PUT', endpoint, data)
+    }
     return this.fetchWithRefresh(() => this._put<T>(endpoint, data));
   }
 
@@ -261,7 +273,9 @@ class ApiClient {
   /* Incluye token CSRF automáticamente
    */
   async patch<T>(endpoint: string, data?: unknown): Promise<T> {
-    console.log('[ApiClient] PATCH', endpoint, data)
+    if (import.meta.env.DEV) {
+      console.log('[ApiClient] PATCH', endpoint, data)
+    }
     return this.fetchWithRefresh(() => this._patch<T>(endpoint, data));
   }
 
@@ -284,7 +298,9 @@ class ApiClient {
   /* Incluye token CSRF automáticamente
    */
   async delete<T>(endpoint: string): Promise<T> {
-    console.log('[ApiClient] DELETE', endpoint)
+    if (import.meta.env.DEV) {
+      console.log('[ApiClient] DELETE', endpoint)
+    }
     return this.fetchWithRefresh(() => this._delete<T>(endpoint));
   }
 
