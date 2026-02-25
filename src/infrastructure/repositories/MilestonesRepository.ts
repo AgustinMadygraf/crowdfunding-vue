@@ -1,33 +1,22 @@
-/**
- * Repository: Milestones (Etapas)
- * Encapsula toda la lógica de acceso a datos de milestones
- */
-
-import type { MilestoneDTO, EvidenceDTO } from '@/infrastructure/dto'
+﻿import type { MilestoneDTO, EvidenceDTO } from '@/infrastructure/dto'
 import { getAppConfig } from '@/config/appConfig'
+import { logger } from '@/infrastructure/logging/logger'
 
 export interface MilestoneWithEvidences extends MilestoneDTO {
   evidences: EvidenceDTO[]
 }
 
-/**
- * Excepción personalizada para errores del repositorio
- */
 export class MilestoneRepositoryError extends Error {
   constructor(
     message: string,
     public statusCode?: number,
-    public details?: any
+    public details?: unknown
   ) {
     super(message)
     this.name = 'MilestoneRepositoryError'
   }
 }
 
-/**
- * Repository de milestones
- * Abstrae la lógica de acceso al backend
- */
 export class MilestonesRepository {
   private readonly apiBaseUrl: string
 
@@ -35,9 +24,17 @@ export class MilestonesRepository {
     this.apiBaseUrl = apiBaseUrl || getAppConfig().apiBaseUrl
   }
 
-  /**
-   * Obtiene todas las etapas publicadas
-   */
+  private extractErrorMessage(errorData: unknown): string | null {
+    if (typeof errorData === 'string' && errorData.trim()) return errorData
+
+    if (errorData && typeof errorData === 'object' && 'message' in errorData) {
+      const value = (errorData as { message?: unknown }).message
+      if (typeof value === 'string' && value.trim()) return value
+    }
+
+    return null
+  }
+
   async getAll(): Promise<MilestoneDTO[]> {
     const url = `${this.apiBaseUrl}/api/milestones`
 
@@ -49,7 +46,7 @@ export class MilestonesRepository {
       })
 
       if (!response.ok) {
-        let errorData: any = {}
+        let errorData: unknown = {}
         try {
           errorData = await response.json()
         } catch {
@@ -57,32 +54,39 @@ export class MilestonesRepository {
           errorData = { message: text || response.statusText }
         }
 
-        console.error('[MilestonesRepository] ❌ Error HTTP', response.status)
-        console.error('[MilestonesRepository] Respuesta:', errorData)
+        logger.event('error', {
+          code: 'MILESTONE_REPO_HTTP_ERROR',
+          context: 'Error HTTP al obtener milestones',
+          safeDetails: { status: response.status }
+        })
 
         throw new MilestoneRepositoryError(
-          errorData.message || `HTTP ${response.status}`,
+          this.extractErrorMessage(errorData) || `HTTP ${response.status}`,
           response.status,
           errorData
         )
       }
 
       const data = await response.json()
-
-      // Normalizar respuesta: aceptar array directo o {data: [...]}
       const list = Array.isArray(data) ? data : Array.isArray(data?.data) ? data.data : null
 
       if (!list) {
-        console.error('[MilestonesRepository] ❌ Formato de respuesta inválido:', data)
-        throw new MilestoneRepositoryError('Formato de respuesta inválido para milestones')
-      }
-      return list
-    } catch (error) {
-      if (error instanceof MilestoneRepositoryError) {
-        throw error
+        logger.event('error', {
+          code: 'MILESTONE_REPO_INVALID_FORMAT',
+          context: 'Formato de respuesta invalido para milestones'
+        })
+        throw new MilestoneRepositoryError('Formato de respuesta invalido para milestones')
       }
 
-      console.error('[MilestonesRepository] ❌ Error de conexión:', error)
+      return list
+    } catch (error) {
+      if (error instanceof MilestoneRepositoryError) throw error
+
+      logger.event('error', {
+        code: 'MILESTONE_REPO_CONNECTION_ERROR',
+        context: 'Error de conexion al obtener milestones'
+      })
+
       throw new MilestoneRepositoryError(
         `No se pudo conectar: ${error instanceof Error ? error.message : 'Error desconocido'}`,
         undefined,
@@ -91,9 +95,6 @@ export class MilestonesRepository {
     }
   }
 
-  /**
-   * Obtiene detalle de una etapa específica con evidencias
-   */
   async getById(id: number): Promise<MilestoneWithEvidences> {
     const url = `${this.apiBaseUrl}/api/milestones/${id}`
 
@@ -116,23 +117,22 @@ export class MilestonesRepository {
       }
 
       const milestone: MilestoneWithEvidences = await response.json()
-
       return milestone
     } catch (error) {
-      if (error instanceof MilestoneRepositoryError) {
-        throw error
-      }
+      if (error instanceof MilestoneRepositoryError) throw error
 
-      console.error('[MilestonesRepository] ❌ Error al obtener milestone:', error)
+      logger.event('error', {
+        code: 'MILESTONE_REPO_GET_BY_ID_ERROR',
+        context: 'Error al obtener milestone por ID',
+        safeDetails: { id }
+      })
+
       throw new MilestoneRepositoryError(
         error instanceof Error ? error.message : 'Error desconocido'
       )
     }
   }
 
-  /**
-   * Obtiene evidencias de una etapa específica
-   */
   async getEvidences(milestoneId: number): Promise<EvidenceDTO[]> {
     const url = `${this.apiBaseUrl}/api/milestones/${milestoneId}/evidences`
 
@@ -151,21 +151,27 @@ export class MilestonesRepository {
       }
 
       const data = await response.json()
-
-      // Normalizar respuesta: aceptar array directo o {data: [...]}
       const list = Array.isArray(data) ? data : Array.isArray(data?.data) ? data.data : null
 
       if (!list) {
-        console.error('[MilestonesRepository] ❌ Formato de respuesta inválido:', data)
-        throw new MilestoneRepositoryError('Formato de respuesta inválido para evidencias')
-      }
-      return list
-    } catch (error) {
-      if (error instanceof MilestoneRepositoryError) {
-        throw error
+        logger.event('error', {
+          code: 'MILESTONE_REPO_INVALID_EVIDENCE_FORMAT',
+          context: 'Formato de respuesta invalido para evidencias',
+          safeDetails: { milestoneId }
+        })
+        throw new MilestoneRepositoryError('Formato de respuesta invalido para evidencias')
       }
 
-      console.error('[MilestonesRepository] ❌ Error al obtener evidencias:', error)
+      return list
+    } catch (error) {
+      if (error instanceof MilestoneRepositoryError) throw error
+
+      logger.event('error', {
+        code: 'MILESTONE_REPO_GET_EVIDENCES_ERROR',
+        context: 'Error al obtener evidencias',
+        safeDetails: { milestoneId }
+      })
+
       throw new MilestoneRepositoryError(
         error instanceof Error ? error.message : 'Error desconocido'
       )
@@ -173,5 +179,4 @@ export class MilestonesRepository {
   }
 }
 
-// Instancia singleton por conveniencia
 export const milestonesRepository = new MilestonesRepository()

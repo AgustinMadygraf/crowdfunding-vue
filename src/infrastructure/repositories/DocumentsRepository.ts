@@ -1,33 +1,22 @@
-/**
- * Repository: Documents (Documentos)
- * Encapsula toda la lógica de acceso a datos de documentos públicos
- */
-
-import type { DocumentDTO } from '@/infrastructure/dto'
+﻿import type { DocumentDTO } from '@/infrastructure/dto'
 import { getAppConfig } from '@/config/appConfig'
+import { logger } from '@/infrastructure/logging/logger'
 
 export interface GetDocumentsParams {
   category?: string
 }
 
-/**
- * Excepción personalizada para errores del repositorio
- */
 export class DocumentRepositoryError extends Error {
   constructor(
     message: string,
     public statusCode?: number,
-    public details?: any
+    public details?: unknown
   ) {
     super(message)
     this.name = 'DocumentRepositoryError'
   }
 }
 
-/**
- * Repository de documentos
- * Abstrae la lógica de acceso al backend
- */
 export class DocumentsRepository {
   private readonly apiBaseUrl: string
 
@@ -35,9 +24,17 @@ export class DocumentsRepository {
     this.apiBaseUrl = apiBaseUrl || getAppConfig().apiBaseUrl
   }
 
-  /**
-   * Obtiene todos los documentos publicados
-   */
+  private extractErrorMessage(errorData: unknown): string | null {
+    if (typeof errorData === 'string' && errorData.trim()) return errorData
+
+    if (errorData && typeof errorData === 'object' && 'message' in errorData) {
+      const value = (errorData as { message?: unknown }).message
+      if (typeof value === 'string' && value.trim()) return value
+    }
+
+    return null
+  }
+
   async getAll(params?: GetDocumentsParams): Promise<DocumentDTO[]> {
     const queryParams = new URLSearchParams()
     if (params?.category) queryParams.set('category', params.category)
@@ -53,7 +50,7 @@ export class DocumentsRepository {
       })
 
       if (!response.ok) {
-        let errorData: any = {}
+        let errorData: unknown = {}
         try {
           errorData = await response.json()
         } catch {
@@ -61,38 +58,45 @@ export class DocumentsRepository {
           errorData = { message: text || response.statusText }
         }
 
-        console.error('[DocumentsRepository] ❌ Error HTTP', response.status)
-        console.error('[DocumentsRepository] Respuesta:', errorData)
+        logger.event('error', {
+          code: 'DOC_REPO_HTTP_ERROR',
+          context: 'Error HTTP al obtener documentos',
+          safeDetails: { status: response.status }
+        })
 
         throw new DocumentRepositoryError(
-          errorData.message || `HTTP ${response.status}`,
+          this.extractErrorMessage(errorData) || `HTTP ${response.status}`,
           response.status,
           errorData
         )
       }
 
       const data = await response.json()
-
-      // Normalizar respuesta: aceptar array directo, {data: [...]}, o {documents: [...]}
-      const list = Array.isArray(data) 
-        ? data 
-        : Array.isArray(data?.data) 
-          ? data.data 
+      const list = Array.isArray(data)
+        ? data
+        : Array.isArray(data?.data)
+          ? data.data
           : Array.isArray(data?.documents)
             ? data.documents
             : null
 
       if (!list) {
-        console.error('[DocumentsRepository] ❌ Formato de respuesta inválido:', data)
-        throw new DocumentRepositoryError('Formato de respuesta inválido para documents')
-      }
-      return list
-    } catch (error) {
-      if (error instanceof DocumentRepositoryError) {
-        throw error
+        logger.event('error', {
+          code: 'DOC_REPO_INVALID_FORMAT',
+          context: 'Formato de respuesta invalido para documentos'
+        })
+        throw new DocumentRepositoryError('Formato de respuesta invalido para documents')
       }
 
-      console.error('[DocumentsRepository] ❌ Error de conexión:', error)
+      return list
+    } catch (error) {
+      if (error instanceof DocumentRepositoryError) throw error
+
+      logger.event('error', {
+        code: 'DOC_REPO_CONNECTION_ERROR',
+        context: 'Error de conexion al obtener documentos'
+      })
+
       throw new DocumentRepositoryError(
         `No se pudo conectar: ${error instanceof Error ? error.message : 'Error desconocido'}`,
         undefined,
@@ -101,9 +105,6 @@ export class DocumentsRepository {
     }
   }
 
-  /**
-   * Obtiene un documento específico por ID
-   */
   async getById(id: number): Promise<DocumentDTO> {
     const url = `${this.apiBaseUrl}/api/documents/${id}`
 
@@ -126,14 +127,16 @@ export class DocumentsRepository {
       }
 
       const document: DocumentDTO = await response.json()
-
       return document
     } catch (error) {
-      if (error instanceof DocumentRepositoryError) {
-        throw error
-      }
+      if (error instanceof DocumentRepositoryError) throw error
 
-      console.error('[DocumentsRepository] ❌ Error al obtener documento:', error)
+      logger.event('error', {
+        code: 'DOC_REPO_GET_BY_ID_ERROR',
+        context: 'Error al obtener documento por ID',
+        safeDetails: { id }
+      })
+
       throw new DocumentRepositoryError(
         error instanceof Error ? error.message : 'Error desconocido'
       )
@@ -141,5 +144,4 @@ export class DocumentsRepository {
   }
 }
 
-// Instancia singleton por conveniencia
 export const documentsRepository = new DocumentsRepository()

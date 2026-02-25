@@ -133,19 +133,17 @@ jobs:
       - name: Ensure dist/assets folder exists
         run: mkdir -p dist/assets
 
-      - name: Ensure .htaccess for SPA (history mode)
+      - name: Copiar .htaccess versionado al dist
         shell: bash
         run: |
           set -euo pipefail
-          if [ ! -f "dist/.htaccess" ]; then
-            cat > "dist/.htaccess" <<'EOF'
-          RewriteEngine On
-          RewriteRule ^index\.html$ - [L]
-          RewriteCond %{REQUEST_FILENAME} !-f
-          RewriteCond %{REQUEST_FILENAME} !-d
-          RewriteRule . /index.html [L]
-          EOF
+
+          if [ ! -f "public/.htaccess" ]; then
+            echo "::error::Falta public/.htaccess versionado en el repositorio."
+            exit 1
           fi
+
+          cp public/.htaccess dist/.htaccess
 
       - name: Deploy con lftp mirror (dist -> /public_html/crowdfunding) [IPv4 + excludes]
         shell: bash

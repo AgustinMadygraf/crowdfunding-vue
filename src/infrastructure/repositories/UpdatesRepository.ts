@@ -1,34 +1,23 @@
-/**
- * Repository: Updates (Actualizaciones)
- * Encapsula toda la lógica de acceso a datos de actualizaciones
- */
-
-import type { UpdateDTO } from '@/infrastructure/dto'
+﻿import type { UpdateDTO } from '@/infrastructure/dto'
 import { getAppConfig } from '@/config/appConfig'
+import { logger } from '@/infrastructure/logging/logger'
 
 export interface GetUpdatesParams {
   category?: string
   limit?: number
 }
 
-/**
- * Excepción personalizada para errores del repositorio
- */
 export class UpdateRepositoryError extends Error {
   constructor(
     message: string,
     public statusCode?: number,
-    public details?: any
+    public details?: unknown
   ) {
     super(message)
     this.name = 'UpdateRepositoryError'
   }
 }
 
-/**
- * Repository de actualizaciones
- * Abstrae la lógica de acceso al backend
- */
 export class UpdatesRepository {
   private readonly apiBaseUrl: string
 
@@ -36,9 +25,17 @@ export class UpdatesRepository {
     this.apiBaseUrl = apiBaseUrl || getAppConfig().apiBaseUrl
   }
 
-  /**
-   * Obtiene todas las actualizaciones publicadas
-   */
+  private extractErrorMessage(errorData: unknown): string | null {
+    if (typeof errorData === 'string' && errorData.trim()) return errorData
+
+    if (errorData && typeof errorData === 'object' && 'message' in errorData) {
+      const value = (errorData as { message?: unknown }).message
+      if (typeof value === 'string' && value.trim()) return value
+    }
+
+    return null
+  }
+
   async getAll(params?: GetUpdatesParams): Promise<UpdateDTO[]> {
     const queryParams = new URLSearchParams()
     if (params?.category) queryParams.set('category', params.category)
@@ -55,7 +52,7 @@ export class UpdatesRepository {
       })
 
       if (!response.ok) {
-        let errorData: any = {}
+        let errorData: unknown = {}
         try {
           errorData = await response.json()
         } catch {
@@ -63,32 +60,38 @@ export class UpdatesRepository {
           errorData = { message: text || response.statusText }
         }
 
-        console.error('[UpdatesRepository] ❌ Error HTTP', response.status)
-        console.error('[UpdatesRepository] Respuesta:', errorData)
+        logger.event('error', {
+          code: 'UPDATE_REPO_HTTP_ERROR',
+          context: 'Error HTTP al obtener updates',
+          safeDetails: { status: response.status }
+        })
 
         throw new UpdateRepositoryError(
-          errorData.message || `HTTP ${response.status}`,
+          this.extractErrorMessage(errorData) || `HTTP ${response.status}`,
           response.status,
           errorData
         )
       }
 
       const data = await response.json()
-
-      // Normalizar respuesta: aceptar array directo o {data: [...]}
       const list = Array.isArray(data) ? data : Array.isArray(data?.data) ? data.data : null
 
       if (!list) {
-        console.error('[UpdatesRepository] ❌ Formato de respuesta inválido:', data)
-        throw new UpdateRepositoryError('Formato de respuesta inválido para updates')
+        logger.event('error', {
+          code: 'UPDATE_REPO_INVALID_FORMAT',
+          context: 'Formato de respuesta invalido para updates'
+        })
+        throw new UpdateRepositoryError('Formato de respuesta invalido para updates')
       }
       return list
     } catch (error) {
-      if (error instanceof UpdateRepositoryError) {
-        throw error
-      }
+      if (error instanceof UpdateRepositoryError) throw error
 
-      console.error('[UpdatesRepository] ❌ Error de conexión:', error)
+      logger.event('error', {
+        code: 'UPDATE_REPO_CONNECTION_ERROR',
+        context: 'Error de conexion al obtener updates'
+      })
+
       throw new UpdateRepositoryError(
         `No se pudo conectar: ${error instanceof Error ? error.message : 'Error desconocido'}`,
         undefined,
@@ -97,9 +100,6 @@ export class UpdatesRepository {
     }
   }
 
-  /**
-   * Obtiene una actualización específica por ID
-   */
   async getById(id: number): Promise<UpdateDTO> {
     const url = `${this.apiBaseUrl}/api/updates/${id}`
 
@@ -112,7 +112,7 @@ export class UpdatesRepository {
 
       if (!response.ok) {
         if (response.status === 404) {
-          throw new UpdateRepositoryError('Actualización no encontrada', 404)
+          throw new UpdateRepositoryError('Actualizacion no encontrada', 404)
         }
 
         throw new UpdateRepositoryError(
@@ -125,11 +125,14 @@ export class UpdatesRepository {
 
       return update
     } catch (error) {
-      if (error instanceof UpdateRepositoryError) {
-        throw error
-      }
+      if (error instanceof UpdateRepositoryError) throw error
 
-      console.error('[UpdatesRepository] ❌ Error al obtener update:', error)
+      logger.event('error', {
+        code: 'UPDATE_REPO_GET_BY_ID_ERROR',
+        context: 'Error al obtener update por ID',
+        safeDetails: { id }
+      })
+
       throw new UpdateRepositoryError(
         error instanceof Error ? error.message : 'Error desconocido'
       )
@@ -137,5 +140,4 @@ export class UpdatesRepository {
   }
 }
 
-// Instancia singleton por conveniencia
 export const updatesRepository = new UpdatesRepository()

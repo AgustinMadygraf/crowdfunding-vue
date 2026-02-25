@@ -3,6 +3,7 @@
 ## Hecho
 - [x] Hacer fail-fast real en deploy lftp (`set cmd:fail-exit true` y remover `|| echo` en `mirror`).
 - [x] Validar `dist/index.html` y tamano minimo antes de publicar.
+- [x] Versionar `.htaccess` en `public/.htaccess` y eliminar generacion inline en workflow.
 
 ## Pendiente
 
@@ -18,7 +19,6 @@
 - [ ] Crear `deploy-preflight` para validar vars/secrets FTP, resolver IPv4 y chequear puerto.
 - [ ] Crear `deploy-release` que consuma artifact y haga deploy.
 - [ ] Agregar `deploy-smoke` opcional con URL explicita (`DEPLOY_HEALTHCHECK_URL`).
-- [ ] Versionar `.htaccess` en `public/.htaccess` y eliminar generacion inline en workflow.
 
 ### Hardening
 - [ ] Pinnear actions por SHA para reducir riesgo de supply chain.

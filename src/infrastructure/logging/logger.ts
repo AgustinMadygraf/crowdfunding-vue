@@ -1,8 +1,15 @@
 type LogArgs = unknown[]
+type LogLevel = 'debug' | 'info' | 'warn' | 'error'
 
 const isDev = import.meta.env.DEV
 
-function write(method: 'info' | 'warn' | 'error' | 'debug', ...args: LogArgs): void {
+export interface LogEventPayload {
+  code: string
+  context: string
+  safeDetails?: Record<string, unknown>
+}
+
+function write(method: LogLevel, ...args: LogArgs): void {
   if (!isDev) {
     return
   }
@@ -16,6 +23,9 @@ function write(method: 'info' | 'warn' | 'error' | 'debug', ...args: LogArgs): v
 }
 
 export const logger = {
+  event: (level: LogLevel, event: LogEventPayload) => {
+    write(level, `[${event.code}] ${event.context}`, event.safeDetails ?? {})
+  },
   debug: (...args: LogArgs) => write('debug', ...args),
   info: (...args: LogArgs) => write('info', ...args),
   warn: (...args: LogArgs) => write('warn', ...args),
