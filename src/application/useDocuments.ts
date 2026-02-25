@@ -1,11 +1,11 @@
 ﻿import { computed, ref, onMounted } from 'vue'
 import {
   documentsRepository,
-  DocumentRepositoryError,
   type GetDocumentsParams
 } from '@/infrastructure/repositories/DocumentsRepository'
 import type { DocumentDTO } from '@/infrastructure/dto'
 import { logger } from '@/infrastructure/logging/logger'
+import { toAppError } from '@/application/errors/toAppError'
 
 export interface Document {
   id: number
@@ -42,20 +42,16 @@ export function useDocuments(useApi = false, params?: GetDocumentsParams) {
       const data = await documentsRepository.getAll(params)
       documents.value = data.map(transformDocument)
     } catch (err: unknown) {
-      if (err instanceof DocumentRepositoryError) {
-        logger.event('error', {
-          code: 'USE_DOCUMENTS_REPO_ERROR',
-          context: 'Error en repositorio de documentos',
-          safeDetails: { statusCode: err.statusCode }
-        })
-        error.value = err.message
-      } else {
-        logger.event('error', {
-          code: 'USE_DOCUMENTS_UNEXPECTED_ERROR',
-          context: 'Error inesperado al cargar documentos'
-        })
-        error.value = 'Error al cargar los documentos'
-      }
+      const appError = toAppError(err, 'Error al cargar los documentos')
+      logger.event('error', {
+        code: 'USE_DOCUMENTS_LOAD_ERROR',
+        context: 'Error al cargar documentos',
+        safeDetails: {
+          type: appError.type,
+          statusCode: appError.statusCode
+        }
+      })
+      error.value = appError.message
 
       documents.value = []
     } finally {

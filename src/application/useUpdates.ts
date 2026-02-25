@@ -3,11 +3,11 @@ import type { Update, UpdateCategory } from '@/domain/update'
 import { content } from '@/infrastructure/content'
 import {
   updatesRepository,
-  UpdateRepositoryError,
   type GetUpdatesParams
 } from '@/infrastructure/repositories/UpdatesRepository'
 import type { UpdateDTO } from '@/infrastructure/dto'
 import { logger } from '@/infrastructure/logging/logger'
+import { toAppError } from '@/application/errors/toAppError'
 
 const transformMockUpdate = (mock: (typeof content.data.updates)[number]): Update => ({
   id: mock.id,
@@ -50,20 +50,16 @@ export function useUpdates(useApi = false, params?: GetUpdatesParams) {
       const data = await updatesRepository.getAll(params)
       updates.value = data.map(transformUpdate).filter((u) => u.status === 'published')
     } catch (err: unknown) {
-      if (err instanceof UpdateRepositoryError) {
-        logger.event('error', {
-          code: 'USE_UPDATES_REPO_ERROR',
-          context: 'Error en repositorio de updates',
-          safeDetails: { statusCode: err.statusCode }
-        })
-        error.value = err.message
-      } else {
-        logger.event('error', {
-          code: 'USE_UPDATES_UNEXPECTED_ERROR',
-          context: 'Error inesperado al cargar updates'
-        })
-        error.value = 'Error al cargar las actualizaciones'
-      }
+      const appError = toAppError(err, 'Error al cargar las actualizaciones')
+      logger.event('error', {
+        code: 'USE_UPDATES_LOAD_ERROR',
+        context: 'Error al cargar updates',
+        safeDetails: {
+          type: appError.type,
+          statusCode: appError.statusCode
+        }
+      })
+      error.value = appError.message
 
       updates.value = content.data.updates
         .filter((u) => u.status === 'published' && u.category !== 'general')

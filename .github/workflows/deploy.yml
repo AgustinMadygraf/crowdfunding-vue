@@ -1,4 +1,4 @@
-name: deploy-vue-to-ferozo
+﻿name: deploy-vue-to-ferozo
 
 on:
   push:
@@ -32,31 +32,25 @@ jobs:
           node-version: "20"
           cache: "npm"
 
-      - name: Validar config requerida
+      - name: Validar config de deploy requerida
         shell: bash
         env:
           FTP_SERVER: ${{ vars.FTP_SERVER }}
-          FTP_SERVER_IP: ${{ vars.FTP_SERVER_IP }}
           FTP_PORT: ${{ vars.FTP_PORT }}
           FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
           FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
-          VITE_CHATWOOT_TOKEN: ${{ vars.VITE_CHATWOOT_TOKEN }}
-          VITE_CHATWOOT_BASE_URL: ${{ vars.VITE_CHATWOOT_BASE_URL }}
-          VITE_CHATWOOT_INBOX_IDENTIFIER: ${{ vars.VITE_CHATWOOT_INBOX_IDENTIFIER }}
-          VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL }}
-          VITE_GOOGLE_CLIENT_ID: ${{ vars.VITE_GOOGLE_CLIENT_ID }}
         run: |
           set -euo pipefail
 
-          # Validar variables obligatorias
-          for v in FTP_USERNAME FTP_PASSWORD VITE_CHATWOOT_TOKEN VITE_CHATWOOT_BASE_URL VITE_CHATWOOT_INBOX_IDENTIFIER VITE_API_BASE_URL VITE_GOOGLE_CLIENT_ID; do
+          # Validar credenciales de deploy obligatorias
+          for v in FTP_USERNAME FTP_PASSWORD; do
             if [ -z "${!v:-}" ]; then
-              echo "::error::Falta $v (requerido para producción)"
+              echo "::error::Falta $v (requerido para deploy)"
               exit 1
             fi
           done
 
-          echo "::notice::Variables obligatorias validadas ✓"
+          echo "::notice::Credenciales de deploy validadas"
 
           if [ -z "${FTP_SERVER:-}" ]; then
             echo "::error::Falta FTP_SERVER (var). Ej: vps-5455262-x.dattaweb.com"
@@ -65,7 +59,26 @@ jobs:
 
           echo "FTP_PORT=${FTP_PORT:-21}" >> "$GITHUB_ENV"
 
-      - name: Resolver IP (forzar IPv4) y armar URL de conexión
+      - name: Validar config de build requerida
+        shell: bash
+        env:
+          VITE_CHATWOOT_TOKEN: ${{ vars.VITE_CHATWOOT_TOKEN }}
+          VITE_CHATWOOT_BASE_URL: ${{ vars.VITE_CHATWOOT_BASE_URL }}
+          VITE_CHATWOOT_INBOX_IDENTIFIER: ${{ vars.VITE_CHATWOOT_INBOX_IDENTIFIER }}
+          VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL }}
+          VITE_GOOGLE_CLIENT_ID: ${{ vars.VITE_GOOGLE_CLIENT_ID }}
+        run: |
+          set -euo pipefail
+
+          for v in VITE_CHATWOOT_TOKEN VITE_CHATWOOT_BASE_URL VITE_CHATWOOT_INBOX_IDENTIFIER VITE_API_BASE_URL VITE_GOOGLE_CLIENT_ID; do
+            if [ -z "${!v:-}" ]; then
+              echo "::error::Falta $v (requerido para build)"
+              exit 1
+            fi
+          done
+
+          echo "::notice::Variables de build validadas"
+      - name: Resolver IP (forzar IPv4) y armar URL de conexiÃ³n
         shell: bash
         env:
           FTP_SERVER: ${{ vars.FTP_SERVER }}
@@ -78,11 +91,11 @@ jobs:
           ip4="$(dig +short "$FTP_SERVER" A | head -n 1 || true)"
           if [ -z "$ip4" ] && [ -n "${FTP_SERVER_IP:-}" ]; then
             ip4="$FTP_SERVER_IP"
-            echo "::notice::No encontré A record; usando FTP_SERVER_IP fallback: $ip4"
+            echo "::notice::No encontrÃ© A record; usando FTP_SERVER_IP fallback: $ip4"
           fi
 
           if [ -z "$ip4" ]; then
-            echo "::error::No pude obtener IPv4 (A). Cargá FTP_SERVER_IP (ej: 200.58.103.24)."
+            echo "::error::No pude obtener IPv4 (A). CargÃ¡ FTP_SERVER_IP (ej: 200.58.103.24)."
             exit 1
           fi
 
@@ -118,13 +131,13 @@ jobs:
           set -euo pipefail
 
           if [ ! -f "dist/index.html" ]; then
-            echo "::error::Falta dist/index.html. El build no generó artefacto válido."
+            echo "::error::Falta dist/index.html. El build no generÃ³ artefacto vÃ¡lido."
             exit 1
           fi
 
           dist_size_bytes="$(du -sb dist | cut -f1)"
           if [ "$dist_size_bytes" -lt 10240 ]; then
-            echo "::error::dist tiene tamaño inesperadamente bajo (${dist_size_bytes} bytes)."
+            echo "::error::dist tiene tamaÃ±o inesperadamente bajo (${dist_size_bytes} bytes)."
             exit 1
           fi
 
@@ -154,7 +167,7 @@ jobs:
           set -euo pipefail
           # Debug: muestra la URL de conexion (sin credenciales)
           echo "::notice::Conectando a: $FTP_CONNECT_URL (destino: /public_html/crowdfunding)"
-          echo "::notice::Tamaño de dist/: $(du -sh dist/ | cut -f1)"
+          echo "::notice::TamaÃ±o de dist/: $(du -sh dist/ | cut -f1)"
 
           lftp -u "$FTP_USERNAME","$FTP_PASSWORD" "$FTP_CONNECT_URL" <<'EOF'
           set cmd:fail-exit true
@@ -170,7 +183,7 @@ jobs:
           set dns:order "inet"
 
           # Mirror directo, sincroniza y elimina archivos obsoletos
-          echo "Iniciando sincronización..."
+          echo "Iniciando sincronizaciÃ³n..."
           mirror -R --delete --verbose --no-perms \
             --exclude-glob .ht_leame \
             --exclude-glob cgi-bin/ \
@@ -192,8 +205,9 @@ jobs:
 
           status_code="$(curl -s -o /dev/null -w "%{http_code}" "$DEPLOY_HEALTHCHECK_URL")"
           if ! [[ "$status_code" =~ ^(200|301|302)$ ]]; then
-            echo "::error::Smoke check falló para $DEPLOY_HEALTHCHECK_URL (status: $status_code)"
+            echo "::error::Smoke check fallÃ³ para $DEPLOY_HEALTHCHECK_URL (status: $status_code)"
             exit 1
           fi
 
           echo "::notice::Smoke check OK ($status_code): $DEPLOY_HEALTHCHECK_URL"
+

@@ -1,12 +1,10 @@
 ﻿import { computed, ref, onMounted } from 'vue'
 import type { Milestone } from '@/domain/milestone'
 import { content } from '@/infrastructure/content'
-import {
-  milestonesRepository,
-  MilestoneRepositoryError
-} from '@/infrastructure/repositories/MilestonesRepository'
+import { milestonesRepository } from '@/infrastructure/repositories/MilestonesRepository'
 import type { MilestoneDTO } from '@/infrastructure/dto'
 import { logger } from '@/infrastructure/logging/logger'
+import { toAppError } from '@/application/errors/toAppError'
 
 const transformMockMilestone = (
   mock: (typeof content.data.milestones)[number]
@@ -50,20 +48,16 @@ export function useMilestones(useApi = false) {
       const data = await milestonesRepository.getAll()
       milestones.value = data.map(transformMilestone)
     } catch (err: unknown) {
-      if (err instanceof MilestoneRepositoryError) {
-        logger.event('error', {
-          code: 'USE_MILESTONES_REPO_ERROR',
-          context: 'Error en repositorio de milestones',
-          safeDetails: { statusCode: err.statusCode }
-        })
-        error.value = err.message
-      } else {
-        logger.event('error', {
-          code: 'USE_MILESTONES_UNEXPECTED_ERROR',
-          context: 'Error inesperado al cargar milestones'
-        })
-        error.value = 'Error al cargar las etapas'
-      }
+      const appError = toAppError(err, 'Error al cargar las etapas')
+      logger.event('error', {
+        code: 'USE_MILESTONES_LOAD_ERROR',
+        context: 'Error al cargar milestones',
+        safeDetails: {
+          type: appError.type,
+          statusCode: appError.statusCode
+        }
+      })
+      error.value = appError.message
 
       milestones.value = content.data.milestones
         .filter((m) => m.status !== 'delayed')

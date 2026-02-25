@@ -5,12 +5,12 @@
 - [x] Validar `dist/index.html` y tamano minimo antes de publicar.
 - [x] Versionar `.htaccess` en `public/.htaccess` y eliminar generacion inline en workflow.
 - [x] Agregar `deploy-smoke` opcional con URL explicita (`DEPLOY_HEALTHCHECK_URL`).
+- [x] Crear `build-validate` para validar solo variables de build.
 
 ## Pendiente
 
 ### Bloque Build
 - [ ] Separar pipeline en jobs de build y deploy, conectados por artifact inmutable.
-- [ ] Crear `build-validate` para validar solo variables de build.
 - [ ] Crear `build-typecheck` como job dedicado.
 - [ ] Crear `build-test` como job dedicado.
 - [ ] Crear `build-package` para generar `dist/` y subir artifact.

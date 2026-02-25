@@ -1,18 +1,20 @@
-import { ContributionRepositoryError } from '@/application/ports/ContributionsRepository'
-import { normalizeErrorMessage } from '@/application/errors/normalizeError'
+import { toAppError } from '@/application/errors/toAppError'
 
 export const mapContributionError = (err: unknown): string => {
-  if (err instanceof ContributionRepositoryError) {
-    if (err.statusCode === 401) {
+  const appError = toAppError(err, 'Error al procesar la contribucion')
+
+  if (appError.type === 'AUTH') {
+    if (appError.statusCode === 401) {
       return 'Sesion expirada. Por favor, cerra sesion y volve a ingresar.'
     }
-    if (err.statusCode === 403) {
+    if (appError.statusCode === 403) {
       return 'No tenes permisos para realizar esta accion.'
     }
-    if (err.statusCode && err.statusCode >= 500) {
-      return 'Error del servidor. Por favor, intenta de nuevo mas tarde.'
-    }
-    return err.message || 'Error al procesar la contribucion'
   }
-  return normalizeErrorMessage(err)
+
+  if (appError.type === 'SERVER') {
+    return 'Error del servidor. Por favor, intenta de nuevo mas tarde.'
+  }
+
+  return appError.message
 }
