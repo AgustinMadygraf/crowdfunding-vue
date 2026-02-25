@@ -1,16 +1,16 @@
-/*
-Path: src/application/useMilestones.ts
-*/
-
-import { computed, ref, onMounted } from 'vue'
+﻿import { computed, ref, onMounted } from 'vue'
 import type { Milestone } from '@/domain/milestone'
 import { content } from '@/infrastructure/content'
-import { milestonesRepository, MilestoneRepositoryError } from '@/infrastructure/repositories/MilestonesRepository'
+import {
+  milestonesRepository,
+  MilestoneRepositoryError
+} from '@/infrastructure/repositories/MilestonesRepository'
 import type { MilestoneDTO } from '@/infrastructure/dto'
+import { logger } from '@/infrastructure/logging/logger'
 
-
-// Transforma un mock Milestone a modelo de dominio Milestone
-const transformMockMilestone = (mock: typeof content.data.milestones[number]): Milestone => ({
+const transformMockMilestone = (
+  mock: (typeof content.data.milestones)[number]
+): Milestone => ({
   id: mock.id,
   name: mock.name,
   description: mock.description,
@@ -18,13 +18,10 @@ const transformMockMilestone = (mock: typeof content.data.milestones[number]): M
   targetAmount: mock.targetAmount,
   raisedAmount: mock.raisedAmount,
   targetDate: mock.targetDate,
-  status: mock.status as Milestone["status"],
+  status: mock.status as Milestone['status'],
   published: mock.published
 })
 
-/**
- * Transforma MilestoneDTO del API a modelo de dominio Milestone
- */
 const transformMilestone = (dto: MilestoneDTO): Milestone => ({
   id: dto.id,
   name: dto.title,
@@ -37,14 +34,14 @@ const transformMilestone = (dto: MilestoneDTO): Milestone => ({
 export function useMilestones(useApi = false) {
   const milestones = ref<Milestone[]>(
     content.data.milestones
-      .filter(m => m.status !== 'delayed')
+      .filter((m) => m.status !== 'delayed')
       .map(transformMockMilestone)
   )
   const isLoading = ref(false)
   const error = ref<string | null>(null)
 
   const loadMilestones = async () => {
-    if (!useApi) return // Usar mocks si no se especifica usar API
+    if (!useApi) return
 
     isLoading.value = true
     error.value = null
@@ -52,34 +49,30 @@ export function useMilestones(useApi = false) {
     try {
       const data = await milestonesRepository.getAll()
       milestones.value = data.map(transformMilestone)
-    } catch (err) {
+    } catch (err: unknown) {
       if (err instanceof MilestoneRepositoryError) {
-        console.error('[useMilestones] ❌', err.message, 'HTTP', err.statusCode)
+        logger.event('error', {
+          code: 'USE_MILESTONES_REPO_ERROR',
+          context: 'Error en repositorio de milestones',
+          safeDetails: { statusCode: err.statusCode }
+        })
         error.value = err.message
       } else {
-        console.error('[useMilestones] ❌ Error inesperado:', err)
+        logger.event('error', {
+          code: 'USE_MILESTONES_UNEXPECTED_ERROR',
+          context: 'Error inesperado al cargar milestones'
+        })
         error.value = 'Error al cargar las etapas'
       }
-      // Fallback a datos mock en caso de error
+
       milestones.value = content.data.milestones
-        .filter(m => m.status !== 'delayed')
+        .filter((m) => m.status !== 'delayed')
         .map(transformMockMilestone)
     } finally {
       isLoading.value = false
     }
   }
 
-  async function fetchMilestones() {
-    try {
-      const data = await milestonesRepository.getAll()
-      milestones.value = data.map(transformMilestone)
-    } catch (error) {
-      console.error('Error fetching milestones', error)
-      throw error
-    }
-  }
-
-  // Auto-cargar si se usa API
   onMounted(() => {
     if (useApi) {
       loadMilestones()
@@ -98,7 +91,10 @@ export function useMilestones(useApi = false) {
     if (totalTargetAmount.value === 0) {
       return 0
     }
-    return Math.min(Math.round((totalRaisedAmount.value / totalTargetAmount.value) * 100), 100)
+    return Math.min(
+      Math.round((totalRaisedAmount.value / totalTargetAmount.value) * 100),
+      100
+    )
   })
 
   return {

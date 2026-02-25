@@ -1,28 +1,26 @@
-/*
-Path: src/application/useUpdates.ts
-*/
-
-import { computed, ref, onMounted } from 'vue'
+﻿import { computed, ref, onMounted } from 'vue'
 import type { Update, UpdateCategory } from '@/domain/update'
 import { content } from '@/infrastructure/content'
-import { updatesRepository, UpdateRepositoryError, type GetUpdatesParams } from '@/infrastructure/repositories/UpdatesRepository'
+import {
+  updatesRepository,
+  UpdateRepositoryError,
+  type GetUpdatesParams
+} from '@/infrastructure/repositories/UpdatesRepository'
 import type { UpdateDTO } from '@/infrastructure/dto'
+import { logger } from '@/infrastructure/logging/logger'
 
-
-// Transforma un mock Update a modelo de dominio Update
-const transformMockUpdate = (mock: typeof content.data.updates[number]): Update => ({
+const transformMockUpdate = (mock: (typeof content.data.updates)[number]): Update => ({
   id: mock.id,
   category: mock.category as UpdateCategory,
   title: mock.title,
-  excerpt: mock.excerpt ?? mock.content.substring(0, 200) + (mock.content.length > 200 ? '...' : ''),
+  excerpt:
+    mock.excerpt ??
+    mock.content.substring(0, 200) + (mock.content.length > 200 ? '...' : ''),
   content: mock.content,
   status: mock.status as 'draft' | 'published',
   publishedAt: mock.publishedAt ?? ''
 })
 
-/**
- * Transforma UpdateDTO del API a modelo de dominio Update
- */
 const transformUpdate = (dto: UpdateDTO): Update => ({
   id: dto.id,
   category: dto.category.toLowerCase() as UpdateCategory,
@@ -36,41 +34,45 @@ const transformUpdate = (dto: UpdateDTO): Update => ({
 export function useUpdates(useApi = false, params?: GetUpdatesParams) {
   const updates = ref<Update[]>(
     content.data.updates
-      .filter(u => u.status === 'published' && u.category !== 'general')
+      .filter((u) => u.status === 'published' && u.category !== 'general')
       .map(transformMockUpdate)
   )
   const isLoading = ref(false)
   const error = ref<string | null>(null)
 
   const loadUpdates = async () => {
-    if (!useApi) return // Usar mocks si no se especifica usar API
+    if (!useApi) return
 
     isLoading.value = true
     error.value = null
 
     try {
       const data = await updatesRepository.getAll(params)
-      updates.value = data
-        .map(transformUpdate)
-        .filter(u => u.status === 'published')
-    } catch (err) {
+      updates.value = data.map(transformUpdate).filter((u) => u.status === 'published')
+    } catch (err: unknown) {
       if (err instanceof UpdateRepositoryError) {
-        console.error('[useUpdates] ❌', err.message, 'HTTP', err.statusCode)
+        logger.event('error', {
+          code: 'USE_UPDATES_REPO_ERROR',
+          context: 'Error en repositorio de updates',
+          safeDetails: { statusCode: err.statusCode }
+        })
         error.value = err.message
       } else {
-        console.error('[useUpdates] ❌ Error inesperado:', err)
+        logger.event('error', {
+          code: 'USE_UPDATES_UNEXPECTED_ERROR',
+          context: 'Error inesperado al cargar updates'
+        })
         error.value = 'Error al cargar las actualizaciones'
       }
-      // Fallback a datos mock en caso de error
+
       updates.value = content.data.updates
-        .filter(u => u.status === 'published' && u.category !== 'general')
+        .filter((u) => u.status === 'published' && u.category !== 'general')
         .map(transformMockUpdate)
     } finally {
       isLoading.value = false
     }
   }
 
-  // Auto-cargar si se usa API
   onMounted(() => {
     if (useApi) {
       loadUpdates()
@@ -86,7 +88,7 @@ export function useUpdates(useApi = false, params?: GetUpdatesParams) {
       legal: []
     }
 
-    updates.value.forEach(update => {
+    updates.value.forEach((update) => {
       if (update.category in byCategory) {
         byCategory[update.category].push(update)
       }
@@ -110,14 +112,5 @@ export function useUpdates(useApi = false, params?: GetUpdatesParams) {
     isLoading,
     error,
     reload: loadUpdates
-  }
-}
-
-async function fetchUpdates() {
-  try {
-    // ...existing code...
-  } catch (error) {
-    console.error('Error fetching updates', error)
-    throw error
   }
 }

@@ -1,4 +1,5 @@
 import { ContributionRepositoryError } from '@/application/ports/ContributionsRepository'
+import { normalizeErrorMessage } from '@/application/errors/normalizeError'
 
 export const mapContributionError = (err: unknown): string => {
   if (err instanceof ContributionRepositoryError) {
@@ -13,5 +14,5 @@ export const mapContributionError = (err: unknown): string => {
     }
     return err.message || 'Error al procesar la contribucion'
   }
-  return err instanceof Error ? err.message : 'Error desconocido'
+  return normalizeErrorMessage(err)
 }

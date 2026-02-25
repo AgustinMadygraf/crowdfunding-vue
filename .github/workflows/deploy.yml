@@ -181,3 +181,19 @@ jobs:
           EOF
           
           echo "::notice::Comando lftp ejecutado"
+
+      - name: Deploy smoke check (opcional)
+        if: ${{ vars.DEPLOY_HEALTHCHECK_URL != '' }}
+        shell: bash
+        env:
+          DEPLOY_HEALTHCHECK_URL: ${{ vars.DEPLOY_HEALTHCHECK_URL }}
+        run: |
+          set -euo pipefail
+
+          status_code="$(curl -s -o /dev/null -w "%{http_code}" "$DEPLOY_HEALTHCHECK_URL")"
+          if ! [[ "$status_code" =~ ^(200|301|302)$ ]]; then
+            echo "::error::Smoke check falló para $DEPLOY_HEALTHCHECK_URL (status: $status_code)"
+            exit 1
+          fi
+
+          echo "::notice::Smoke check OK ($status_code): $DEPLOY_HEALTHCHECK_URL"
