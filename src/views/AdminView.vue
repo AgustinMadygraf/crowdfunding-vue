@@ -3,24 +3,19 @@ Path: src/views/AdminView.vue
 -->
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
-import { milestonesRepository, MilestoneRepositoryError } from '@/infrastructure/repositories/MilestonesRepository'
-import { updatesRepository, UpdateRepositoryError } from '@/infrastructure/repositories/UpdatesRepository'
-import type { MilestoneDTO, UpdateDTO } from '@/infrastructure/dto'
 import { content } from '@/presentation/content'
+import { useAdminData } from '@/presentation/composables/useAdminData'
 
 
 const router = useRouter()
 const authStore = useAuthStore()
 const adminContent = content.adminView
+const adminData = useAdminData()
 
 // State
-const milestones = ref<MilestoneDTO[]>([])
-const updates = ref<UpdateDTO[]>([])
-const isLoading = ref(false)
-const error = ref<string | null>(null)
 const activeTab = ref<'dashboard' | 'milestones' | 'updates'>('dashboard')
 
 // Check authentication
@@ -34,64 +29,8 @@ onMounted(() => {
 
 // Load all data
 const loadData = async () => {
-  isLoading.value = true
-  error.value = null
-  
-  try {
-    if (import.meta.env.DEV) {
-    }
-    
-    // Cargar milestones
-    try {
-      milestones.value = await milestonesRepository.getAll()
-      if (import.meta.env.DEV) {
-      }
-    } catch (err) {
-      console.warn('[AdminView] ⚠️ Error cargando milestones:', err)
-    }
-    
-    // Cargar updates
-    try {
-      updates.value = await updatesRepository.getAll()
-      if (import.meta.env.DEV) {
-      }
-    } catch (err) {
-      console.warn('[AdminView] ⚠️ Error cargando updates:', err)
-    }
-  } catch (err) {
-    console.error('[AdminView] ❌ Error al cargar datos:', err)
-    error.value = adminContent.errors.loadData
-  } finally {
-    isLoading.value = false
-  }
+  await adminData.loadData()
 }
-
-const fetchAdminData = async () => {
-  try {
-    isLoading.value = true
-    error.value = null
-
-    // Cargar milestones
-    milestones.value = await milestonesRepository.getAll()
-
-    // Cargar updates
-    updates.value = await updatesRepository.getAll()
-  } catch (err) {
-    console.error('Error obteniendo datos de admin', err)
-    error.value = err instanceof Error ? err.message : adminContent.errors.fetchAdmin
-  } finally {
-    isLoading.value = false
-  }
-}
-
-// Computed stats
-const stats = computed(() => ({
-  totalMilestones: milestones.value.length,
-  activeMilestones: milestones.value.filter(m => m.status === 'active').length,
-  completedMilestones: milestones.value.filter(m => m.status === 'completed').length,
-  totalUpdates: updates.value.length,
-  publishedUpdates: updates.value.filter(u => u.status === 'published').length
-}))
 
 // Handlers
 const handleLogout = async () => {
@@ -150,13 +89,13 @@ const getStatusBadgeClass = (status: string) => {
     <main v-else class="py-4">
       <div class="container">
         <!-- Loading State -->
-        <div v-if="isLoading" class="alert alert-info text-center">
+        <div v-if="adminData.isLoading.value" class="alert alert-info text-center">
           {{ adminContent.loadingLabel }}
         </div>
 
         <!-- Error State -->
-        <div v-else-if="error" class="alert alert-danger d-flex flex-column align-items-center gap-2">
-          <div>{{ error }}</div>
+        <div v-else-if="adminData.error.value" class="alert alert-danger d-flex flex-column align-items-center gap-2">
+          <div>{{ adminData.error.value }}</div>
           <button @click="retry" class="btn btn-danger">{{ adminContent.retryLabel }}</button>
         </div>
 
@@ -176,14 +115,14 @@ const getStatusBadgeClass = (status: string) => {
               @click="activeTab = 'milestones'"
               :class="['nav-link', { active: activeTab === 'milestones' }]"
             >
-              {{ adminContent.tabMilestones }} ({{ stats.totalMilestones }})
+              {{ adminContent.tabMilestones }} ({{ adminData.stats.value.totalMilestones }})
             </button>
             <button
               type="button"
               @click="activeTab = 'updates'"
               :class="['nav-link', { active: activeTab === 'updates' }]"
             >
-              {{ adminContent.tabUpdates }} ({{ stats.totalUpdates }})
+              {{ adminContent.tabUpdates }} ({{ adminData.stats.value.totalUpdates }})
             </button>
           </div>
 
@@ -194,8 +133,8 @@ const getStatusBadgeClass = (status: string) => {
                 <div class="card shadow-sm h-100">
                   <div class="card-body text-center">
                     <h3 class="text-uppercase small text-muted mb-2">{{ adminContent.statsTitles.totalMilestones }}</h3>
-                    <p class="fs-2 fw-bold mb-1">{{ stats.totalMilestones }}</p>
-                    <p class="small text-muted mb-0">{{ stats.activeMilestones }} {{ adminContent.statsLabels.activeMilestones }}</p>
+                    <p class="fs-2 fw-bold mb-1">{{ adminData.stats.value.totalMilestones }}</p>
+                    <p class="small text-muted mb-0">{{ adminData.stats.value.activeMilestones }} {{ adminContent.statsLabels.activeMilestones }}</p>
                   </div>
                 </div>
               </div>
@@ -203,7 +142,7 @@ const getStatusBadgeClass = (status: string) => {
                 <div class="card shadow-sm h-100">
                   <div class="card-body text-center">
                     <h3 class="text-uppercase small text-muted mb-2">{{ adminContent.statsTitles.completedMilestones }}</h3>
-                    <p class="fs-2 fw-bold mb-0">{{ stats.completedMilestones }}</p>
+                    <p class="fs-2 fw-bold mb-0">{{ adminData.stats.value.completedMilestones }}</p>
                   </div>
                 </div>
               </div>
@@ -211,8 +150,8 @@ const getStatusBadgeClass = (status: string) => {
                 <div class="card shadow-sm h-100">
                   <div class="card-body text-center">
                     <h3 class="text-uppercase small text-muted mb-2">{{ adminContent.statsTitles.totalUpdates }}</h3>
-                    <p class="fs-2 fw-bold mb-1">{{ stats.totalUpdates }}</p>
-                    <p class="small text-muted mb-0">{{ stats.publishedUpdates }} {{ adminContent.statsLabels.publishedUpdates }}</p>
+                    <p class="fs-2 fw-bold mb-1">{{ adminData.stats.value.totalUpdates }}</p>
+                    <p class="small text-muted mb-0">{{ adminData.stats.value.publishedUpdates }} {{ adminContent.statsLabels.publishedUpdates }}</p>
                   </div>
                 </div>
               </div>
@@ -254,11 +193,11 @@ const getStatusBadgeClass = (status: string) => {
             <section class="card shadow-sm mb-4">
               <div class="card-body">
                 <h2 class="h5 mb-3">{{ adminContent.milestonesTitle }}</h2>
-                <div v-if="milestones.length === 0" class="text-center text-muted fst-italic py-4">
+                <div v-if="adminData.milestones.value.length === 0" class="text-center text-muted fst-italic py-4">
                   <p class="mb-0">{{ adminContent.milestonesEmpty }}</p>
                 </div>
                 <div v-else class="d-grid gap-3">
-                  <div v-for="milestone in milestones" :key="milestone.id" class="card">
+                  <div v-for="milestone in adminData.milestones.value" :key="milestone.id" class="card">
                     <div class="card-body">
                       <div class="d-flex justify-content-between align-items-start gap-3">
                         <h3 class="h6 mb-0">{{ milestone.title }}</h3>
@@ -268,9 +207,9 @@ const getStatusBadgeClass = (status: string) => {
                       </div>
                       <p class="text-muted small my-3 text-truncate-2">{{ milestone.description }}</p>
                       <div class="d-flex flex-wrap gap-3 small text-muted border-top pt-2">
-                        <span>{{ formatDate(milestone.created_at || '') }}</span>
-                        <span>{{ adminContent.milestoneLabels.target }} ${{ milestone.target_amount?.toLocaleString('es-AR') }}</span>
-                        <span>{{ adminContent.milestoneLabels.raised }} ${{ milestone.raised_amount?.toLocaleString('es-AR') }}</span>
+                        <span>{{ formatDate(milestone.createdAt) }}</span>
+                        <span>{{ adminContent.milestoneLabels.target }} ${{ milestone.targetAmount?.toLocaleString('es-AR') }}</span>
+                        <span>{{ adminContent.milestoneLabels.raised }} ${{ milestone.raisedAmount?.toLocaleString('es-AR') }}</span>
                       </div>
                     </div>
                   </div>
@@ -283,11 +222,11 @@ const getStatusBadgeClass = (status: string) => {
             <section class="card shadow-sm mb-4">
               <div class="card-body">
                 <h2 class="h5 mb-3">{{ adminContent.updatesTitle }}</h2>
-                <div v-if="updates.length === 0" class="text-center text-muted fst-italic py-4">
+                <div v-if="adminData.updates.value.length === 0" class="text-center text-muted fst-italic py-4">
                   <p class="mb-0">{{ adminContent.updatesEmpty }}</p>
                 </div>
                 <div v-else class="d-grid gap-3">
-                  <div v-for="update in updates" :key="update.id" class="card">
+                  <div v-for="update in adminData.updates.value" :key="update.id" class="card">
                     <div class="card-body">
                       <div class="d-flex justify-content-between align-items-start gap-3">
                         <h3 class="h6 mb-0">{{ update.title }}</h3>
@@ -298,9 +237,9 @@ const getStatusBadgeClass = (status: string) => {
                       <p class="text-muted small my-3 text-truncate-2">{{ update.content }}</p>
                       <div class="d-flex flex-wrap gap-3 small text-muted border-top pt-2">
                         <span>{{ update.category }}</span>
-                        <span>{{ formatDate(update.created_at) }}</span>
-                        <span v-if="update.published_at">
-                          {{ adminContent.updateLabels.published }} {{ formatDate(update.published_at) }}
+                        <span>{{ formatDate(update.createdAt) }}</span>
+                        <span v-if="update.publishedAt">
+                          {{ adminContent.updateLabels.published }} {{ formatDate(update.publishedAt) }}
                         </span>
                       </div>
                     </div>

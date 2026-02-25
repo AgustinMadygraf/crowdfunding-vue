@@ -3,23 +3,33 @@ Path: src/views/DocumentsView.vue
 -->
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import { documentsRepository, DocumentRepositoryError } from '@/infrastructure/repositories/DocumentsRepository'
+import { computed } from 'vue'
+import { useDocuments } from '@/presentation/composables/useDocuments'
 import { content } from '@/presentation/content'
 import { sanitizeExternalLink } from '@/utils/urlSanitizer'
-import { logger } from '@/infrastructure/logging/logger'
-
-import type { DocumentDTO } from '@/infrastructure/dto'
-
-type DocumentViewModel = DocumentDTO & {
+type DocumentViewModel = {
+  id: number
+  category: string
+  title: string
+  description?: string
+  createdAt: string
+  version?: string
   safeUrl: string | null
 }
 
-// State
-const documents = ref<DocumentViewModel[]>([])
-const isLoading = ref(false)
-const error = ref<string | null>(null)
+const documentsState = useDocuments(true)
 const documentsContent = content.documentsView
+const documents = computed<DocumentViewModel[]>(() =>
+  documentsState.documents.value.map((doc) => ({
+    id: doc.id,
+    category: doc.category,
+    title: doc.title,
+    description: doc.description,
+    createdAt: doc.createdAt,
+    version: doc.version,
+    safeUrl: sanitizeExternalLink(doc.url)
+  }))
+)
 
 // Computed: agrupar documentos por categoría
 const categorizedDocuments = computed(() => {
@@ -53,39 +63,10 @@ const sortedCategories = computed(() => {
   })
 })
 
-// Cargar documentos del backend
-const loadDocuments = async () => {
-  isLoading.value = true
-  error.value = null
-  
-  try {
-    const response = await documentsRepository.getAll()
-    documents.value = response.map((doc) => ({
-      ...doc,
-      safeUrl: sanitizeExternalLink(doc.url)
-    }))
-  } catch (err: unknown) {
-    logger.error('[DocumentsView] Error al cargar documentos:', err)
-    
-    if (err instanceof DocumentRepositoryError) {
-      error.value = err.message || documentsContent.errorFallback
-    } else {
-      error.value = err instanceof Error ? err.message : 'Error desconocido'
-    }
-  } finally {
-    isLoading.value = false
-  }
-}
-
 // Retry handler
 const retry = () => {
-  loadDocuments()
+  documentsState.reload()
 }
-
-// Cargar documentos al montar el componente
-onMounted(() => {
-  loadDocuments()
-})
 </script>
 
 <template>
@@ -100,13 +81,13 @@ onMounted(() => {
     <section class="documents-section py-5">
       <div class="container">
         <!-- Loading State -->
-        <div v-if="isLoading" class="alert alert-info text-center">
+        <div v-if="documentsState.isLoading.value" class="alert alert-info text-center">
           {{ documentsContent.loadingLabel }}
         </div>
 
         <!-- Error State -->
-        <div v-else-if="error" class="alert alert-danger d-flex flex-column align-items-center gap-2">
-          <div>{{ error }}</div>
+        <div v-else-if="documentsState.error.value" class="alert alert-danger d-flex flex-column align-items-center gap-2">
+          <div>{{ documentsState.error.value }}</div>
           <button @click="retry" class="btn btn-danger">{{ documentsContent.retryLabel }}</button>
         </div>
 
@@ -135,7 +116,7 @@ onMounted(() => {
                     <p v-if="doc.description" class="text-muted small mb-3 text-truncate-2">{{ doc.description }}</p>
                     <div class="d-flex gap-3 small text-muted border-top pt-3 mt-auto mb-2">
                       <span class="date text-nowrap">{{
-                        new Date(doc.created_at).toLocaleDateString('es-AR', {
+                        new Date(doc.createdAt).toLocaleDateString('es-AR', {
                           year: 'numeric',
                           month: 'short',
                           day: 'numeric'

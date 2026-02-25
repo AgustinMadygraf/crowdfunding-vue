@@ -11,20 +11,24 @@ export interface Document {
   id: number
   category: string
   title: string
+  description?: string
   url: string
   checksum_sha256?: string
   version?: string
   createdAt: string
+  published: boolean
 }
 
 const transformDocument = (dto: DocumentDTO): Document => ({
   id: dto.id,
   category: dto.category,
   title: dto.title,
+  description: dto.description,
   url: dto.url,
   checksum_sha256: dto.checksum_sha256,
   version: dto.version,
-  createdAt: dto.created_at
+  createdAt: dto.created_at,
+  published: dto.published
 })
 
 export function useDocuments(useApi = false, params?: GetDocumentsParams) {

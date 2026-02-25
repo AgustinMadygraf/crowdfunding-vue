@@ -44,7 +44,7 @@ DoD: no existen imports desde `src/application` a `@/infrastructure`; los casos 
 DoD: `toAppError` usa un contrato de error comun (ej. interface/error code compartido) sin importar clases de `src/infrastructure/repositories/*`.
 
 ### P1 - Alto
-- [ ] [P1][High][todo] Evitar acceso directo de vistas a repositorios/DTS de infraestructura.
+- [x] [P1][High][todo] Evitar acceso directo de vistas a repositorios/DTS de infraestructura.
 DoD: `src/views/AdminView.vue` y `src/views/DocumentsView.vue` consumen casos de uso o adapters de aplicacion; no importan `@/infrastructure/repositories/*` ni `@/infrastructure/dto`.
 
 - [ ] [P1][High][todo] Consolidar en un solo stack HTTP y retirar implementaciones paralelas.
