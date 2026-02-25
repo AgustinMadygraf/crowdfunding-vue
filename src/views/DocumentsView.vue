@@ -18,6 +18,7 @@ type DocumentViewModel = DocumentDTO & {
 const documents = ref<DocumentViewModel[]>([])
 const isLoading = ref(false)
 const error = ref<string | null>(null)
+const isDev = import.meta.env.DEV
 const documentsContent = content.documentsView
 
 // Computed: agrupar documentos por categoría
@@ -58,18 +59,15 @@ const loadDocuments = async () => {
   error.value = null
   
   try {
-    if (import.meta.env.DEV) {
-    }
     const response = await documentsRepository.getAll()
     documents.value = response.map((doc) => ({
       ...doc,
       safeUrl: sanitizeExternalLink(doc.url)
     }))
-    if (import.meta.env.DEV) {
+  } catch (err: unknown) {
+    if (isDev) {
+      console.error('[DocumentsView] Error al cargar documentos:', err)
     }
-  } catch (err) {
-    console.error('[DocumentsView] ❌ Error al cargar documentos:', err)
-    console.error('Error obteniendo documentos (vista)', err)
     
     if (err instanceof DocumentRepositoryError) {
       error.value = err.message || documentsContent.errorFallback

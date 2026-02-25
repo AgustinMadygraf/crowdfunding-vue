@@ -22,6 +22,7 @@ export interface ContributionState {
 }
 
 export function useSubscription() {
+  const isDev = import.meta.env.DEV
   const contributionsRepository = getContributionsRepository()
   const createContributionUseCase = new CreateContributionUseCase(contributionsRepository)
   const getContributionByTokenUseCase = new GetContributionByTokenUseCase(contributionsRepository)
@@ -36,6 +37,14 @@ export function useSubscription() {
   const hasContribution = computed(() => !!contribution.value)
   const hasError = computed(() => !!error.value)
 
+  const logError = (context: string, err: unknown) => {
+    if (!isDev) {
+      return
+    }
+
+    console.error(`[useSubscription] ${context}:`, err)
+  }
+
   /**
    * Crea una nueva contribución
    */
@@ -47,8 +56,8 @@ export function useSubscription() {
       const resultToken = await createContributionUseCase.execute(data)
       token.value = resultToken
       return resultToken
-    } catch (err) {
-      console.error('[useSubscription] Error al crear contribucion:', err)
+    } catch (err: unknown) {
+      logError('Error al crear contribucion', err)
       error.value = mapContributionError(err)
       throw err
     } finally {
@@ -70,18 +79,12 @@ export function useSubscription() {
     error.value = null
 
     try {
-      if (import.meta.env.DEV) {
-      }
-
       const result = await getContributionByTokenUseCase.execute(contributionToken)
       contribution.value = result
       token.value = contributionToken
-
-      if (import.meta.env.DEV) {
-      }
       return result
-    } catch (err) {
-      console.error('[useSubscription] Error al cargar contribucion:', err)
+    } catch (err: unknown) {
+      logError('Error al cargar contribucion', err)
       error.value = mapContributionError(err)
       return null
     } finally {
@@ -99,8 +102,8 @@ export function useSubscription() {
     try {
       const list = await listUserContributionsUseCase.execute(userId)
       return list
-    } catch (err) {
-      console.error('[useSubscription] Error al cargar contribuciones:', err)
+    } catch (err: unknown) {
+      logError('Error al cargar contribuciones', err)
       error.value = mapContributionError(err)
       return []
     } finally {
@@ -111,23 +114,11 @@ export function useSubscription() {
   /**
    * Limpia el estado
    */
-  const reset = () => {
+  const reset = (): void => {
     contribution.value = null
     token.value = null
     error.value = null
     isLoading.value = false
-  }
-
-  /**
-   * Fetch subscription data
-   */
-  async function fetchSubscription() {
-    try {
-      // ...existing code...
-    } catch (error) {
-      console.error('Error fetching subscription', error)
-      throw error
-    }
   }
 
   return {

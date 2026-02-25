@@ -141,7 +141,7 @@ jobs:
           echo "::notice::Tamaño de dist/: $(du -sh dist/ | cut -f1)"
 
           lftp -u "$FTP_USERNAME","$FTP_PASSWORD" "$FTP_CONNECT_URL" <<'EOF'
-          set cmd:fail-exit false
+          set cmd:fail-exit true
           set net:timeout 180
           set net:max-retries 10
           set net:reconnect-interval-base 15
@@ -158,7 +158,7 @@ jobs:
           mirror -R --delete --verbose --no-perms \
             --exclude-glob .ht_leame \
             --exclude-glob cgi-bin/ \
-            dist/ /public_html/crowdfunding/ || echo "Mirror completó con advertencias"
+            dist/ /public_html/crowdfunding/
 
           echo "Proceso finalizado"
           bye

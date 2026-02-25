@@ -1,5 +1,5 @@
-import { ref, type Ref } from 'vue'
-import { z, type ZodError, type ZodObject, type ZodRawShape } from 'zod'
+import { ref } from 'vue'
+import { z, type ZodIssue, type ZodObject, type ZodRawShape } from 'zod'
 
 
 /**
@@ -10,13 +10,14 @@ import { z, type ZodError, type ZodObject, type ZodRawShape } from 'zod'
  */
 export function useFormValidation<T extends ZodRawShape>(schema: ZodObject<T>) {
   // Estado de errores por campo
-  const errors = ref<Record<string, string>>({}) as Ref<Record<string, string>>
+  const errors = ref<Record<string, string>>({})
   
   // Error general del formulario
   const formError = ref<string | null>(null)
   
   // Estado de validación
   const isValid = ref(false)
+  const isDev = import.meta.env.DEV
 
   /**
    * Valida un campo individual
@@ -36,7 +37,7 @@ export function useFormValidation<T extends ZodRawShape>(schema: ZodObject<T>) {
     } catch (error) {
       if (error instanceof z.ZodError && error.issues) {
         // Extraer mensaje de error para este campo
-        const fieldError = error.issues.find((e: any) => e.path[0] === fieldName)
+        const fieldError = error.issues.find((issue: ZodIssue) => issue.path[0] === fieldName)
         if (fieldError) {
           errors.value[fieldName] = fieldError.message
         }
@@ -59,16 +60,18 @@ export function useFormValidation<T extends ZodRawShape>(schema: ZodObject<T>) {
       formError.value = null
       isValid.value = true
       return true
-    } catch (error) {
-      console.error('Error validando formulario', error)
+    } catch (error: unknown) {
+      if (isDev) {
+        console.error('Error validando formulario', error)
+      }
       
       if (error instanceof z.ZodError && error.issues) {
         // Mapear errores por campo
         const newErrors: Record<string, string> = {}
-        error.issues.forEach((err: any) => {
-          const fieldName = err.path[0] as string
+        error.issues.forEach((issue: ZodIssue) => {
+          const fieldName = issue.path[0] as string
           if (fieldName) {
-            newErrors[fieldName] = err.message
+            newErrors[fieldName] = issue.message
           }
         })
         errors.value = newErrors

@@ -29,14 +29,29 @@ export class ContributionsRepository implements ContributionsRepositoryPort {
   private async pingHealth(): Promise<void> {
     const url = `${this.apiBaseUrl}/api/health`
     try {
-      const response = await this.fetchWithGuard(url, { method: 'GET' })
-      const contentType = response.headers.get('content-type') || ''    } catch (error) {
+      await this.fetchWithGuard(url, { method: 'GET' })
+    } catch (error) {
       console.warn('[ContributionsRepository] Health check failed:', url, error)
     }
   }
 
   private sanitizeUrlForLogs(url: string): string {
     return url.replace(/(\/api\/contributions\/)[^/?#]+/i, '$1[redacted]')
+  }
+
+  private extractErrorMessage(errorData: unknown): string | null {
+    if (typeof errorData === 'string' && errorData.trim()) {
+      return errorData
+    }
+
+    if (errorData && typeof errorData === 'object' && 'message' in errorData) {
+      const value = (errorData as { message?: unknown }).message
+      if (typeof value === 'string' && value.trim()) {
+        return value
+      }
+    }
+
+    return null
   }
 
   /**
@@ -204,7 +219,7 @@ export class ContributionsRepository implements ContributionsRepositoryPort {
       })
 
       if (!response.ok) {
-        let errorData: any = {}
+        let errorData: unknown = {}
         try {
           errorData = await response.json()
         } catch {
@@ -216,7 +231,7 @@ export class ContributionsRepository implements ContributionsRepositoryPort {
         console.error('[ContributionsRepository] Error response:', errorData)
 
         throw new ContributionRepositoryError(
-          errorData.message || `HTTP ${response.status}`,
+          this.extractErrorMessage(errorData) || `HTTP ${response.status}`,
           response.status,
           errorData
         )
