@@ -8,6 +8,7 @@ import { getAppConfig } from '@/config/appConfig'
 import type { IAuthService, AuthServiceConfig } from './IAuthService'
 import { SessionStorageTokenStorage } from './auth/tokenStorage'
 import { GoogleSignInAdapter } from './auth/googleSignInAdapter'
+import { logger } from '@/infrastructure/logging/logger'
 
 
 /**
@@ -62,7 +63,11 @@ export function createAuthService(config?: Partial<AuthServiceConfig>): IAuthSer
 
     return new AuthService(finalConfig, { storage, googleSignIn })
   } catch (error) {
-    console.error('Error creando AuthService', error)
+    logger.event('error', {
+      code: 'AUTH_SERVICE_FACTORY_CREATE_FAILED',
+      context: 'Error creando AuthService',
+      safeDetails: { errorType: error instanceof Error ? error.name : typeof error }
+    })
     throw error
   }
 }

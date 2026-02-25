@@ -5,6 +5,7 @@
  */
 
 import { apiClient } from '@/infrastructure/api'
+import { logger } from '@/infrastructure/logging/logger'
 
 import type { MilestoneDTO, EvidenceDTO, ListResponse } from '@/infrastructure/dto'
 
@@ -18,7 +19,10 @@ export const milestonesService = {
       const response = await apiClient.get<ListResponse<MilestoneDTO>>('/api/milestones')
       return response.data
     } catch (error) {
-      console.error('Error obteniendo milestones', error)
+      logger.event('error', {
+        code: 'MILESTONES_SERVICE_GET_ALL_FAILED',
+        context: 'Error obteniendo milestones'
+      })
       throw error
     }
   },
@@ -33,7 +37,11 @@ export const milestonesService = {
         `/api/milestones/${id}`
       )
     } catch (error) {
-      console.error(`Error fetching milestone ${id}:`, error)
+      logger.event('error', {
+        code: 'MILESTONES_SERVICE_GET_BY_ID_FAILED',
+        context: `Error fetching milestone ${id}`,
+        safeDetails: { id }
+      })
       throw error
     }
   },
@@ -49,7 +57,11 @@ export const milestonesService = {
       )
       return response.data
     } catch (error) {
-      console.error(`Error fetching evidences for milestone ${milestoneId}:`, error)
+      logger.event('error', {
+        code: 'MILESTONES_SERVICE_GET_EVIDENCES_FAILED',
+        context: `Error fetching evidences for milestone ${milestoneId}`,
+        safeDetails: { milestoneId }
+      })
       throw error
     }
   }

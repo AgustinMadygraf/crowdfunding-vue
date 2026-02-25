@@ -6,6 +6,7 @@
 import { DEFAULT_TIMEOUT_MS } from '@/config/api'
 import { getAppConfig } from '@/config/appConfig'
 import { csrfService } from './services/csrfService'
+import { logger } from '@/infrastructure/logging/logger'
 
 
 export interface ApiResponse<T> {
@@ -44,21 +45,27 @@ class ApiClient {
     try {
       return await fn();
     } catch (error) {
-      console.error('Error en fetchWithRefresh:', error); // Log the error for debugging
+      logger.event('error', {
+        code: 'API_FETCH_WITH_REFRESH_ERROR',
+        context: 'Error en fetchWithRefresh',
+        safeDetails: { errorType: error instanceof Error ? error.name : typeof error }
+      })
       if (error instanceof ApiException && error.status === 401) {
-        if (import.meta.env.DEV) {
-          console.log('[ApiClient] Token expired, attempting refresh...')
-        }
+        logger.debug('[ApiClient] Token expired, attempting refresh')
         // Intentar refresh
         try {
           await this.refreshToken();
-          if (import.meta.env.DEV) {
-            console.log('[ApiClient] Token refreshed successfully, retrying request...')
-          }
+          logger.debug('[ApiClient] Token refreshed successfully, retrying request')
           // Reintentar la request original una vez
           return await fn();
         } catch (refreshError) {
-          console.error('[ApiClient] Token refresh failed:', refreshError)
+          logger.event('error', {
+            code: 'API_REFRESH_FAILED',
+            context: 'Token refresh failed',
+            safeDetails: {
+              errorType: refreshError instanceof Error ? refreshError.name : typeof refreshError
+            }
+          })
           // Si el refresh falla, propagar el error original
           throw error;
         }
@@ -82,9 +89,7 @@ class ApiClient {
 
   constructor(baseUrl: string) {
     this.baseUrl = baseUrl
-    if (import.meta.env.DEV) {
-      console.log('[ApiClient] Initialized with baseUrl:', baseUrl)
-    }
+    logger.debug('[ApiClient] Initialized', { baseUrl })
   }
 
   /**
@@ -107,11 +112,9 @@ class ApiClient {
     
     if (csrfToken) {
       Object.assign(headers, csrfService.getTokenHeader(csrfToken, 'X-CSRF-Token'))
-      if (import.meta.env.DEV) {
-        console.log('[ApiClient] CSRF token added to headers')
-      }
-    } else if (import.meta.env.DEV) {
-      console.warn('[ApiClient] ⚠️ Token CSRF no disponible para operación de mutación')
+      logger.debug('[ApiClient] CSRF token added to headers')
+    } else {
+      logger.warn('[ApiClient] Token CSRF no disponible para operacion de mutacion')
     }
 
     return headers
@@ -139,7 +142,11 @@ class ApiClient {
         
         // Si es el último intento o error no recuperable, lanzar
         if (attempt === maxAttempts - 1) {
-          console.error(`[ApiClient] Retry exhausted after ${maxAttempts} attempts`)
+          logger.event('error', {
+            code: 'API_RETRY_EXHAUSTED',
+            context: 'Retry exhausted',
+            safeDetails: { maxAttempts }
+          })
           throw error
         }
 
@@ -150,9 +157,7 @@ class ApiClient {
 
         // Esperar con backoff exponencial: 1s, 2s, 4s
         const delayMs = Math.pow(2, attempt) * 1000
-        if (import.meta.env.DEV) {
-          console.log(`[ApiClient] Retry attempt ${attempt + 1}/${maxAttempts}, waiting ${delayMs}ms...`)
-        }
+        logger.debug('[ApiClient] Retry attempt', { attempt: attempt + 1, maxAttempts, delayMs })
         await new Promise(resolve => setTimeout(resolve, delayMs))
       }
     }
@@ -176,7 +181,11 @@ class ApiClient {
         }
       }
 
-      console.error(`[ApiClient] HTTP ${errorData.status}: ${errorData.message}`)
+      logger.event('error', {
+        code: 'API_HTTP_ERROR',
+        context: `HTTP ${errorData.status}: ${errorData.message}`,
+        safeDetails: { status: errorData.status }
+      })
       throw new ApiException(errorData.status, errorData.message, errorData.errors)
     }
 
@@ -192,9 +201,7 @@ class ApiClient {
    * GET request con retry automático
    */
   async get<T>(endpoint: string, params?: Record<string, string>): Promise<T> {
-    if (import.meta.env.DEV) {
-      console.log('[ApiClient] GET', endpoint, params)
-    }
+    logger.debug('[ApiClient] GET', { endpoint, hasParams: !!params })
     return this.fetchWithRefresh(() => this._get<T>(endpoint, params));
   }
 
@@ -218,9 +225,7 @@ class ApiClient {
   }
 
   async post<T>(endpoint: string, data?: unknown): Promise<T> {
-    if (import.meta.env.DEV) {
-      console.log('[ApiClient] POST', endpoint, data)
-    }
+    logger.debug('[ApiClient] POST', { endpoint, hasBody: data !== undefined })
     return this.fetchWithRefresh(() => this._post<T>(endpoint, data));
   }
 
@@ -248,9 +253,7 @@ class ApiClient {
   /* Incluye token CSRF automáticamente
    */
   async put<T>(endpoint: string, data?: unknown): Promise<T> {
-    if (import.meta.env.DEV) {
-      console.log('[ApiClient] PUT', endpoint, data)
-    }
+    logger.debug('[ApiClient] PUT', { endpoint, hasBody: data !== undefined })
     return this.fetchWithRefresh(() => this._put<T>(endpoint, data));
   }
 
@@ -273,9 +276,7 @@ class ApiClient {
   /* Incluye token CSRF automáticamente
    */
   async patch<T>(endpoint: string, data?: unknown): Promise<T> {
-    if (import.meta.env.DEV) {
-      console.log('[ApiClient] PATCH', endpoint, data)
-    }
+    logger.debug('[ApiClient] PATCH', { endpoint, hasBody: data !== undefined })
     return this.fetchWithRefresh(() => this._patch<T>(endpoint, data));
   }
 
@@ -298,9 +299,7 @@ class ApiClient {
   /* Incluye token CSRF automáticamente
    */
   async delete<T>(endpoint: string): Promise<T> {
-    if (import.meta.env.DEV) {
-      console.log('[ApiClient] DELETE', endpoint)
-    }
+    logger.debug('[ApiClient] DELETE', { endpoint })
     return this.fetchWithRefresh(() => this._delete<T>(endpoint));
   }
 

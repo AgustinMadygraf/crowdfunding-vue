@@ -5,6 +5,7 @@
  */
 
 import { apiClient } from '@/infrastructure/api'
+import { logger } from '@/infrastructure/logging/logger'
 
 import type { DocumentDTO, ListResponse } from '@/infrastructure/dto'
 
@@ -21,7 +22,11 @@ export const documentsService = {
       const response = await apiClient.get<ListResponse<DocumentDTO>>('/api/documents', queryParams)
       return response.data
     } catch (error) {
-      console.error('Error obteniendo documentos', error)
+      logger.event('error', {
+        code: 'DOCUMENTS_SERVICE_GET_ALL_FAILED',
+        context: 'Error obteniendo documentos',
+        safeDetails: { hasCategory: !!params?.category }
+      })
       throw error
     }
   },
@@ -34,7 +39,11 @@ export const documentsService = {
     try {
       return await apiClient.get<DocumentDTO>(`/api/documents/${id}`)
     } catch (error) {
-      console.error(`Error fetching document ${id}:`, error)
+      logger.event('error', {
+        code: 'DOCUMENTS_SERVICE_GET_BY_ID_FAILED',
+        context: `Error fetching document ${id}`,
+        safeDetails: { id }
+      })
       throw error
     }
   }

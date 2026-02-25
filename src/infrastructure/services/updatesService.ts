@@ -5,6 +5,7 @@
  */
 
 import { apiClient } from '@/infrastructure/api'
+import { logger } from '@/infrastructure/logging/logger'
 
 import type { UpdateDTO, ListResponse } from '@/infrastructure/dto'
 
@@ -22,7 +23,11 @@ export const updatesService = {
       const response = await apiClient.get<ListResponse<UpdateDTO>>('/api/updates', queryParams)
       return response.data
     } catch (error) {
-      console.error('Error obteniendo updates', error)
+      logger.event('error', {
+        code: 'UPDATES_SERVICE_GET_ALL_FAILED',
+        context: 'Error obteniendo updates',
+        safeDetails: { hasCategory: !!params?.category, hasLimit: !!params?.limit }
+      })
       throw error
     }
   },
@@ -35,7 +40,11 @@ export const updatesService = {
     try {
       return await apiClient.get<UpdateDTO>(`/api/updates/${id}`)
     } catch (error) {
-      console.error(`Error fetching update ${id}:`, error)
+      logger.event('error', {
+        code: 'UPDATES_SERVICE_GET_BY_ID_FAILED',
+        context: `Error fetching update ${id}`,
+        safeDetails: { id }
+      })
       throw error
     }
   }

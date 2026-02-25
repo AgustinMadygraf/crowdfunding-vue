@@ -6,6 +6,7 @@
  */
 
 import type { UTMParams } from '@/utils/utm'
+import { logger } from '@/infrastructure/logging/logger'
 
 
 /**
@@ -165,10 +166,18 @@ export const chatwootClientService = {
         try {
           error = await response.json()
         } catch (parseError) {
-          console.error('[Chatwoot] Failed to parse error response:', parseError)
+          logger.event('error', {
+            code: 'CHATWOOT_PARSE_ERROR_RESPONSE_FAILED',
+            context: 'Failed to parse error response',
+            safeDetails: { parseErrorType: parseError instanceof Error ? parseError.name : typeof parseError }
+          })
           error = { message: response.statusText }
         }
-        console.error('[Chatwoot] API error response:', error)
+        logger.event('error', {
+          code: 'CHATWOOT_API_ERROR_RESPONSE',
+          context: 'Chatwoot API error response',
+          safeDetails: { status: response.status }
+        })
         throw new ChatwootException(response.status, error, `Chatwoot API error: ${response.statusText}`)
       }
 
@@ -176,13 +185,20 @@ export const chatwootClientService = {
       try {
         data = await response.json()
       } catch (parseError) {
-        console.error('[Chatwoot] Failed to parse success response:', parseError)
+        logger.event('error', {
+          code: 'CHATWOOT_PARSE_SUCCESS_RESPONSE_FAILED',
+          context: 'Failed to parse success response',
+          safeDetails: { parseErrorType: parseError instanceof Error ? parseError.name : typeof parseError }
+        })
         throw new ChatwootException(500, {}, 'Invalid JSON response from Chatwoot')
       }
 
       // Verificar estructura de la respuesta
       if (!data || typeof data !== 'object') {
-        console.error('[Chatwoot] Invalid response structure - not an object:', data)
+        logger.event('error', {
+          code: 'CHATWOOT_INVALID_RESPONSE_STRUCTURE',
+          context: 'Invalid response structure - not an object'
+        })
         throw new ChatwootException(500, {}, 'Invalid response structure from Chatwoot')
       }
 
@@ -191,7 +207,10 @@ export const chatwootClientService = {
       const contact = (data as any).contact || (data as any).payload || data
       
       if (!contact) {
-        console.error('[Chatwoot] No contact data in response:', data)
+        logger.event('error', {
+          code: 'CHATWOOT_MISSING_CONTACT_DATA',
+          context: 'No contact data in response'
+        })
         throw new ChatwootException(500, {}, 'No contact data in Chatwoot response')
       }
 
@@ -209,15 +228,22 @@ export const chatwootClientService = {
       }
     } catch (error) {
       if (error instanceof ChatwootException) {
-        console.error('[Chatwoot] ❌ API error:', {
-          status: error.status,
-          errors: error.errors,
-          message: error.message
+        logger.event('error', {
+          code: 'CHATWOOT_API_EXCEPTION',
+          context: 'Chatwoot API exception',
+          safeDetails: {
+            status: error.status,
+            message: error.message
+          }
         })
         throw error
       }
 
-      console.error('[Chatwoot] ❌ Unexpected error creating contact:', error)
+      logger.event('error', {
+        code: 'CHATWOOT_CREATE_CONTACT_UNEXPECTED_ERROR',
+        context: 'Unexpected error creating contact',
+        safeDetails: { errorType: error instanceof Error ? error.name : typeof error }
+      })
       throw new ChatwootException(500, {}, `Error creating contact: ${(error as Error).message}`)
     }
   },
@@ -254,7 +280,11 @@ export const chatwootClientService = {
         throw error
       }
 
-      console.error('Error updating contact in Chatwoot:', error)
+      logger.event('error', {
+        code: 'CHATWOOT_UPDATE_CONTACT_FAILED',
+        context: 'Error updating contact in Chatwoot',
+        safeDetails: { errorType: error instanceof Error ? error.name : typeof error }
+      })
       throw new ChatwootException(500, {}, `Error updating contact: ${(error as Error).message}`)
     }
   },
@@ -284,7 +314,11 @@ export const chatwootClientService = {
 
       return await response.json()
     } catch (error) {
-      console.error('Error enviando mensaje a Chatwoot', error)
+      logger.event('error', {
+        code: 'CHATWOOT_SEND_MESSAGE_FAILED',
+        context: 'Error enviando mensaje a Chatwoot',
+        safeDetails: { errorType: error instanceof Error ? error.name : typeof error }
+      })
       throw error
     }
   }

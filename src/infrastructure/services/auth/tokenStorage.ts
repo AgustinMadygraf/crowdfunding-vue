@@ -1,4 +1,5 @@
 import type { User } from '@/domain/user'
+import { logger } from '@/infrastructure/logging/logger'
 
 
 export interface TokenStorage {
@@ -30,7 +31,11 @@ export class DefaultTokenStorage implements TokenStorage {
       localStorage.setItem(this.tokenKey, token)
       localStorage.setItem(this.userKey, JSON.stringify(user))
     } catch (e) {
-      console.error('Error guardando token', e)
+      logger.event('error', {
+        code: 'AUTH_STORAGE_DEFAULT_SAVE_FAILED',
+        context: 'Error guardando token en DefaultTokenStorage',
+        safeDetails: { errorType: e instanceof Error ? e.name : typeof e }
+      })
       // Ignore storage errors; session becomes non-persistent
     }
   }
@@ -73,10 +78,14 @@ export class SessionStorageTokenStorage implements TokenStorage {
       if (import.meta.env.DEV) {
       }
     } catch (e) {
-      console.error('Error guardando token en sessionStorage', e)
+      logger.event('error', {
+        code: 'AUTH_STORAGE_SESSION_SAVE_FAILED',
+        context: 'Error guardando token en SessionStorageTokenStorage',
+        safeDetails: { errorType: e instanceof Error ? e.name : typeof e }
+      })
       // Ignore storage errors; session becomes non-persistent
       if (import.meta.env.DEV) {
-        console.warn('[SessionStorageTokenStorage] ⚠️ No se pudo guardar en sessionStorage')
+        logger.warn('[SessionStorageTokenStorage] No se pudo guardar en sessionStorage')
       }
     }
   }
@@ -127,7 +136,11 @@ export function saveToken(token: string) {
   try {
     // ...existing code...
   } catch (error) {
-    console.error('Error guardando token', error)
+    logger.event('error', {
+      code: 'AUTH_SAVE_TOKEN_FAILED',
+      context: 'Error guardando token',
+      safeDetails: { errorType: error instanceof Error ? error.name : typeof error }
+    })
     throw error
   }
 }

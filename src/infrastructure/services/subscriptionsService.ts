@@ -5,6 +5,7 @@
  */
 
 import { apiClient } from '@/infrastructure/api'
+import { logger } from '@/infrastructure/logging/logger'
 
 import type {
   CreateSubscriptionRequest,
@@ -21,7 +22,11 @@ export const subscriptionsService = {
     try {
       return await apiClient.post<CreateSubscriptionResponse>('/api/subscriptions', data)
     } catch (error) {
-      console.error('Error creating subscription:', error)
+      logger.event('error', {
+        code: 'SUBSCRIPTIONS_SERVICE_CREATE_FAILED',
+        context: 'Error creating subscription',
+        safeDetails: { hasLead: !!data?.lead, hasConsent: !!data?.consent }
+      })
       throw error
     }
   },
@@ -34,7 +39,11 @@ export const subscriptionsService = {
     try {
       return await apiClient.get<GetSubscriptionResponse>(`/api/subscriptions/${subscriptionId}`)
     } catch (error) {
-      console.error('Error obteniendo suscripción', error)
+      logger.event('error', {
+        code: 'SUBSCRIPTIONS_SERVICE_GET_STATUS_FAILED',
+        context: 'Error obteniendo suscripción',
+        safeDetails: { subscriptionId }
+      })
       throw error
     }
   }

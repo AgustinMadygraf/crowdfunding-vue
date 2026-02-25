@@ -4,6 +4,7 @@
  * CSRF Protection Service
  * Maneja la lectura y gestión de tokens CSRF
  */
+import { logger } from '@/infrastructure/logging/logger'
 
 /**
  * Interfaz para el servicio de CSRF
@@ -143,7 +144,11 @@ export async function fetchCsrfToken() {
   try {
     // ...existing code...
   } catch (error) {
-    console.error('Error obteniendo CSRF token', error)
+    logger.event('error', {
+      code: 'CSRF_FETCH_FAILED',
+      context: 'Error obteniendo CSRF token',
+      safeDetails: { errorType: error instanceof Error ? error.name : typeof error }
+    })
     throw error
   }
 }

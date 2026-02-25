@@ -81,7 +81,12 @@ export async function getGoogleOAuthToken() {
   try {
     // ...existing code...
   } catch (error) {
-    console.error('Error obteniendo token de Google OAuth', error)
+    logger.event('error', {
+      code: 'GOOGLE_OAUTH_TOKEN_FETCH_FAILED',
+      context: 'Error obteniendo token de Google OAuth',
+      safeDetails: { errorType: error instanceof Error ? error.name : typeof error }
+    })
     throw error
   }
 }
+import { logger } from '@/infrastructure/logging/logger'

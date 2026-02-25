@@ -1,3 +1,5 @@
+import { logger } from '@/infrastructure/logging/logger'
+
 export function initChatwoot(): void {
   const baseUrlRaw = (import.meta.env.VITE_CHATWOOT_BASE_URL as string | undefined) || ''
   const token = (import.meta.env.VITE_CHATWOOT_TOKEN as string | undefined) || ''
@@ -7,7 +9,7 @@ export function initChatwoot(): void {
 
   if (!baseUrl || !token) {
     if (import.meta.env.DEV) {
-      console.warn('[Chatwoot] No configurado: faltan VITE_CHATWOOT_BASE_URL o VITE_CHATWOOT_TOKEN')
+      logger.warn('[Chatwoot] No configurado: faltan VITE_CHATWOOT_BASE_URL o VITE_CHATWOOT_TOKEN')
     }
     return
   }
