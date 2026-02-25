@@ -31,7 +31,7 @@ DoD: decision documentada (memory/session/cookie), implementada de forma consist
 - [x] [P2][Low][todo] Automatizar escaneo de seguridad en CI (`npm audit --audit-level=high` + deteccion de secretos).
 DoD: workflow dedicado falla en vulnerabilidades altas/criticas o deteccion de secreto; resultado visible en PR.
 
-- [ ] [P2][Low][todo] Reescribir bloque heredoc de `.htaccess` para evitar advertencias del parser YAML local.
+- [x] [P2][Low][todo] Reescribir bloque heredoc de `.htaccess` para evitar advertencias del parser YAML local.
 DoD: workflow sin advertencias de parser relacionadas al bloque heredoc.
 
 ## Backlog Arquitectura Limpia (auditoria 2026-02-25)

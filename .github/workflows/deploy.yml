@@ -220,6 +220,57 @@ jobs:
           set -euo pipefail
           nc -zv "$FTP_IPv4_EFFECTIVE" "$FTP_PORT"
 
+      - name: Diagnostico de protocolos cifrados (SFTP/FTPS)
+        shell: bash
+        env:
+          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+        run: |
+          set -euo pipefail
+
+          host="$FTP_IPv4_EFFECTIVE"
+          ftp_port="${FTP_PORT:-21}"
+
+          echo "::group::Diagnostico de conectividad"
+          if nc -z -w 5 "$host" 22 >/dev/null 2>&1; then
+            echo "::notice::Puerto 22 abierto (candidato SFTP)"
+          else
+            echo "::warning::Puerto 22 cerrado o filtrado (SFTP improbable)"
+          fi
+
+          if nc -z -w 5 "$host" 990 >/dev/null 2>&1; then
+            echo "::notice::Puerto 990 abierto (candidato FTPS implicito)"
+          else
+            echo "::notice::Puerto 990 cerrado (FTPS implicito no evidente)"
+          fi
+          echo "::endgroup::"
+
+          echo "::group::Handshake FTPS explicito (AUTH TLS sobre 21)"
+          if timeout 10 openssl s_client -starttls ftp -connect "${host}:${ftp_port}" < /dev/null > /tmp/ftps-explicit.log 2>&1; then
+            echo "::notice::Handshake TLS sobre FTP:${ftp_port} exitoso (FTPS explicito soportado)"
+          else
+            echo "::warning::No se pudo confirmar FTPS explicito con openssl"
+          fi
+          echo "::endgroup::"
+
+          echo "::group::Prueba de login FTPS explicito con lftp"
+          if lftp -u "$FTP_USERNAME","$FTP_PASSWORD" "ftp://${host}:${ftp_port}" -e "set cmd:fail-exit true; set ftp:ssl-force true; set ftp:ssl-protect-data true; set ssl:verify-certificate no; cls; bye" >/tmp/ftps-login.log 2>&1; then
+            echo "::notice::Login FTPS explicito exitoso con credenciales actuales"
+          else
+            echo "::warning::Login FTPS explicito fallido con credenciales actuales"
+          fi
+          echo "::endgroup::"
+
+          echo "::group::Prueba de login SFTP con lftp"
+          if lftp -u "$FTP_USERNAME","$FTP_PASSWORD" "sftp://${host}:22" -e "set cmd:fail-exit true; set sftp:auto-confirm yes; set net:timeout 15; cls; bye" >/tmp/sftp-login.log 2>&1; then
+            echo "::notice::Login SFTP exitoso con credenciales actuales"
+          else
+            echo "::warning::Login SFTP fallido con credenciales actuales"
+          fi
+          echo "::endgroup::"
+
+          echo "::notice::Resumen: revisar warnings/notices anteriores para elegir migracion a SFTP o FTPS"
+
       - name: Deploy con lftp mirror (dist -> /public_html/crowdfunding) [IPv4 + excludes]
         shell: bash
         env:
@@ -231,29 +282,26 @@ jobs:
           echo "::notice::Conectando a: $FTP_CONNECT_URL (destino: /public_html/crowdfunding)"
           echo "::notice::TamaÃ±o de dist/: $(du -sh dist/ | cut -f1)"
 
-          lftp -u "$FTP_USERNAME","$FTP_PASSWORD" "$FTP_CONNECT_URL" <<'EOF'
-          set cmd:fail-exit true
-          set net:timeout 180
-          set net:max-retries 10
-          set net:reconnect-interval-base 15
-          set net:reconnect-interval-multiplier 1
-          set net:idle 240
-          set ftp:passive-mode on
-          set ftp:ssl-allow no
-          set ftp:prefer-epsv no
-          set ftp:sync-mode off
-          set dns:order "inet"
-
-          # Mirror directo, sincroniza y elimina archivos obsoletos
-          echo "Iniciando sincronizaciÃ³n..."
+          lftp -u "$FTP_USERNAME","$FTP_PASSWORD" "$FTP_CONNECT_URL" -e "
+          set cmd:fail-exit true;
+          set net:timeout 180;
+          set net:max-retries 10;
+          set net:reconnect-interval-base 15;
+          set net:reconnect-interval-multiplier 1;
+          set net:idle 240;
+          set ftp:passive-mode on;
+          set ftp:ssl-allow no;
+          set ftp:prefer-epsv no;
+          set ftp:sync-mode off;
+          set dns:order inet;
+          echo Iniciando sincronizacion...;
           mirror -R --delete --verbose --no-perms \
             --exclude-glob .ht_leame \
             --exclude-glob cgi-bin/ \
-            dist/ /public_html/crowdfunding/
-
-          echo "Proceso finalizado"
+            dist/ /public_html/crowdfunding/;
+          echo Proceso finalizado;
           bye
-          EOF
+          "
           
           echo "::notice::Comando lftp ejecutado"
 
