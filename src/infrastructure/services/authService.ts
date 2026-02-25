@@ -8,7 +8,7 @@ import type { User } from '@/domain/user'
 import type { IAuthService, AuthState, MutableAuthState, GoogleAuthConfig, AuthServiceConfig } from './IAuthService'
 import type { AuthGatewayPort } from '@/application/ports/AuthGateway'
 import { LoginWithGoogleUseCase } from '@/application/usecases/LoginWithGoogleUseCase'
-import { DefaultTokenStorage, type TokenStorage } from './auth/tokenStorage'
+import { SessionStorageTokenStorage, type TokenStorage } from './auth/tokenStorage'
 import type { GoogleSignInPort } from '@/application/ports/GoogleSignInPort'
 import { GoogleSignInAdapter } from './auth/googleSignInAdapter'
 import { HttpAuthGateway } from './auth/httpAuthGateway'
@@ -93,7 +93,7 @@ export class AuthService implements IAuthService {
     this.GOOGLE_CLIENT_ID = config?.googleClientId || ''
 
     // Inicializar dependencias
-    this.storage = deps?.storage ?? new DefaultTokenStorage(
+    this.storage = deps?.storage ?? new SessionStorageTokenStorage(
       config?.tokenStorageKey || 'auth_token',
       config?.userStorageKey || 'auth_user'
     )

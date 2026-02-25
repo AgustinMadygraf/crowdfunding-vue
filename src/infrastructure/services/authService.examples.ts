@@ -95,20 +95,14 @@ export default {
 }
 
 // ======================
-// 5. CAMBIO DE STORAGE (e.g., sessionStorage)
+// 5. STORAGE POLICY (sessionStorage)
 // ======================
 
-// Crear servicio que usa sessionStorage en lugar de localStorage
-// (Requiere extender AuthService para soportar storage customizable)
+// Crear servicio con keys personalizadas (mantiene sessionStorage por defecto)
 const sessionAuthService = createAuthService({
   tokenStorageKey: 'session_auth_token',
   userStorageKey: 'session_auth_user'
 })
-
-// Nota: Actualmente AuthService usa localStorage hardcodeado
-// Para sessionStorage, necesitaría:
-// 1. Inyectar StorageProvider en constructor
-// 2. Usar this.storage.setItem() en lugar de localStorage.setItem()
 
 // ======================
 // 6. MÚLTIPLES CUENTAS (Futuro)

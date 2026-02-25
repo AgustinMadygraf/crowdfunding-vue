@@ -6,7 +6,7 @@
 import { AuthService } from './authService'
 import { getAppConfig } from '@/config/appConfig'
 import type { IAuthService, AuthServiceConfig } from './IAuthService'
-import { DefaultTokenStorage, SessionStorageTokenStorage, MemoryOnlyTokenStorage } from './auth/tokenStorage'
+import { SessionStorageTokenStorage } from './auth/tokenStorage'
 import { GoogleSignInAdapter } from './auth/googleSignInAdapter'
 
 
@@ -53,9 +53,11 @@ export function createAuthService(config?: Partial<AuthServiceConfig>): IAuthSer
       ...config
     }
 
-    // MIGRATION: Usar MemoryOnlyTokenStorage (máxima seguridad, no persiste entre recargas)
-    // Requiere que el backend maneje la sesión vía httpOnly cookies para persistencia real
-    const storage = new MemoryOnlyTokenStorage()
+    // Política vigente: sessionStorage para token y usuario (intermedio hasta cookies httpOnly + CSRF)
+    const storage = new SessionStorageTokenStorage(
+      finalConfig.tokenStorageKey || 'auth_token',
+      finalConfig.userStorageKey || 'auth_user'
+    )
     const googleSignIn = new GoogleSignInAdapter()
 
     return new AuthService(finalConfig, { storage, googleSignIn })
@@ -71,7 +73,7 @@ export function createAuthService(config?: Partial<AuthServiceConfig>): IAuthSer
  * Usa variables de entorno (VITE_*) para configuración
  * Se recomienda usar createAuthService() directamente para testing
  * 
- * MIGRATION: Usa SessionStorageTokenStorage (más seguro que localStorage)
+ * Política vigente: usa SessionStorageTokenStorage
  */
 export const authService = new AuthService(
   {

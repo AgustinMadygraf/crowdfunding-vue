@@ -17,6 +17,9 @@ DoD: workflow dedicado falla en vulnerabilidades altas/criticas o deteccion de s
 - [x] [P2][Low][todo] Reescribir bloque heredoc de `.htaccess` para evitar advertencias del parser YAML local.
 DoD: workflow sin advertencias de parser relacionadas al bloque heredoc.
 
+- [x] [P2][Medium][todo] Definir y documentar politica de almacenamiento de token de auth en frontend.
+DoD: decision documentada (memory/session/cookie), implementada de forma consistente y con pruebas basicas de sesion.
+
 ### Arquitectura Limpia (auditoria 2026-02-25)
 - [x] [P0][High][todo] Aislar `src/application` de `@/infrastructure` y de imports directos de `vue`.
 DoD: no existen imports desde `src/application` a `@/infrastructure`; los casos de uso/servicios de aplicacion no importan `vue`; la composicion de dependencias queda en `main.ts` o un composition root dedicado.
@@ -38,6 +41,9 @@ DoD: se eliminan `src/views/App.vue`, `src/views/HeroSection.vue`, `src/views/Mi
 
 - [x] [P2][Medium][todo] Agregar reglas automaticas de fronteras de arquitectura en CI.
 DoD: existe chequeo automatizado (eslint boundaries o dependency-cruiser) que falla si `domain/application` dependen de `infrastructure` o de frameworks UI.
+
+- [x] [P2][Medium][todo] Aumentar cobertura de pruebas en capas internas.
+DoD: casos de uso de `src/application/usecases/*` y adaptadores clave de infraestructura tienen pruebas unitarias; el pipeline ejecuta esas pruebas en CI.
 
 ## Hecho (historico)
 - [x] Hacer fail-fast real en deploy lftp (`set cmd:fail-exit true` y remover `|| echo` en `mirror`).
