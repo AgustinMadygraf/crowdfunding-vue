@@ -94,13 +94,13 @@ window.__apiDiagnostic.testEndpoint('/api/health')
 4. **Ver en console**:
 ```
 [ContributionsRepository] ✅ Contribución creada: d1d3deef-36fe-4545-bc19-4f07c9cbab70
-[Subscribe] 🎫 Token: contrib_e6248962-5db2-...
+[Subscribe] 🎫 Token: <TOKEN_DE_EJEMPLO>
 ```
 
 ### Paso 4: Probar getByToken
 Después de crear contribución:
 ```bash
-# Reemplazar TOKEN con el token real (p.ej: contrib_e6248962-5db2...)
+# Reemplazar TOKEN con el token real (p.ej: <TOKEN_DE_EJEMPLO>)
 window.__apiDiagnostic.testEndpoint('/api/contributions/TOKEN')
 
 # Verificar:
@@ -292,13 +292,14 @@ window.fetch = function(...args) {
 ### Testear backend directamente
 ```bash
 # Linux/Mac:
-curl -H "Authorization: Bearer YOUR_TOKEN" \
+AUTH_HEADER="Authorization: Bearer <JWT_DEL_USUARIO>"
+curl -H "$AUTH_HEADER" \
      -H "Accept: application/json" \
      http://localhost:5000/api/contributions/contrib_xxx
 
 # PowerShell:
 $headers = @{
-  "Authorization" = "Bearer YOUR_TOKEN"
+  "Authorization" = "Bearer <TOKEN_DE_EJEMPLO>"
   "Accept" = "application/json"
 }
 Invoke-WebRequest -Uri "http://localhost:5000/api/contributions/contrib_xxx" `

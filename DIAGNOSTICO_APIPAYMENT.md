@@ -6,7 +6,7 @@
 1. **POST `/api/contributions` funciona perfectamente** ✅
    - Mismo `ContributionsRepository`
    - Mismo `apiBaseUrl` de config
-   - Token creado exitosamente: `contrib_e6248962-5db2...`
+   - Token creado exitosamente: `<TOKEN_DE_EJEMPLO>`
 
 2. **GET `/api/contributions/{token}` recibe HTML** ❌
    - Error: `ContributionRepositoryError: Respuesta HTML recibida del endpoint`

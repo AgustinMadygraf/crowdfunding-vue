@@ -187,7 +187,9 @@ console.save(diag) // Try to save console
 ### 2. Use curl to test backend directly
 ```bash
 # Get your token first
-curl -H "Authorization: Bearer YOUR_TOKEN" \
+# Export header separately to avoid copying sensitive values into command history
+AUTH_HEADER="Authorization: Bearer <JWT_DEL_USUARIO>"
+curl -H "$AUTH_HEADER" \
      -H "Accept: application/json" \
      http://localhost:5000/api/contributions/TOKEN
 

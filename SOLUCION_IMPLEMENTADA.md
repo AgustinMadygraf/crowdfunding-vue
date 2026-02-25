@@ -69,7 +69,7 @@ requestHeaders.set('ngrok-skip-browser-warning', 'true')
 **Ejemplo**:
 ```
 [ContributionsRepository] 🔍 getByToken() called
-  Token: contrib_e6248962-5db2-...
+  Token: <TOKEN_DE_EJEMPLO>
   URL: http://localhost:5000/api/contributions/contrib_xxx
   Headers: { Authorization: "Bearer ..." }
 
@@ -151,12 +151,12 @@ Esperar: Status 200, Content-Type: application/json
 ### Paso 4: Crear contribución (ir a /subscribe)
 Copiar token de console:
 ```
-[Subscribe] 🎫 Token: contrib_e6248962-5db2-...
+[Subscribe] 🎫 Token: <TOKEN_DE_EJEMPLO>
 ```
 
 ### Paso 5: Probar getByToken
 ```javascript
-window.__apiDiagnostic.testEndpoint('/api/contributions/contrib_e6248962-5db2-...')
+window.__apiDiagnostic.testEndpoint('/api/contributions/<TOKEN_DE_EJEMPLO>')
 ```
 
 Esperado:

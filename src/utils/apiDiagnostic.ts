@@ -274,7 +274,7 @@ class ApiDiagnostic {
 
     try {
       const config = getAppConfig()
-      const testToken = 'contrib_test_12345'
+      const testToken = 'TOKEN_TEST_EJEMPLO'
       const url = `${config.apiBaseUrl}/api/contributions/${testToken}`
 
       const headers = new Headers({
