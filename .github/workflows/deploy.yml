@@ -254,18 +254,20 @@ jobs:
           echo "::endgroup::"
 
           echo "::group::Prueba de login FTPS explicito con lftp"
-          if lftp -u "$FTP_USERNAME","$FTP_PASSWORD" "ftp://${host}:${ftp_port}" -e "set cmd:fail-exit true; set ftp:ssl-force true; set ftp:ssl-protect-data true; set ssl:verify-certificate no; cls; bye" >/tmp/ftps-login.log 2>&1; then
+          if timeout 20 lftp -u "$FTP_USERNAME","$FTP_PASSWORD" "ftp://${host}:${ftp_port}" -e "set cmd:fail-exit true; set net:timeout 8; set net:max-retries 1; set net:reconnect-interval-base 1; set ftp:ssl-force true; set ftp:ssl-protect-data true; set ssl:verify-certificate no; cls; bye" >/tmp/ftps-login.log 2>&1; then
             echo "::notice::Login FTPS explicito exitoso con credenciales actuales"
           else
             echo "::warning::Login FTPS explicito fallido con credenciales actuales"
+            tail -n 20 /tmp/ftps-login.log || true
           fi
           echo "::endgroup::"
 
           echo "::group::Prueba de login SFTP con lftp"
-          if lftp -u "$FTP_USERNAME","$FTP_PASSWORD" "sftp://${host}:22" -e "set cmd:fail-exit true; set sftp:auto-confirm yes; set net:timeout 15; cls; bye" >/tmp/sftp-login.log 2>&1; then
+          if timeout 20 lftp -u "$FTP_USERNAME","$FTP_PASSWORD" "sftp://${host}:22" -e "set cmd:fail-exit true; set sftp:auto-confirm yes; set net:timeout 8; set net:max-retries 1; set net:reconnect-interval-base 1; cls; bye" >/tmp/sftp-login.log 2>&1; then
             echo "::notice::Login SFTP exitoso con credenciales actuales"
           else
             echo "::warning::Login SFTP fallido con credenciales actuales"
+            tail -n 20 /tmp/sftp-login.log || true
           fi
           echo "::endgroup::"
 
