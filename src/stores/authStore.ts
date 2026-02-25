@@ -1,13 +1,14 @@
-/**
+﻿/**
  * Auth Store (Pinia)
  * Estado reactivo sincronizado con AuthService
  */
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import { authService } from '@/infrastructure/services/authServiceFactory'
+import { toAppError } from '@/application/errors/toAppError'
+import { logger } from '@/infrastructure/logging/logger'
 import type { User } from '@/domain/user'
 import type { AuthState } from '@/infrastructure/services/IAuthService'
-
 
 const mapStateFromService = (): AuthState => {
   const state = authService.getAuthState()
@@ -44,8 +45,13 @@ export const useAuthStore = defineStore('auth', () => {
       hydrateFromService()
       return authenticatedUser
     } catch (err) {
-      console.error('Error en login (authStore)', err)
-      error.value = err instanceof Error ? err.message : 'Error desconocido de autenticación'
+      const appError = toAppError(err, 'Error desconocido de autenticacion')
+      logger.event('error', {
+        code: 'AUTH_STORE_LOGIN_FAILED',
+        context: appError.message,
+        safeDetails: { type: appError.type, statusCode: appError.statusCode }
+      })
+      error.value = appError.message
       isAuthenticated.value = false
       throw err
     } finally {
@@ -60,19 +66,15 @@ export const useAuthStore = defineStore('auth', () => {
 
   const getAuthHeaders = computed(() => authService.getAuthHeaders())
 
-  // Inicializar estado desde storage al crear store
   hydrateFromService()
 
   return {
-    // State
     user,
     token,
     isAuthenticated,
     isLoading,
     error,
-    // Getters
     getAuthHeaders,
-    // Actions
     hydrateFromService,
     loginWithGoogle,
     logout

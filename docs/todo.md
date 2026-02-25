@@ -11,10 +11,10 @@
 
 ### Bloque Build
 - [x] Separar pipeline en jobs de build y deploy, conectados por artifact inmutable.
-- [ ] Crear `build-typecheck` como job dedicado.
-- [ ] Crear `build-test` como job dedicado.
-- [ ] Crear `build-package` para generar `dist/` y subir artifact.
-- [ ] Evitar doble type-check en empaquetado (usar `npm run build-only` donde corresponda).
+- [x] Crear `build-typecheck` como job dedicado.
+- [x] Crear `build-test` como job dedicado.
+- [x] Crear `build-package` para generar `dist/` y subir artifact.
+- [x] Evitar doble type-check en empaquetado (usar `npm run build-only` donde corresponda).
 
 ### Bloque Deploy
 - [x] Crear `deploy-preflight` para validar vars/secrets FTP, resolver IPv4 y chequear puerto.
