@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import { authService } from '@/infrastructure/services/authServiceFactory'
 import { useAuthStore } from '@/stores/authStore'
+import { getAuthService } from '@/presentation/providers/authServiceProvider'
 
 
 const getSiteOrigin = () => {
@@ -197,6 +197,7 @@ router.beforeEach((to, _from, next) => {
 
   // Auth guard centralizado: protege rutas con requiresAuth y roles
   const authStore = useAuthStore()
+  const authService = getAuthService()
   const user = authStore.user
   // 1. Rutas que requieren autenticación
   if (to.meta.requiresAuth && !authService.isAuthenticated()) {

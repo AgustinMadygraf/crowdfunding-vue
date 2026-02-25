@@ -10,6 +10,7 @@ import App from './App.vue'
 import router from './router'
 import { authService } from '@/infrastructure/services/authServiceFactory'
 import { AUTH_SERVICE_KEY } from '@/presentation/composables/useAuthService'
+import { setAuthService } from '@/presentation/providers/authServiceProvider'
 import { getAppConfig } from '@/config/appConfig'
 import { setContributionsRepository } from '@/application/ports/contributionsRepositoryProvider'
 import { contributionsRepository } from '@/infrastructure/repositories/ContributionsRepository'
@@ -68,6 +69,7 @@ const captureUTMParameters = () => {
 
 captureUTMParameters()
 initChatwoot()
+setAuthService(authService)
 
 const app = createApp(App)
 const pinia = createPinia()

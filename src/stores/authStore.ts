@@ -4,13 +4,14 @@
  */
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
-import { authService } from '@/infrastructure/services/authServiceFactory'
 import { toAppError } from '@/application/errors/toAppError'
 import { logger } from '@/infrastructure/logging/logger'
 import type { User } from '@/domain/user'
 import type { AuthState } from '@/infrastructure/services/IAuthService'
+import { getAuthService } from '@/presentation/providers/authServiceProvider'
 
 const mapStateFromService = (): AuthState => {
+  const authService = getAuthService()
   const state = authService.getAuthState()
   return {
     user: state.user,
@@ -38,6 +39,7 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   const loginWithGoogle = async (googleToken: string): Promise<User> => {
+    const authService = getAuthService()
     isLoading.value = true
     error.value = null
     try {
@@ -60,11 +62,12 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   const logout = () => {
+    const authService = getAuthService()
     authService.logout()
     hydrateFromService()
   }
 
-  const getAuthHeaders = computed(() => authService.getAuthHeaders())
+  const getAuthHeaders = computed(() => getAuthService().getAuthHeaders())
 
   hydrateFromService()
 

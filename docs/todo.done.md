@@ -33,6 +33,9 @@ DoD: `src/views/AdminView.vue` y `src/views/DocumentsView.vue` consumen casos de
 - [x] [P1][High][todo] Consolidar en un solo stack HTTP y retirar implementaciones paralelas.
 DoD: queda una sola via activa para requests (sin coexistencia entre `src/infrastructure/api.ts` y `src/infrastructure/http/*`); `ContributionsRepository.refactored.ts` deja de estar como variante aislada (se integra o se elimina).
 
+- [x] [P1][Medium][todo] Centralizar inyeccion de dependencias para auth y repositorios.
+DoD: `router` y `stores` no dependen de singletons concretos de infraestructura; consumen contratos inyectados desde composition root.
+
 - [x] [P1][Medium][todo] Reubicar `content` fuera de infraestructura para evitar dependencia inversa desde UI.
 DoD: componentes/vistas no importan `@/infrastructure/content`; contenido estatico queda en un modulo de presentacion/configuracion.
 
