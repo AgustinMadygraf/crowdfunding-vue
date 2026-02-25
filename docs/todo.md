@@ -47,7 +47,7 @@ DoD: `toAppError` usa un contrato de error comun (ej. interface/error code compa
 - [x] [P1][High][todo] Evitar acceso directo de vistas a repositorios/DTS de infraestructura.
 DoD: `src/views/AdminView.vue` y `src/views/DocumentsView.vue` consumen casos de uso o adapters de aplicacion; no importan `@/infrastructure/repositories/*` ni `@/infrastructure/dto`.
 
-- [ ] [P1][High][todo] Consolidar en un solo stack HTTP y retirar implementaciones paralelas.
+- [x] [P1][High][todo] Consolidar en un solo stack HTTP y retirar implementaciones paralelas.
 DoD: queda una sola via activa para requests (sin coexistencia entre `src/infrastructure/api.ts` y `src/infrastructure/http/*`); `ContributionsRepository.refactored.ts` deja de estar como variante aislada (se integra o se elimina).
 
 - [ ] [P1][Medium][todo] Centralizar inyeccion de dependencias para auth y repositorios.
