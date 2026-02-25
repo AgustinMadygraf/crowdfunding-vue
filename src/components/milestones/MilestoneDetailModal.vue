@@ -76,9 +76,7 @@ const milestoneModalContent = content.home.milestoneModal;
           <!-- Progress -->
           <div class="mb-4">
             <h3 class="text-uppercase small fw-semibold text-muted mb-2">{{ milestoneModalContent.progressTitle }}</h3>
-            <div class="progress-container mb-3">
-              <div class="progress-bar" :style="{ width: `${progress}%` }"></div>
-            </div>
+            <progress class="w-100 milestone-progress mb-3" :value="progress" max="100"></progress>
             <dl class="row g-3 mb-0">
               <div class="col-12 col-md-6">
                 <dt class="text-uppercase small fw-semibold text-muted">{{ milestoneModalContent.statsLabels.target }}</dt>
@@ -183,3 +181,9 @@ const milestoneModalContent = content.home.milestoneModal;
     </div>
   </teleport>
 </template>
+
+<style scoped>
+.milestone-progress {
+  height: 10px;
+}
+</style>

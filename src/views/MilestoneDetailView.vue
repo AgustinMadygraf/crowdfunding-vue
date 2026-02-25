@@ -122,9 +122,7 @@ const fetchMilestoneDetail = async () => {
                       {{ milestoneDetailContent.statsLabels.progress }}
                     </dt>
                     <dd class="mb-0">
-                      <div class="progress-container mb-2">
-                        <div class="progress-bar" :style="{ width: `${progress}%` }"></div>
-                      </div>
+                      <progress class="w-100 milestone-progress mb-2" :value="progress" max="100"></progress>
                       <span class="small text-muted">{{ progress }}%</span>
                     </dd>
                   </div>
@@ -281,4 +279,10 @@ const fetchMilestoneDetail = async () => {
     </div>
   </div>
 </template>
+
+<style scoped>
+.milestone-progress {
+  height: 10px;
+}
+</style>
 

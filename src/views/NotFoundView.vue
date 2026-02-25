@@ -26,7 +26,7 @@ const handleNotFound = () => {
 
 <template>
   <div class="d-flex align-items-center justify-content-center min-vh-80 text-center bg-light bg-gradient py-5">
-    <div class="container" style="max-width: 600px;">
+    <div class="container not-found-container">
       <h1 class="display-1 fw-bold text-success mb-0">404</h1>
       <h2 class="h2 my-3">{{ notFoundContent.title }}</h2>
       <p class="lead text-muted mb-4">{{ notFoundContent.subtitle }}</p>
@@ -34,3 +34,9 @@ const handleNotFound = () => {
     </div>
   </div>
 </template>
+
+<style scoped>
+.not-found-container {
+  max-width: 600px;
+}
+</style>

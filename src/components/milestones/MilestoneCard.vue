@@ -37,9 +37,7 @@ const milestoneCardContent = content.home.milestoneCard;
   <article class="card shadow-sm p-3 d-flex flex-column cursor-pointer" @click="handleCardClick" role="button" tabindex="0" @keydown.enter="handleCardClick" @keydown.space="handleCardClick">
     <h3 class="h5 mb-2">{{ props.milestone.name }}</h3>
     <p v-if="props.milestone.description" class="text-muted small mb-3">{{ props.milestone.description }}</p>
-    <div class="progress-container" role="progressbar" :aria-valuenow="progress" aria-valuemin="0" aria-valuemax="100">
-      <div class="progress-bar" :style="{ width: `${progress}%` }"></div>
-    </div>
+    <progress class="w-100 milestone-progress" :value="progress" max="100"></progress>
     <dl class="d-grid gap-3 mt-3 mb-0 flex-grow-1">
       <div>
         <dt class="text-uppercase text-muted small fw-semibold">{{ milestoneCardContent.labels.target }}</dt>
@@ -59,3 +57,9 @@ const milestoneCardContent = content.home.milestoneCard;
     </div>
   </article>
 </template>
+
+<style scoped>
+.milestone-progress {
+  height: 10px;
+}
+</style>

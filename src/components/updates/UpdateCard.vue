@@ -10,14 +10,13 @@ const props = defineProps<{
   update: Update;
 }>();
 
-const categoryColors: Record<string, string> = {
-  comercial: 'var(--category-comercial)',
-  tecnico: 'var(--category-tecnico)',
-  logistica: 'var(--category-logistica)',
-  legal: 'var(--category-legal)',
-};
-
 const categoryLabels = content.home.updateCard.categoryLabels;
+const categoryBadgeClass: Record<string, string> = {
+  comercial: 'badge-comercial',
+  tecnico: 'badge-tecnico',
+  logistica: 'badge-logistica',
+  legal: 'badge-legal',
+};
 
 const formattedDate = new Date(props.update.publishedAt).toLocaleDateString('es-AR', {
   year: 'numeric',
@@ -31,7 +30,7 @@ const formattedDate = new Date(props.update.publishedAt).toLocaleDateString('es-
     <div class="d-flex justify-content-between align-items-center gap-3 mb-3">
       <span 
         class="badge"
-        :style="{ backgroundColor: categoryColors[update.category] }"
+        :class="categoryBadgeClass[update.category]"
       >
         {{ categoryLabels[update.category] }}
       </span>
@@ -47,3 +46,21 @@ const formattedDate = new Date(props.update.publishedAt).toLocaleDateString('es-
     </div>
   </article>
 </template>
+
+<style scoped>
+.badge-comercial {
+  background-color: var(--category-comercial);
+}
+
+.badge-tecnico {
+  background-color: var(--category-tecnico);
+}
+
+.badge-logistica {
+  background-color: var(--category-logistica);
+}
+
+.badge-legal {
+  background-color: var(--category-legal);
+}
+</style>

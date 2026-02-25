@@ -3,7 +3,7 @@ Path: src/views/SubscribePaymentView.vue
 -->
 
 <template>
-  <div class="container py-4" style="max-width: 700px;">
+  <div class="container py-4 subscribe-payment-container">
     <div class="text-center mb-4">
       <h1 class="h2 mb-2">{{ paymentContent.headerTitle }}</h1>
       <p v-if="user" class="text-muted mb-0">{{ paymentContent.greetingLabel }} {{ user.nombre }}</p>
@@ -284,3 +284,9 @@ onMounted(() => {
   loadContribution()
 })
 </script>
+
+<style scoped>
+.subscribe-payment-container {
+  max-width: 700px;
+}
+</style>

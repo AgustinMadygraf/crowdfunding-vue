@@ -12,8 +12,7 @@ Path: src/components/auth/GoogleAuthButton.vue
     
     <div 
       v-else
-      class="d-flex align-items-center gap-3 p-3 bg-light rounded-2 w-100"
-      style="max-width: 400px;"
+      class="d-flex align-items-center gap-3 p-3 bg-light rounded-2 w-100 auth-user-card"
     >
       <img 
         v-if="user?.avatar_url"
@@ -35,7 +34,7 @@ Path: src/components/auth/GoogleAuthButton.vue
       </button>
     </div>
 
-    <div v-if="error" class="alert alert-danger py-2 px-3 w-100" style="max-width: 400px;">
+    <div v-if="error" class="alert alert-danger py-2 px-3 w-100 auth-user-card">
       {{ error }}
     </div>
   </div>
@@ -257,4 +256,10 @@ watch(error, (newError) => {
   }
 })
 </script>
+
+<style scoped>
+.auth-user-card {
+  max-width: 400px;
+}
+</style>
 

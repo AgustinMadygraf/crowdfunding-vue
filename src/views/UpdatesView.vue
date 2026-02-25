@@ -47,9 +47,15 @@ const handleCloseModal = () => {
   selectedUpdate.value = null;
 };
 
-const categoryBadgeStyle = (category: string) => ({
-  backgroundColor: `var(--category-${category})`
-});
+const categoryBadgeClass = (category: string): string => {
+  const map: Record<string, string> = {
+    comercial: 'badge-comercial',
+    tecnico: 'badge-tecnico',
+    logistica: 'badge-logistica',
+    legal: 'badge-legal'
+  };
+  return map[category] || 'badge-secondary';
+};
 
 const fetchUpdates = async () => {
   try {
@@ -65,7 +71,7 @@ fetchUpdates();
 
 <template>
   <div class="min-vh-100 bg-light">
-    <section class="py-5 text-center text-white" style="background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);">
+    <section class="py-5 text-center text-white updates-hero">
       <div class="container">
         <h1 class="display-6 fw-bold mb-2">{{ updatesViewContent.heroTitle }}</h1>
         <p class="lead mb-1">{{ updatesViewContent.heroSubtitle }}</p>
@@ -120,7 +126,7 @@ fetchUpdates();
             <div class="d-flex flex-column gap-2">
               <span
                 class="badge"
-                :style="categoryBadgeStyle(selectedUpdate.category)"
+                :class="categoryBadgeClass(selectedUpdate.category)"
               >
                 {{ selectedUpdate.category }}
               </span>
@@ -142,7 +148,7 @@ fetchUpdates();
 
           <div class="modal-body">
             <h2 class="h3 mb-4">{{ selectedUpdate.title }}</h2>
-            <div class="lh-lg text-body-secondary" style="white-space: pre-line;">
+            <div class="lh-lg text-body-secondary updates-content-preline">
               {{ selectedUpdate.content }}
             </div>
           </div>
@@ -155,4 +161,30 @@ fetchUpdates();
     </teleport>
   </div>
 </template>
+
+<style scoped>
+.updates-hero {
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+}
+
+.updates-content-preline {
+  white-space: pre-line;
+}
+
+.badge-comercial {
+  background-color: var(--category-comercial);
+}
+
+.badge-tecnico {
+  background-color: var(--category-tecnico);
+}
+
+.badge-logistica {
+  background-color: var(--category-logistica);
+}
+
+.badge-legal {
+  background-color: var(--category-legal);
+}
+</style>
 

@@ -71,7 +71,7 @@ const retry = () => {
 
 <template>
   <div class="d-flex flex-column">
-    <section class="py-5 text-center text-white" style="background: linear-gradient(135deg, #42b983 0%, #2c3e50 100%);">
+    <section class="py-5 text-center text-white section-hero-gradient">
       <div class="container">
         <h1 class="display-5 fw-bold mb-3">{{ documentsContent.heroTitle }}</h1>
         <p class="lead mb-0">{{ documentsContent.heroSubtitle }}</p>
@@ -152,4 +152,10 @@ const retry = () => {
     </section>
   </div>
 </template>
+
+<style scoped>
+.section-hero-gradient {
+  background: linear-gradient(135deg, #42b983 0%, #2c3e50 100%);
+}
+</style>
 

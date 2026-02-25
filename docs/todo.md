@@ -15,5 +15,3 @@ DoD: no existe `FTP_CONNECT_URL=ftp://`; no existe `set ftp:ssl-allow no`; deplo
 DoD: job de deploy usa `environment: production` y el repositorio aplica reglas de aprobacion para ese environment.
 
 ### P1 - Alto
-- [>] [P1][High][todo] Endurecer CSP en `public/.htaccess` eliminando `'unsafe-inline'` en `script-src` y `style-src`.
-DoD: CSP activa sin `'unsafe-inline'`; scripts inline migrados a archivo o nonce/hash; aplicacion funcional en smoke test.

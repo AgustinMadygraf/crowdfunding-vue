@@ -8,6 +8,9 @@
 ## Completadas (Backlog activo original)
 
 ### Seguridad y CI/CD
+- [x] [P1][High][todo] Endurecer CSP en `public/.htaccess` eliminando `'unsafe-inline'` en `script-src` y `style-src`.
+DoD: CSP activa sin `'unsafe-inline'`; scripts inline migrados a archivo o nonce/hash; aplicacion funcional en smoke test.
+
 - [x] [P1][Medium][todo] Remover origenes de desarrollo de CSP de produccion (`http://localhost:*`, `http://127.0.0.1:*`).
 DoD: CSP de produccion no incluye hosts locales; validacion manual de flujos criticos OK.
 

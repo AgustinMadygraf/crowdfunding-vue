@@ -31,12 +31,12 @@ const contribution = ref<{
 // Map payment status to display labels
 const statusLabels: Record<string, string> = statusContent.statusLabels
 
-const statusColors: Record<string, string> = {
-  pendiente: '#f39c12',
-  procesando: '#3498db',
-  completado: '#42b983',
-  fallido: '#e74c3c',
-  cancelado: '#95a5a6'
+const statusBadgeClassMap: Record<string, string> = {
+  pendiente: 'text-bg-warning',
+  procesando: 'text-bg-info',
+  completado: 'text-bg-success',
+  fallido: 'text-bg-danger',
+  cancelado: 'text-bg-secondary'
 }
 
 const loadContribution = async () => {
@@ -67,7 +67,7 @@ onMounted(() => {
 
 <template>
   <div class="d-flex flex-column min-vh-80">
-    <section class="py-5 text-center text-white" style="background: linear-gradient(135deg, #42b983 0%, #2c3e50 100%);">
+    <section class="py-5 text-center text-white section-hero-gradient">
       <div class="container">
         <h1 class="display-6 fw-bold mb-2">{{ statusContent.heroTitle }}</h1>
         <p class="small text-white-50 mb-0 font-monospace" v-if="contributionId">{{ statusContent.idLabel }} {{ contributionId }}</p>
@@ -105,7 +105,7 @@ onMounted(() => {
             <h2 class="h5 mb-0">{{ statusContent.statusTitle }}</h2>
             <span
               class="badge rounded-pill text-white"
-              :style="{ backgroundColor: statusColors[contribution.estado_pago] }"
+              :class="statusBadgeClassMap[contribution.estado_pago]"
             >
               {{ statusLabels[contribution.estado_pago] }}
             </span>
@@ -188,3 +188,9 @@ onMounted(() => {
     </section>
   </div>
 </template>
+
+<style scoped>
+.section-hero-gradient {
+  background: linear-gradient(135deg, #42b983 0%, #2c3e50 100%);
+}
+</style>

@@ -212,7 +212,7 @@ const handlePayment = async () => {
 
 <template>
   <div class="d-flex flex-column">
-    <section class="py-5 text-center text-white" style="background: linear-gradient(135deg, #42b983 0%, #2c3e50 100%);">
+    <section class="py-5 text-center text-white section-hero-gradient">
       <div class="container">
         <h1 class="display-5 fw-bold mb-3">{{ subscribeContent.heroTitle }}</h1>
         <p class="lead mb-0">{{ subscribeContent.heroSubtitle }}</p>
@@ -247,7 +247,7 @@ const handlePayment = async () => {
     </div>
 
     <section class="py-4 bg-light">
-      <div class="container" style="max-width: 700px;">
+      <div class="container subscribe-container">
         <div v-if="isAuthenticated && user" class="card shadow-sm mb-4">
           <div class="card-body d-flex justify-content-between align-items-center flex-wrap gap-2">
           <div class="user-badge">
@@ -353,3 +353,13 @@ const handlePayment = async () => {
     </section>
   </div>
 </template>
+
+<style scoped>
+.section-hero-gradient {
+  background: linear-gradient(135deg, #42b983 0%, #2c3e50 100%);
+}
+
+.subscribe-container {
+  max-width: 700px;
+}
+</style>
