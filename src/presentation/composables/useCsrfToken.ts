@@ -5,6 +5,7 @@
 import { onMounted } from 'vue'
 import { csrfService } from '@/infrastructure/services/csrfService'
 import { getAppConfig } from '@/config/appConfig'
+import { logger } from '@/infrastructure/logging/logger'
 
 
 /**
@@ -84,11 +85,11 @@ export function useCsrfToken() {
       }
       
       if (import.meta.env.DEV) {
-        console.warn('[useCsrfToken] ⚠️ Backend no respondió con token CSRF')
+        logger.warn('[useCsrfToken] ⚠️ Backend no respondió con token CSRF')
       }
     } catch (error) {
       if (import.meta.env.DEV) {
-        console.error('[useCsrfToken] ❌ Error al solicitar token CSRF:', error)
+        logger.error('[useCsrfToken] ❌ Error al solicitar token CSRF:', error)
       }
     }
   }
@@ -151,7 +152,7 @@ export function useCsrfToken() {
         await fetchCsrfTokenFromBackend()
       }
     } catch (error) {
-      console.error('Error obteniendo CSRF token (composable)', error)
+      logger.error('Error obteniendo CSRF token (composable)', error)
       throw error
     }
   }

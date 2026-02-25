@@ -6,6 +6,7 @@
  */
 
 import { ref, onMounted } from 'vue'
+import { logger } from '@/infrastructure/logging/logger'
 
 
 /**
@@ -33,6 +34,19 @@ export interface ChatwootUserIdentity {
  */
 export type ChatwootCustomAttributes = Record<string, string | number | boolean>
 
+interface ChatwootSDK {
+  setUser: (identifier: string, identity: ChatwootUserIdentity) => void
+  setCustomAttributes: (attributes: ChatwootCustomAttributes) => void
+  open: () => void
+  close: () => void
+  toggle: () => void
+  sendMessage: (message: string) => void
+}
+
+interface ChatwootWindow extends Window {
+  $chatwoot?: ChatwootSDK
+}
+
 /**
  * Composable para Chatwoot
  * @returns Métodos y estado para interactuar con Chatwoot widget
@@ -47,9 +61,9 @@ export function useChatwoot() {
   /**
    * Obtiene la referencia al SDK de Chatwoot
    */
-  const getChatwootSDK = (): any => {
+  const getChatwootSDK = (): ChatwootSDK | null => {
     if (typeof window === 'undefined') return null
-    return (window as any).$chatwoot
+    return (window as ChatwootWindow).$chatwoot ?? null
   }
 
   /**
@@ -99,14 +113,14 @@ export function useChatwoot() {
     try {
       const isReady = await waitForChatwootReady()
       if (!isReady) {
-        console.warn('Chatwoot no está listo. Intentando setUser de todas formas.')
+        logger.warn('Chatwoot no está listo. Intentando setUser de todas formas.')
       }
 
       const sdk = getChatwootSDK()
       if (!sdk) {
         state.value.isError = true
         state.value.errorMessage = 'Chatwoot SDK no disponible'
-        console.error('window.$chatwoot no encontrado')
+        logger.error('window.$chatwoot no encontrado')
         return false
       }
 
@@ -116,7 +130,7 @@ export function useChatwoot() {
     } catch (error) {
       state.value.isError = true
       state.value.errorMessage = `Error en setUser: ${(error as Error).message}`
-      console.error('Error calling setUser:', error)
+      logger.error('Error calling setUser:', error)
       return false
     }
   }
@@ -132,21 +146,21 @@ export function useChatwoot() {
     try {
       const isReady = await waitForChatwootReady()
       if (!isReady) {
-        console.warn('Chatwoot no está listo. Intentando setCustomAttributes de todas formas.')
+        logger.warn('Chatwoot no está listo. Intentando setCustomAttributes de todas formas.')
       }
 
       const sdk = getChatwootSDK()
       if (!sdk) {
         state.value.isError = true
         state.value.errorMessage = 'Chatwoot SDK no disponible'
-        console.error('window.$chatwoot no encontrado')
+        logger.error('window.$chatwoot no encontrado')
         return false
       }
 
       // Validar que los atributos sean flattened (solo valores primitivos)
       Object.entries(attributes).forEach(([key, value]) => {
         if (typeof value === 'object' && value !== null) {
-          console.warn(
+          logger.warn(
             `Custom attribute "${key}" es un objeto. Chatwoot requiere valores primitivos. Convirtiendo a JSON string.`
           )
           attributes[key] = JSON.stringify(value)
@@ -159,7 +173,7 @@ export function useChatwoot() {
     } catch (error) {
       state.value.isError = true
       state.value.errorMessage = `Error en setCustomAttributes: ${(error as Error).message}`
-      console.error('Error calling setCustomAttributes:', error)
+      logger.error('Error calling setCustomAttributes:', error)
       return false
     }
   }
@@ -178,7 +192,7 @@ export function useChatwoot() {
       sdk.open()
       return true
     } catch (error) {
-      console.error('Error opening Chatwoot widget:', error)
+      logger.error('Error opening Chatwoot widget:', error)
       return false
     }
   }
@@ -194,7 +208,7 @@ export function useChatwoot() {
       sdk.close()
       return true
     } catch (error) {
-      console.error('Error closing Chatwoot widget:', error)
+      logger.error('Error closing Chatwoot widget:', error)
       return false
     }
   }
@@ -210,7 +224,7 @@ export function useChatwoot() {
       sdk.toggle()
       return true
     } catch (error) {
-      console.error('Error toggling Chatwoot widget:', error)
+      logger.error('Error toggling Chatwoot widget:', error)
       return false
     }
   }
@@ -243,14 +257,14 @@ export function useChatwoot() {
     try {
       const isReady = await waitForChatwootReady()
       if (!isReady) {
-        console.warn('Chatwoot no está listo. Intentando enviar mensaje de todas formas.')
+        logger.warn('Chatwoot no está listo. Intentando enviar mensaje de todas formas.')
       }
 
       const sdk = getChatwootSDK()
       if (!sdk) {
         state.value.isError = true
         state.value.errorMessage = 'Chatwoot SDK no disponible'
-        console.error('window.$chatwoot no encontrado')
+        logger.error('window.$chatwoot no encontrado')
         return false
       }
 
@@ -258,10 +272,10 @@ export function useChatwoot() {
       state.value.isError = false
       return true
     } catch (error) {
-      console.error('Error enviando mensaje a Chatwoot (composable)', error)
+      logger.error('Error enviando mensaje a Chatwoot (composable)', error)
       state.value.isError = true
       state.value.errorMessage = `Error en sendChatwootMessage: ${(error as Error).message}`
-      console.error('Error calling sendChatwootMessage:', error)
+      logger.error('Error calling sendChatwootMessage:', error)
       return false
     }
   }

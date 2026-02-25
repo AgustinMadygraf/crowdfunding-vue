@@ -1,7 +1,8 @@
- /**
+/**
  * URL Sanitizer
  * Previene XSS validando y sanitizando URLs de recursos externos
  */
+import { logger } from '@/infrastructure/logging/logger'
 
 /**
  * Lista blanca de protocolos permitidos para URLs
@@ -56,7 +57,7 @@ export function isUrlSafe(url: string | undefined | null): boolean {
     lowerUrl.includes('onerror=') ||
     lowerUrl.includes('onload=')
   ) {
-    console.warn('[UrlSanitizer] 🚨 URL peligrosa bloqueada:', trimmedUrl.substring(0, 50))
+    logger.warn('[UrlSanitizer] 🚨 URL peligrosa bloqueada:', trimmedUrl.substring(0, 50))
     return false
   }
 
@@ -65,7 +66,7 @@ export function isUrlSafe(url: string | undefined | null): boolean {
 
     // Validar protocolo
     if (!ALLOWED_PROTOCOLS.includes(urlObj.protocol)) {
-      console.warn('[UrlSanitizer] ⚠️ Protocolo no permitido:', urlObj.protocol)
+      logger.warn('[UrlSanitizer] ⚠️ Protocolo no permitido:', urlObj.protocol)
       return false
     }
 
@@ -75,7 +76,7 @@ export function isUrlSafe(url: string | undefined | null): boolean {
       if (lowerUrl.startsWith('data:image/')) {
         return true
       }
-      console.warn('[UrlSanitizer] ⚠️ Data URL no es imagen')
+      logger.warn('[UrlSanitizer] ⚠️ Data URL no es imagen')
       return false
     }
 
@@ -89,7 +90,7 @@ export function isUrlSafe(url: string | undefined | null): boolean {
       )
 
       if (!isTrusted) {
-        console.warn('[UrlSanitizer] ⚠️ Dominio no confiable:', hostname)
+        logger.warn('[UrlSanitizer] ⚠️ Dominio no confiable:', hostname)
         return false
       }
 
@@ -99,7 +100,7 @@ export function isUrlSafe(url: string | undefined | null): boolean {
     return false
   } catch (error) {
     // URL inválida (no se puede parsear)
-    console.warn('[UrlSanitizer] ❌ URL inválida:', trimmedUrl.substring(0, 50))
+    logger.warn('[UrlSanitizer] ❌ URL inválida:', trimmedUrl.substring(0, 50))
     return false
   }
 }
@@ -157,7 +158,7 @@ export function sanitizeAvatarUrl(
   }
 
   if (url) {
-    console.warn('[UrlSanitizer] 🛡️ URL de avatar bloqueada, usando fallback')
+    logger.warn('[UrlSanitizer] 🛡️ URL de avatar bloqueada, usando fallback')
   }
 
   return fallback
@@ -178,7 +179,7 @@ export function sanitizeUrl(url: string | undefined | null): string | null {
 
     return null
   } catch (error) {
-    console.error('Error sanitizando URL', error)
+    logger.error('Error sanitizando URL', error)
     throw error
   }
 }

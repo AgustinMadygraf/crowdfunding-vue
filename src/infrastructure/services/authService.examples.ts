@@ -34,18 +34,11 @@ const testAuthService = createAuthService({
   userStorageKey: 'test_auth_user'
 })
 
-// Usar en pruebas unitarias (ejemplo con Jest/Vitest)
-/*
-describe('Component with Auth', () => {
-  it('should login with test credentials', async () => {
-    const testAuth = createAuthService({
-      apiBaseUrl: 'http://mock-api.test'
-    })
-    
-    // Test login...
-  })
-})
-*/
+// Usar en pruebas unitarias reales dentro de archivos *.spec.ts
+// Ejemplo recomendado:
+// - crear instancia con createAuthService({ apiBaseUrl: 'http://mock-api.test' })
+// - inyectarla en el componente/composable bajo test
+// - verificar login/logout e hidratación de sesión
 
 // ======================
 // 3. MÚLTIPLES ENTORNOS

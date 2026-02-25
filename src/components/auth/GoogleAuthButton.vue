@@ -47,6 +47,7 @@ import type { User } from '@/domain/user'
 import { sanitizeAvatarUrl } from '@/utils/urlSanitizer'
 import { useAuthStore } from '@/stores/authStore'
 import { content } from '@/presentation/content'
+import { logger } from '@/infrastructure/logging/logger'
 
 const props = defineProps({
   buttonContainerId: {
@@ -81,13 +82,13 @@ const handleGoogleCallback = async (token: string) => {
   // Throttle: prevenir llamadas muy rápidas
   const now = Date.now()
   if (now - lastAuthAttempt < MIN_AUTH_INTERVAL_MS) {
-    console.warn('[GoogleAuthButton] ⏱️ Throttle activo: intento muy rápido, ignorando')
+    logger.warn('[GoogleAuthButton] ⏱️ Throttle activo: intento muy rápido, ignorando')
     return
   }
   
   // Prevenir autenticación concurrente
   if (authInProgress) {
-    console.warn('[GoogleAuthButton] ⏳ Autenticación ya en progreso, ignorando callback duplicado')
+    logger.warn('[GoogleAuthButton] ⏳ Autenticación ya en progreso, ignorando callback duplicado')
     return
   }
   
@@ -99,7 +100,7 @@ const handleGoogleCallback = async (token: string) => {
   try {
     // Validar que el token esté disponible
     if (!token) {
-      console.error('[GoogleAuthButton] Token de Google no disponible')
+      logger.error('[GoogleAuthButton] Token de Google no disponible')
       throw new Error(content.auth.google.errors.missingToken)
     }
     
@@ -107,15 +108,15 @@ const handleGoogleCallback = async (token: string) => {
       const authenticatedUser = await authStore.loginWithGoogle(token)
       emit('auth-success', authenticatedUser)
     } catch (authError) {
-      console.error('[GoogleAuthButton] Error en loginWithGoogle:', authError)
+      logger.error('[GoogleAuthButton] Error en loginWithGoogle:', authError)
       throw authError
     }
   } catch (err) {
     const errorMessage =
       err instanceof Error ? err.message : content.auth.google.errors.unknownAuth
-    console.error('[GoogleAuthButton] Error en callback de autenticación:', errorMessage)
-    console.error('[GoogleAuthButton] Detalles del error:', err)
-    console.warn('[GoogleAuthButton] Posibles causas: CORS, servidor no disponible, Client ID incorrecto')
+    logger.error('[GoogleAuthButton] Error en callback de autenticación:', errorMessage)
+    logger.error('[GoogleAuthButton] Detalles del error:', err)
+    logger.warn('[GoogleAuthButton] Posibles causas: CORS, servidor no disponible, Client ID incorrecto')
     error.value = errorMessage
     emit('auth-error', err instanceof Error ? err : new Error(errorMessage))
   } finally {
@@ -130,14 +131,14 @@ const handleGoogleCallback = async (token: string) => {
 const handleLogout = () => {
   // Prevenir logout durante autenticación
   if (authInProgress) {
-    console.warn('[GoogleAuthButton] ⚠️ No se puede cerrar sesión durante autenticación en progreso')
+    logger.warn('[GoogleAuthButton] ⚠️ No se puede cerrar sesión durante autenticación en progreso')
     return
   }
   try {
     try {
       authStore.logout()
     } catch (logoutError) {
-      console.error('[GoogleAuthButton] Error en authService.logout():', logoutError)
+      logger.error('[GoogleAuthButton] Error en authService.logout():', logoutError)
       throw logoutError
     }
     
@@ -145,8 +146,8 @@ const handleLogout = () => {
     emit('logout')
   } catch (err) {
     const errorMessage = content.auth.google.errors.logoutFailed
-    console.error('[GoogleAuthButton] Error en logout:', err)
-    console.error('[GoogleAuthButton] Detalles:', err instanceof Error ? err.message : 'Error desconocido')
+    logger.error('[GoogleAuthButton] Error en logout:', err)
+    logger.error('[GoogleAuthButton] Detalles:', err instanceof Error ? err.message : 'Error desconocido')
     error.value = errorMessage
   }
 }
@@ -164,8 +165,8 @@ onMounted(() => {
       } else {
       }
     } catch (getUserError) {
-      console.error('[GoogleAuthButton] ❌ Error al sincronizar estado de auth:', getUserError)
-      console.warn('[GoogleAuthButton] ⚠️ Continuando sin usuario previo')
+      logger.error('[GoogleAuthButton] ❌ Error al sincronizar estado de auth:', getUserError)
+      logger.warn('[GoogleAuthButton] ⚠️ Continuando sin usuario previo')
     }
 
     // Si ya está autenticado, no inicializamos el botón para evitar warnings innecesarios
@@ -178,8 +179,8 @@ onMounted(() => {
     try {
       configInfo = auth.getConfigInfo()
     } catch (configError) {
-      console.error('[GoogleAuthButton] ❌ Error al obtener configuración:', configError)
-      console.error('[GoogleAuthButton] Stack trace:', configError instanceof Error ? configError.stack : 'No disponible')
+      logger.error('[GoogleAuthButton] ❌ Error al obtener configuración:', configError)
+      logger.error('[GoogleAuthButton] Stack trace:', configError instanceof Error ? configError.stack : 'No disponible')
       error.value = content.auth.google.errors.oauthConfig
       return
     }
@@ -187,9 +188,9 @@ onMounted(() => {
     if (!configInfo.configured) {
       const errorMsg = content.auth.google.errors.oauthMissing
       error.value = content.auth.google.errors.oauthMissingDetails
-      console.error(`[GoogleAuthButton] ❌ ${errorMsg}`)
-      console.error(`[GoogleAuthButton] Verifica que la variable VITE_GOOGLE_CLIENT_ID esté correctamente en .env`)
-      console.error(`[GoogleAuthButton] Valor esperado: VITE_GOOGLE_CLIENT_ID=<client_id>.apps.googleusercontent.com`)
+      logger.error(`[GoogleAuthButton] ❌ ${errorMsg}`)
+      logger.error(`[GoogleAuthButton] Verifica que la variable VITE_GOOGLE_CLIENT_ID esté correctamente en .env`)
+      logger.error(`[GoogleAuthButton] Valor esperado: VITE_GOOGLE_CLIENT_ID=<client_id>.apps.googleusercontent.com`)
       return
     }
 
@@ -210,41 +211,41 @@ onMounted(() => {
               handleGoogleCallback
             )
           } catch (initError) {
-            console.error('[GoogleAuthButton] ❌ Error al inicializar Google Sign-In:', initError)
-            console.error('[GoogleAuthButton] Mensaje:', initError instanceof Error ? initError.message : 'Error desconocido')
-            console.error('[GoogleAuthButton] Stack:', initError instanceof Error ? initError.stack : 'No disponible')
-            console.error(`[GoogleAuthButton] 🌐 Origen actual: ${window.location.origin}`)
-            console.error('[GoogleAuthButton] Posibles causas: ')
-            console.error('  1️⃣ Origen NO autorizado en Google Cloud Console (más probable)')
-            console.error('  2️⃣ Client ID incorrecto o expirado')
-            console.error('  3️⃣ Problemas de red o CORS')
-            console.error('[GoogleAuthButton] 📚 Si ves "403" o "GSI_LOGGER: origin not allowed" → Ver docs/GOOGLE_ORIGIN_NOT_AUTHORIZED_FIX.md')
+            logger.error('[GoogleAuthButton] ❌ Error al inicializar Google Sign-In:', initError)
+            logger.error('[GoogleAuthButton] Mensaje:', initError instanceof Error ? initError.message : 'Error desconocido')
+            logger.error('[GoogleAuthButton] Stack:', initError instanceof Error ? initError.stack : 'No disponible')
+            logger.error(`[GoogleAuthButton] 🌐 Origen actual: ${window.location.origin}`)
+            logger.error('[GoogleAuthButton] Posibles causas: ')
+            logger.error('  1️⃣ Origen NO autorizado en Google Cloud Console (más probable)')
+            logger.error('  2️⃣ Client ID incorrecto o expirado')
+            logger.error('  3️⃣ Problemas de red o CORS')
+            logger.error('[GoogleAuthButton] 📚 Si ves "403" o "GSI_LOGGER: origin not allowed" → Ver docs/GOOGLE_ORIGIN_NOT_AUTHORIZED_FIX.md')
             error.value = auth.getAuthState().error || content.auth.google.errors.initFailed
           }
         } else if (attempts >= maxAttempts) {
           clearInterval(checkGoogleReady)
           const timeoutMsg = 'Timeout: Google Identity Services no se cargó en 10 segundos'
-          console.error(`[GoogleAuthButton] ⏱️ ${timeoutMsg}`)
-          console.error('[GoogleAuthButton] window.google:', window.google)
-          console.error('[GoogleAuthButton] window.google.accounts:', window.google?.accounts)
-          console.warn('[GoogleAuthButton] Soluciones: ')
-          console.warn('  1️⃣ Verifica tu conexión a internet')
-          console.warn('  2️⃣ Verifica que accounts.google.com sea accesible')
-          console.warn('  3️⃣ Intenta recargar la página')
-          console.warn('  4️⃣ Comprueba la consola del navegador (F12) para otros errores')
+          logger.error(`[GoogleAuthButton] ⏱️ ${timeoutMsg}`)
+          logger.error('[GoogleAuthButton] window.google:', window.google)
+          logger.error('[GoogleAuthButton] window.google.accounts:', window.google?.accounts)
+          logger.warn('[GoogleAuthButton] Soluciones: ')
+          logger.warn('  1️⃣ Verifica tu conexión a internet')
+          logger.warn('  2️⃣ Verifica que accounts.google.com sea accesible')
+          logger.warn('  3️⃣ Intenta recargar la página')
+          logger.warn('  4️⃣ Comprueba la consola del navegador (F12) para otros errores')
           error.value = content.auth.google.errors.initTimeout
         }
       } catch (intervalError) {
         clearInterval(checkGoogleReady)
-        console.error('[GoogleAuthButton] ❌ Error inesperado en checkGoogleReady:', intervalError)
-        console.error('[GoogleAuthButton] Stack:', intervalError instanceof Error ? intervalError.stack : 'No disponible')
+        logger.error('[GoogleAuthButton] ❌ Error inesperado en checkGoogleReady:', intervalError)
+        logger.error('[GoogleAuthButton] Stack:', intervalError instanceof Error ? intervalError.stack : 'No disponible')
         error.value = content.auth.google.errors.initUnexpected
       }
     }, 100)
   } catch (err) {
     const errorMsg = 'Error inesperado en onMounted'
-    console.error(`[GoogleAuthButton] ${errorMsg}:`, err)
-    console.error('[GoogleAuthButton] Detalles:', err instanceof Error ? err.message : 'Error desconocido')
+    logger.error(`[GoogleAuthButton] ${errorMsg}:`, err)
+    logger.error('[GoogleAuthButton] Detalles:', err instanceof Error ? err.message : 'Error desconocido')
     error.value = content.auth.google.errors.mountUnexpected
   }
 })

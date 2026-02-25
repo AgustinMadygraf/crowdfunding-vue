@@ -217,8 +217,8 @@ jobs:
           fi
 
           echo "FTP_IPv4_EFFECTIVE=$ip4" >> "$GITHUB_ENV"
-          echo "FTP_CONNECT_URL=ftp://${ip4}:${FTP_PORT}" >> "$GITHUB_ENV"
-          echo "::notice::FTP_CONNECT_URL=ftp://${ip4}:${FTP_PORT}"
+          echo "FTP_HOST_EFFECTIVE=$ip4" >> "$GITHUB_ENV"
+          echo "::notice::Host IPv4 efectivo: ${ip4}:${FTP_PORT}"
 
       - name: Preflight puerto FTP (IPv4)
         shell: bash
@@ -277,7 +277,31 @@ jobs:
           fi
           echo "::endgroup::"
 
-          echo "::notice::Resumen: revisar warnings/notices anteriores para elegir migracion a SFTP o FTPS"
+          transport=""
+          connect_url=""
+          lftp_transport_settings=""
+
+          if timeout 20 lftp -u "$FTP_USERNAME","$FTP_PASSWORD" "sftp://${host}:22" -e "set cmd:fail-exit true; set sftp:auto-confirm yes; set net:timeout 8; set net:max-retries 1; set net:reconnect-interval-base 1; cls; bye" >/tmp/sftp-login.log 2>&1; then
+            transport="sftp"
+            connect_url="sftp://${host}:22"
+            lftp_transport_settings="set sftp:auto-confirm yes;"
+            echo "::notice::Seleccionado transporte seguro: SFTP"
+          elif timeout 20 lftp -u "$FTP_USERNAME","$FTP_PASSWORD" "ftp://${host}:${ftp_port}" -e "set cmd:fail-exit true; set net:timeout 8; set net:max-retries 1; set net:reconnect-interval-base 1; set ftp:ssl-force true; set ftp:ssl-protect-data true; set ssl:verify-certificate no; cls; bye" >/tmp/ftps-login.log 2>&1; then
+            transport="ftps-explicit"
+            connect_url="ftp://${host}:${ftp_port}"
+            lftp_transport_settings="set ftp:ssl-force true; set ftp:ssl-protect-data true; set ssl:verify-certificate no;"
+            echo "::notice::Seleccionado transporte seguro: FTPS explicito"
+          else
+            echo "::error::No se pudo validar SFTP ni FTPS con las credenciales actuales. Se bloquea deploy inseguro por FTP plano."
+            tail -n 20 /tmp/sftp-login.log || true
+            tail -n 20 /tmp/ftps-login.log || true
+            exit 1
+          fi
+
+          echo "FTP_TRANSPORT=${transport}" >> "$GITHUB_ENV"
+          echo "FTP_CONNECT_URL=${connect_url}" >> "$GITHUB_ENV"
+          echo "LFTP_TRANSPORT_SETTINGS=${lftp_transport_settings}" >> "$GITHUB_ENV"
+          echo "::notice::FTP_CONNECT_URL=${connect_url}"
 
       - name: Deploy con lftp mirror (dist -> /public_html/crowdfunding) [IPv4 + excludes]
         shell: bash
@@ -286,8 +310,7 @@ jobs:
           FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
         run: |
           set -euo pipefail
-          # Debug: muestra la URL de conexion (sin credenciales)
-          echo "::notice::Conectando a: $FTP_CONNECT_URL (destino: /public_html/crowdfunding)"
+          echo "::notice::Conectando por $FTP_TRANSPORT a: $FTP_CONNECT_URL (destino: /public_html/crowdfunding)"
           echo "::notice::TamaÃ±o de dist/: $(du -sh dist/ | cut -f1)"
 
           lftp -u "$FTP_USERNAME","$FTP_PASSWORD" "$FTP_CONNECT_URL" -e "
@@ -298,10 +321,10 @@ jobs:
           set net:reconnect-interval-multiplier 1;
           set net:idle 240;
           set ftp:passive-mode on;
-          set ftp:ssl-allow no;
           set ftp:prefer-epsv no;
           set ftp:sync-mode off;
           set dns:order inet;
+          ${LFTP_TRANSPORT_SETTINGS}
           echo Iniciando sincronizacion...;
           mirror -R --delete --verbose --no-perms \
             --exclude-glob .ht_leame \

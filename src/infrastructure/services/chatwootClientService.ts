@@ -30,8 +30,36 @@ interface ChatwootContactResponse {
     name: string
     email: string
     phone_number?: string
-    custom_attributes: Record<string, any>
+    custom_attributes: Record<string, string | number | boolean>
   }
+}
+
+interface ChatwootErrorPayload {
+  message?: string
+  errors?: Record<string, unknown>
+}
+
+interface ChatwootContactPayload {
+  id: number
+  source_id?: string
+  identifier?: string
+  name: string
+  email: string
+  phone_number?: string
+  custom_attributes?: Record<string, string | number | boolean>
+}
+
+interface ChatwootRawContactResponse {
+  contact?: ChatwootContactPayload
+  payload?: ChatwootContactPayload
+}
+
+interface ChatwootCreateContactBody {
+  source_id: string
+  email: string
+  name: string
+  phone_number?: string
+  custom_attributes?: Record<string, string | number | boolean>
 }
 
 /**
@@ -40,7 +68,7 @@ interface ChatwootContactResponse {
 export class ChatwootException extends Error {
   constructor(
     public status: number,
-    public errors: Record<string, any>,
+    public errors: unknown,
     message: string
   ) {
     super(message)
@@ -119,7 +147,7 @@ export const chatwootClientService = {
       if (lead.province) customAttributes.province = lead.province
       
       // UTM params
-      const utmData = utm as any
+      const utmData = utm as UTMParams | Record<string, never>
       if (utmData?.utm_source) customAttributes.utm_source = utmData.utm_source
       if (utmData?.utm_medium) customAttributes.utm_medium = utmData.utm_medium
       if (utmData?.utm_campaign) customAttributes.utm_campaign = utmData.utm_campaign
@@ -134,7 +162,7 @@ export const chatwootClientService = {
       customAttributes.form_source = 'web_widget'
 
       // Construir request
-      const request: any = {
+      const request: ChatwootCreateContactBody = {
         source_id: identifier,
         email: lead.email,
         name: lead.name
@@ -162,9 +190,9 @@ export const chatwootClientService = {
       })
 
       if (!response.ok) {
-        let error
+        let error: ChatwootErrorPayload
         try {
-          error = await response.json()
+          error = (await response.json()) as ChatwootErrorPayload
         } catch (parseError) {
           logger.event('error', {
             code: 'CHATWOOT_PARSE_ERROR_RESPONSE_FAILED',
@@ -181,9 +209,9 @@ export const chatwootClientService = {
         throw new ChatwootException(response.status, error, `Chatwoot API error: ${response.statusText}`)
       }
 
-      let data: ChatwootContactResponse
+      let data: ChatwootRawContactResponse
       try {
-        data = await response.json()
+        data = (await response.json()) as ChatwootRawContactResponse
       } catch (parseError) {
         logger.event('error', {
           code: 'CHATWOOT_PARSE_SUCCESS_RESPONSE_FAILED',
@@ -204,7 +232,7 @@ export const chatwootClientService = {
 
       // Chatwoot puede devolver diferentes estructuras según el endpoint
       // Intentar adaptarse a la estructura real
-      const contact = (data as any).contact || (data as any).payload || data
+      const contact = data.contact ?? data.payload
       
       if (!contact) {
         logger.event('error', {
@@ -270,7 +298,7 @@ export const chatwootClientService = {
       })
 
       if (!response.ok) {
-        const error = await response.json()
+        const error = (await response.json()) as Record<string, unknown>
         throw new ChatwootException(response.status, error, `Chatwoot API error: ${response.statusText}`)
       }
 
