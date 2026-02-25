@@ -3,7 +3,7 @@ Path: src/components/layout/AppHeader.vue
 -->
 
 <script setup lang="ts">
-import { content } from '@/infrastructure/content'
+import { content } from '@/presentation/content'
 
 interface NavigationLink {
   label: string

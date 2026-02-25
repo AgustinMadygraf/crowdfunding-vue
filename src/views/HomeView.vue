@@ -12,7 +12,7 @@ import { useContributionLevels } from '@/application/useContributionLevels'
 import { useMilestones } from '@/application/useMilestones'
 import { useRouter } from 'vue-router'
 
-import { content } from '@/infrastructure/content'
+import { content } from '@/presentation/content'
 
 const router = useRouter()
 const { milestones, totalTargetAmount, totalRaisedAmount, progressPercentage } = useMilestones()

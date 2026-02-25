@@ -1,6 +1,6 @@
 ﻿import { computed, ref, onMounted } from 'vue'
 import type { Update, UpdateCategory } from '@/domain/update'
-import { content } from '@/infrastructure/content'
+import { content } from '@/presentation/content'
 import {
   updatesRepository,
   type GetUpdatesParams

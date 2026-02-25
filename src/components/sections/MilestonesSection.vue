@@ -7,7 +7,7 @@ import { ref } from 'vue';
 import type { Milestone } from '@/domain/milestone';
 import MilestoneCard from '@/components/milestones/MilestoneCard.vue';
 import MilestoneDetailModal from '@/components/milestones/MilestoneDetailModal.vue';
-import { content } from '@/infrastructure/content';
+import { content } from '@/presentation/content';
 
 const props = defineProps<{
   milestones: Milestone[];

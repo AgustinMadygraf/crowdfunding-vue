@@ -144,7 +144,7 @@ import { useSubscription } from '@/application/useSubscription'
 import { useAuthService } from '@/application/useAuthService'
 import { toAppError } from '@/application/errors/toAppError'
 import type { User } from '@/domain/user'
-import { content } from '@/infrastructure/content'
+import { content } from '@/presentation/content'
 import { logger } from '@/infrastructure/logging/logger'
 
 interface Contribution {

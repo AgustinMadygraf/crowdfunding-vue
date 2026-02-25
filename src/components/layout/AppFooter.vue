@@ -3,7 +3,7 @@ Path: src/components/layout/AppFooter.vue
 -->
 
 <script setup lang="ts">
-import { content } from '@/infrastructure/content';
+import { content } from '@/presentation/content';
 
 const footerContent = content.app.footer;
 </script>

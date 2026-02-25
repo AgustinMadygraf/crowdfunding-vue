@@ -3,7 +3,7 @@ Path: src/components/sections/FaqSection.vue
 -->
 
 <script setup lang="ts">
-import { content } from '@/infrastructure/content';
+import { content } from '@/presentation/content';
 
 const faqSection = content.home.faq;
 </script>

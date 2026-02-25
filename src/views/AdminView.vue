@@ -9,7 +9,7 @@ import { useAuthStore } from '@/stores/authStore'
 import { milestonesRepository, MilestoneRepositoryError } from '@/infrastructure/repositories/MilestonesRepository'
 import { updatesRepository, UpdateRepositoryError } from '@/infrastructure/repositories/UpdatesRepository'
 import type { MilestoneDTO, UpdateDTO } from '@/infrastructure/dto'
-import { content } from '@/infrastructure/content'
+import { content } from '@/presentation/content'
 
 
 const router = useRouter()

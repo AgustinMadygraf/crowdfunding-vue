@@ -8,7 +8,7 @@ import AppFooter from '@/components/layout/AppFooter.vue'
 import AppHeader from '@/components/layout/AppHeader.vue'
 import { useAuthStore } from '@/stores/authStore'
 import { useCsrfToken } from '@/application/composables/useCsrfToken'
-import { content } from '@/infrastructure/content'
+import { content } from '@/presentation/content'
 
 const authStore = useAuthStore()
 const isAuthenticated = computed(() => authStore.isAuthenticated)

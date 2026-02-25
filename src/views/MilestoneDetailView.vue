@@ -6,7 +6,7 @@ Path: src/views/MilestoneDetailView.vue
 import { computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useMilestones } from '@/application/useMilestones';
-import { content } from '@/infrastructure/content';
+import { content } from '@/presentation/content';
 
 const route = useRoute();
 const router = useRouter();

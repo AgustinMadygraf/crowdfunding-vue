@@ -5,7 +5,7 @@ Path: src/views/MilestonesView.vue
 <script setup lang="ts">
 import { useMilestones } from '@/application/useMilestones'
 import MilestoneCard from '@/components/milestones/MilestoneCard.vue'
-import { content } from '@/infrastructure/content'
+import { content } from '@/presentation/content'
 
 
 const { milestones, totalTargetAmount, totalRaisedAmount, progressPercentage } = useMilestones()

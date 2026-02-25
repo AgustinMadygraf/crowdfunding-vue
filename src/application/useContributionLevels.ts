@@ -1,6 +1,6 @@
 ﻿import { computed, ref } from 'vue'
 import type { ContributionLevel } from '@/domain/contribution-level'
-import { content } from '@/infrastructure/content'
+import { content } from '@/presentation/content'
 
 export function useContributionLevels() {
   const levels = ref<ContributionLevel[]>([...content.data.contributionLevels])

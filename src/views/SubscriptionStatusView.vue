@@ -6,7 +6,7 @@ Path: src/views/SubscriptionStatusView.vue
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useSubscription } from '@/application/useSubscription'
-import { content } from '@/infrastructure/content'
+import { content } from '@/presentation/content'
 
 
 const route = useRoute()

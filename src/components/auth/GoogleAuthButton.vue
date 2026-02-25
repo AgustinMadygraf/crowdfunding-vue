@@ -47,7 +47,7 @@ import { useAuthService } from '@/application/useAuthService'
 import type { User } from '@/domain/user'
 import { sanitizeAvatarUrl } from '@/utils/urlSanitizer'
 import { useAuthStore } from '@/stores/authStore'
-import { content } from '@/infrastructure/content'
+import { content } from '@/presentation/content'
 
 const props = defineProps({
   buttonContainerId: {

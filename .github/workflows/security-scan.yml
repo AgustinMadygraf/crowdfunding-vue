@@ -9,6 +9,17 @@ permissions:
   contents: read
 
 jobs:
+  architecture-boundaries:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: Verify architecture boundaries
+        run: bash scripts/check-architecture-boundaries.sh
+
   dependency-audit:
     runs-on: ubuntu-latest
     timeout-minutes: 15

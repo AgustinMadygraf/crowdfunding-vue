@@ -3,7 +3,7 @@ Path: src/components/sections/UpdatesSection.vue
 -->
 
 <script setup lang="ts">
-import { content } from '@/infrastructure/content';
+import { content } from '@/presentation/content';
 
 const updatesContent = content.home.updatesSection;
 </script>

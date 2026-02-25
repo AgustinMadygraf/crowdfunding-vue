@@ -1,6 +1,6 @@
 ﻿import { computed, ref, onMounted } from 'vue'
 import type { Milestone } from '@/domain/milestone'
-import { content } from '@/infrastructure/content'
+import { content } from '@/presentation/content'
 import { milestonesRepository } from '@/infrastructure/repositories/MilestonesRepository'
 import type { MilestoneDTO } from '@/infrastructure/dto'
 import { logger } from '@/infrastructure/logging/logger'

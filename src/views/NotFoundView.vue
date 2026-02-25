@@ -4,7 +4,7 @@ Path: src/views/NotFoundView.vue
 
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
-import { content } from '@/infrastructure/content'
+import { content } from '@/presentation/content'
 
 
 const router = useRouter()

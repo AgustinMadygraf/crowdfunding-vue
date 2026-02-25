@@ -5,7 +5,7 @@ Path: src/views/DocumentsView.vue
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { documentsRepository, DocumentRepositoryError } from '@/infrastructure/repositories/DocumentsRepository'
-import { content } from '@/infrastructure/content'
+import { content } from '@/presentation/content'
 import { sanitizeExternalLink } from '@/utils/urlSanitizer'
 import { logger } from '@/infrastructure/logging/logger'
 

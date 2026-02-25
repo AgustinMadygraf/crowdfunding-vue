@@ -4,7 +4,7 @@ Path: src/components/updates/UpdateCard.vue
 
 <script setup lang="ts">
 import type { Update } from '@/domain/update';
-import { content } from '@/infrastructure/content';
+import { content } from '@/presentation/content';
 
 const props = defineProps<{
   update: Update;

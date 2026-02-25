@@ -5,7 +5,7 @@ Path: src/components/milestones/MilestoneDetailModal.vue
 <script setup lang="ts">
 import { computed } from 'vue';
 import type { Milestone } from '@/domain/milestone';
-import { content } from '@/infrastructure/content';
+import { content } from '@/presentation/content';
 
 const props = defineProps<{
   milestone: Milestone;

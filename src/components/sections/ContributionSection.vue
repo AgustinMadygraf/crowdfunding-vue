@@ -4,7 +4,7 @@ Path: src/components/sections/ContributionSection.vue
 
 <script setup lang="ts">
 import type { ContributionLevel } from '@/domain/contribution-level';
-import { content } from '@/infrastructure/content';
+import { content } from '@/presentation/content';
 
 const props = defineProps<{
   levels: ContributionLevel[];
