@@ -97,3 +97,5 @@ Para dudas o soporte, utiliza el chat integrado (Chatwoot) o abre un issue en el
 ---
 Este proyecto busca facilitar la recaudaciÃ³n de fondos de manera transparente, segura y colaborativa.
 
+Nota de mantenimiento: cambio minimo para validar pipeline de despliegue (2026-03-02).
+
