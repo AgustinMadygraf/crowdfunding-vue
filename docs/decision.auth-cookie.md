@@ -29,8 +29,8 @@ Adoptar como estrategia objetivo `cookies HttpOnly + Secure + SameSite` con prot
    - Introducir `authMode` configurable (`session` / `cookie`).
    - Asegurar `credentials: 'include'` en login/refresh y requests protegidos.
 2. Etapa 2 (contrato backend):
-   - Definir cookie flags (`HttpOnly`, `Secure`, `SameSite`) y renovacion.
-   - Exponer endpoint de sesion actual (`GET /api/auth/me` o equivalente).
+  - Definir cookie flags (`HttpOnly`, `Secure`, `SameSite`) y renovacion.
+  - Exponer endpoint de sesion actual (`GET /api/auth/me`) con contrato canonico `{ "user": { ... } }`.
 3. Etapa 3 (cutover):
    - Cambiar modo por defecto a `cookie` en entornos objetivo.
    - Retirar persistencia JWT en cliente donde aplique.
@@ -40,4 +40,3 @@ Adoptar como estrategia objetivo `cookies HttpOnly + Secure + SameSite` con prot
 ## Riesgos
 - Si backend no expone `me`/refresh coherente con cookies, se degrada rehidratacion de sesion al recargar.
 - Configuracion CORS/SameSite incorrecta puede romper login en produccion.
-

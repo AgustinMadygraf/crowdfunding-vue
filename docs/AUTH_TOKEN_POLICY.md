@@ -22,6 +22,19 @@ Referencia de decision: `docs/decision.auth-cookie.md`.
 
 2. Sesion actual
 - `GET /api/auth/me` (o equivalente) para rehidratar sesion tras reload sin depender de JWT en storage.
+- Formato canonico esperado (obligatorio para cutover):
+  ```json
+  {
+    "user": {
+      "id": "string",
+      "email": "string",
+      "nombre": "string",
+      "avatar_url": "string|null",
+      "roles": ["user|admin|superuser"]
+    }
+  }
+  ```
+- Compatibilidad transicional: frontend acepta temporalmente formato legacy en raiz, pero lo marca como deprecado.
 
 3. Refresh
 - `POST /api/auth/refresh` debe renovar cookie(s) de sesion de forma segura.
@@ -39,4 +52,3 @@ Referencia de decision: `docs/decision.auth-cookie.md`.
 - Login/refresh/logout funcionan via cookies en E2E.
 - Flujos protegidos (`/account`, contribuciones) validados con recarga de pagina.
 - Luego cambiar `VITE_AUTH_MODE=cookie` en entornos objetivo.
-

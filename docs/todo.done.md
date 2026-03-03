@@ -17,6 +17,7 @@
 - [x] (BL-09) Introducir `authMode` (`session`/`cookie`) en configuración y `AuthServiceFactory` — hecho el 2026-03-03 — se agregó `VITE_AUTH_MODE`, `appConfig.authMode` y selección de storage (`sessionStorage`/`memory`).
 - [x] (BL-10) Enviar `credentials: 'include'` en auth y endpoints protegidos de contribuciones — hecho el 2026-03-03 — se habilitó en `HttpAuthGateway` y por defecto en `ContributionsRepository.fetchWithGuard`.
 - [x] (BL-11) Actualizar política y contrato de auth para modo cookie — hecho el 2026-03-03 — se creó `docs/decision.auth-cookie.md` y se actualizó `docs/AUTH_TOKEN_POLICY.md` con contrato esperado (`auth/me`, flags, cutover).
+- [x] (BL-12) Alinear contrato backend de `GET /api/auth/me` con parser de `AuthService` — hecho el 2026-03-03 — se implementó parser dedicado con formato canonico `{user:{...}}`, fallback legacy temporal y tests (`authMeParser.spec.ts`).
 
 ## Convencion de estados
 - `[x]` finalizada

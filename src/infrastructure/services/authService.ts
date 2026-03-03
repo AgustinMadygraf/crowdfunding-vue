@@ -12,6 +12,7 @@ import { SessionStorageTokenStorage, type TokenStorage } from './auth/tokenStora
 import type { GoogleSignInPort } from '@/application/ports/GoogleSignInPort'
 import { GoogleSignInAdapter } from './auth/googleSignInAdapter'
 import { HttpAuthGateway } from './auth/httpAuthGateway'
+import { parseAuthMeResponse } from './auth/authMeParser'
 import { RefreshTokenUseCase } from '@/application/usecases/RefreshTokenUseCase'
 import { ShouldRefreshTokenUseCase } from '@/application/usecases/ShouldRefreshTokenUseCase'
 import { ValidateJwtUseCase } from '@/application/usecases/ValidateJwtUseCase'
@@ -142,34 +143,6 @@ export class AuthService implements IAuthService {
     this.loadGoogleScript()
   }
 
-  private extractUserFromMeResponse(payload: unknown): User | null {
-    if (!payload || typeof payload !== 'object') {
-      return null
-    }
-
-    const root = payload as Record<string, unknown>
-    const candidate =
-      root.user && typeof root.user === 'object'
-        ? (root.user as Record<string, unknown>)
-        : root
-
-    const id = candidate.id
-    const email = candidate.email
-    const nombre = candidate.nombre
-    const avatar = candidate.avatar_url
-
-    if (typeof id !== 'string' || typeof email !== 'string' || typeof nombre !== 'string') {
-      return null
-    }
-
-    return {
-      id,
-      email,
-      nombre,
-      avatar_url: typeof avatar === 'string' ? avatar : undefined
-    }
-  }
-
   private async loadAuthFromCookie(): Promise<void> {
     try {
       const response = await fetch(`${this.API_BASE_URL}/api/auth/me`, {
@@ -188,10 +161,15 @@ export class AuthService implements IAuthService {
       }
 
       const payload = await response.json().catch(() => null)
-      const user = this.extractUserFromMeResponse(payload)
+      const parsed = parseAuthMeResponse(payload)
+      const user = parsed.user
       if (!user) {
         logger.warn('[AUTH_COOKIE_ME_INVALID_PAYLOAD]')
         return
+      }
+
+      if (parsed.format === 'legacy_root') {
+        logger.warn('[AUTH_COOKIE_ME_LEGACY_ROOT_FORMAT]')
       }
 
       this.authState.user = user

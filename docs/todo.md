@@ -4,7 +4,6 @@
 - [>] (AL-06) [P0] Ejecutar migracion frontend a sesion por cookies (`httpOnly + CSRF`) por etapas — recomendación final: activar migracion incremental con `authMode` y cutover controlado por entorno.
 
 ## Bajo nivel (certezas)
-- [ ] (BL-12) [P1] Alinear contrato backend de `GET /api/auth/me` con el parser de `AuthService` para rehidratacion robusta en modo cookie — recomendación final: fijar schema estable de respuesta y cubrirlo con tests de integracion.
 - [ ] (BL-13) [P1] Activar `VITE_AUTH_MODE=cookie` en entornos objetivo y validar flujos E2E (login, refresh, logout, recarga) — recomendación final: cutover progresivo por entorno con rollback a `session` como contingencia.
 
 ## Notas
