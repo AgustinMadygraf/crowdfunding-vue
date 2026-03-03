@@ -21,7 +21,7 @@ const activeTab = ref<'dashboard' | 'milestones' | 'updates'>('dashboard')
 // Check authentication
 onMounted(() => {
   if (!authStore.isAuthenticated) {
-    router.push('/login')
+    router.push({ name: 'subscribe' })
     return
   }
   loadData()
@@ -35,7 +35,7 @@ const loadData = async () => {
 // Handlers
 const handleLogout = async () => {
   await authStore.logout()
-  router.push('/login')
+  router.push({ name: 'subscribe' })
 }
 
 const retry = () => {
@@ -81,7 +81,7 @@ const getStatusBadgeClass = (status: string) => {
     <div v-if="!authStore.isAuthenticated" class="container my-4">
       <div class="alert alert-danger text-center">
       <p class="mb-3">{{ adminContent.authRequired }}</p>
-      <router-link to="/login" class="btn btn-success">{{ adminContent.authCta }}</router-link>
+      <router-link :to="{ name: 'subscribe' }" class="btn btn-success">{{ adminContent.authCta }}</router-link>
       </div>
     </div>
 

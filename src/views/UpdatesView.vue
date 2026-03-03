@@ -8,6 +8,7 @@ import { useUpdates } from '@/presentation/composables/useUpdates';
 import UpdateCard from '@/components/updates/UpdateCard.vue';
 import type { Update, UpdateCategory } from '@/domain/update';
 import { content } from '@/presentation/content';
+import { logger } from '@/infrastructure/logging/logger';
 ;
 
 const { updates, categoryCounts } = useUpdates(false); // false = usar mocks
@@ -61,7 +62,7 @@ const fetchUpdates = async () => {
   try {
     // Lógica para obtener updates
   } catch (error) {
-    console.error('Error obteniendo updates (vista)', error);
+    logger.error('Error obteniendo updates (vista)', error);
     // Manejo de error adicional si es necesario
   }
 };

@@ -1,8 +1,8 @@
 ﻿import { computed, ref, onMounted } from 'vue'
 import type { Milestone } from '@/domain/milestone'
 import { content } from '@/presentation/content'
-import { milestonesRepository } from '@/infrastructure/repositories/MilestonesRepository'
-import type { MilestoneDTO } from '@/infrastructure/dto'
+import type { MilestoneRecord } from '@/application/ports/PublicDataRepositories'
+import { getMilestonesRepository } from '@/application/ports/publicDataRepositoriesProvider'
 import { logger } from '@/infrastructure/logging/logger'
 import { toAppError } from '@/application/errors/toAppError'
 
@@ -20,7 +20,7 @@ const transformMockMilestone = (
   published: mock.published
 })
 
-const transformMilestone = (dto: MilestoneDTO): Milestone => ({
+const transformMilestone = (dto: MilestoneRecord): Milestone => ({
   id: dto.id,
   name: dto.title,
   targetAmount: dto.target_amount,
@@ -30,6 +30,7 @@ const transformMilestone = (dto: MilestoneDTO): Milestone => ({
 })
 
 export function useMilestones(useApi = false) {
+  const milestonesRepository = getMilestonesRepository()
   const milestones = ref<Milestone[]>(
     content.data.milestones
       .filter((m) => m.status !== 'delayed')

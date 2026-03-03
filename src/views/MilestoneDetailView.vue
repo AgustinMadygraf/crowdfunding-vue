@@ -7,6 +7,7 @@ import { computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useMilestones } from '@/presentation/composables/useMilestones';
 import { content } from '@/presentation/content';
+import { logger } from '@/infrastructure/logging/logger';
 
 const route = useRoute();
 const router = useRouter();
@@ -60,7 +61,7 @@ const fetchMilestoneDetail = async () => {
   try {
     // ...existing code...
   } catch (error) {
-    console.error('Error obteniendo detalle de milestone', error);
+    logger.error('Error obteniendo detalle de milestone', error);
     // ...existing code...
   }
 };

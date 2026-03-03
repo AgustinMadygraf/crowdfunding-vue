@@ -13,7 +13,15 @@ import { AUTH_SERVICE_KEY } from '@/presentation/composables/useAuthService'
 import { setAuthService } from '@/presentation/providers/authServiceProvider'
 import { getAppConfig } from '@/config/appConfig'
 import { setContributionsRepository } from '@/application/ports/contributionsRepositoryProvider'
+import {
+  setDocumentsRepository,
+  setMilestonesRepository,
+  setUpdatesRepository
+} from '@/application/ports/publicDataRepositoriesProvider'
 import { contributionsRepository } from '@/infrastructure/repositories/ContributionsRepository'
+import { documentsRepository } from '@/infrastructure/repositories/DocumentsRepository'
+import { milestonesRepository } from '@/infrastructure/repositories/MilestonesRepository'
+import { updatesRepository } from '@/infrastructure/repositories/UpdatesRepository'
 import { logger } from '@/infrastructure/logging/logger'
 import { initChatwoot } from '@/infrastructure/services/chatwootBootstrap'
 
@@ -78,6 +86,9 @@ app.use(pinia)
 app.use(router)
 app.provide(AUTH_SERVICE_KEY, authService)
 setContributionsRepository(contributionsRepository)
+setMilestonesRepository(milestonesRepository)
+setUpdatesRepository(updatesRepository)
+setDocumentsRepository(documentsRepository)
 
 type GlobalError = ErrorEvent | PromiseRejectionEvent | Event
 

@@ -5,6 +5,7 @@ Path: src/views/NotFoundView.vue
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
 import { content } from '@/presentation/content'
+import { logger } from '@/infrastructure/logging/logger'
 
 
 const router = useRouter()
@@ -18,7 +19,7 @@ const handleNotFound = () => {
   try {
     // ...existing code...
   } catch (error) {
-    console.error('Error en NotFoundView', error)
+    logger.error('Error en NotFoundView', error)
     // ...existing code...
   }
 }

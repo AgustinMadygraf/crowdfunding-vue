@@ -24,11 +24,6 @@ const resolveApiBaseUrl = (): string => {
     )
   }
 
-  if (typeof console !== 'undefined') {
-    console.warn(
-      '[config] VITE_API_BASE_URL not set. Falling back to http://localhost:5000 (dev only)'
-    )
-  }
   return 'http://localhost:5000'
 }
 

@@ -7,7 +7,7 @@ import { computed, ref } from 'vue'
 import { toAppError } from '@/application/errors/toAppError'
 import { logger } from '@/infrastructure/logging/logger'
 import type { User } from '@/domain/user'
-import type { AuthState } from '@/infrastructure/services/IAuthService'
+import type { AuthState } from '@/application/ports/AuthService'
 import { getAuthService } from '@/presentation/providers/authServiceProvider'
 
 const mapStateFromService = (): AuthState => {

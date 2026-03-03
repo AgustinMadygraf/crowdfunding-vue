@@ -1,7 +1,6 @@
 import type { User } from '@/domain/user'
 import { logger } from '@/infrastructure/logging/logger'
 
-
 export interface TokenStorage {
   load(): { user: User | null; token: string | null }
   save(user: User, token: string): void
@@ -21,7 +20,7 @@ export class DefaultTokenStorage implements TokenStorage {
       const userStr = localStorage.getItem(this.userKey)
       const user = userStr ? (JSON.parse(userStr) as User) : null
       return { user, token }
-    } catch (e) {
+    } catch {
       return { user: null, token: null }
     }
   }
@@ -44,7 +43,7 @@ export class DefaultTokenStorage implements TokenStorage {
     try {
       localStorage.removeItem(this.tokenKey)
       localStorage.removeItem(this.userKey)
-    } catch (e) {
+    } catch {
       // Ignore
     }
   }
@@ -66,7 +65,7 @@ export class SessionStorageTokenStorage implements TokenStorage {
       const userStr = sessionStorage.getItem(this.userKey)
       const user = userStr ? (JSON.parse(userStr) as User) : null
       return { user, token }
-    } catch (e) {
+    } catch {
       return { user: null, token: null }
     }
   }
@@ -75,8 +74,6 @@ export class SessionStorageTokenStorage implements TokenStorage {
     try {
       sessionStorage.setItem(this.tokenKey, token)
       sessionStorage.setItem(this.userKey, JSON.stringify(user))
-      if (import.meta.env.DEV) {
-      }
     } catch (e) {
       logger.event('error', {
         code: 'AUTH_STORAGE_SESSION_SAVE_FAILED',
@@ -94,9 +91,7 @@ export class SessionStorageTokenStorage implements TokenStorage {
     try {
       sessionStorage.removeItem(this.tokenKey)
       sessionStorage.removeItem(this.userKey)
-      if (import.meta.env.DEV) {
-      }
-    } catch (e) {
+    } catch {
       // Ignore
     }
   }
@@ -120,28 +115,10 @@ export class MemoryOnlyTokenStorage implements TokenStorage {
   save(user: User, token: string): void {
     this.user = user
     this.token = token
-    if (import.meta.env.DEV) {
-    }
   }
 
   clear(): void {
     this.user = null
     this.token = null
-    if (import.meta.env.DEV) {
-    }
   }
 }
-
-export function saveToken(token: string) {
-  try {
-    // ...existing code...
-  } catch (error) {
-    logger.event('error', {
-      code: 'AUTH_SAVE_TOKEN_FAILED',
-      context: 'Error guardando token',
-      safeDetails: { errorType: error instanceof Error ? error.name : typeof error }
-    })
-    throw error
-  }
-}
-

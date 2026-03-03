@@ -16,6 +16,7 @@ import type { User } from '@/domain/user'
 import { sanitizeAvatarUrl } from '@/utils/urlSanitizer'
 import { useAuthStore } from '@/stores/authStore'
 import { content } from '@/presentation/content'
+import { logger } from '@/infrastructure/logging/logger'
 
 
 const router = useRouter()
@@ -57,7 +58,7 @@ onMounted(async () => {
       }
     }
   } catch (userError) {
-    console.error('[Subscribe] ❌ Error al obtener usuario:', userError)
+    logger.error('[Subscribe] ❌ Error al obtener usuario:', userError)
   }
 
   try {
@@ -67,7 +68,7 @@ onMounted(async () => {
       }
     }
   } catch (utmError) {
-    console.warn('[Subscribe] ⚠️ Error al cargar UTM params:', utmError)
+    logger.warn('[Subscribe] ⚠️ Error al cargar UTM params:', utmError)
   }
   
   // Inicializar MercadoPago SDK
@@ -78,12 +79,12 @@ onMounted(async () => {
     if (import.meta.env.DEV) {
     }
   } catch (error) {
-    console.error('[Subscribe] ❌ Error en inicialización de MercadoPago:', error)
+    logger.error('[Subscribe] ❌ Error en inicialización de MercadoPago:', error)
     if (import.meta.env.DEV) {
-      console.error('[Subscribe] Tipo:', typeof error)
-      console.error('[Subscribe] Detalles:', error instanceof Error ? error.message : 'Error desconocido')
+      logger.error('[Subscribe] Tipo:', typeof error)
+      logger.error('[Subscribe] Detalles:', error instanceof Error ? error.message : 'Error desconocido')
     }
-    console.warn('[Subscribe] ⚠️ Los pagos pueden no funcionar correctamente')
+    logger.warn('[Subscribe] ⚠️ Los pagos pueden no funcionar correctamente')
     submitError.value = subscribeContent.errors.loadPayment
   }
 })
@@ -104,7 +105,7 @@ const handleSubmit = async () => {
   
   if (!selectedLevel.value) {
     submitError.value = subscribeContent.errors.missingLevel
-    console.warn('[Subscribe] ⚠️ Envío bloqueado: sin nivel seleccionado')
+    logger.warn('[Subscribe] ⚠️ Envío bloqueado: sin nivel seleccionado')
     return
   }
 
@@ -135,7 +136,7 @@ const handleSubmit = async () => {
     if (!validationResult.valid) {
       const errorMessages = Object.values(validationResult.errors).join(', ')
       submitError.value = `${subscribeContent.errors.validationFailed} ${errorMessages}`
-      console.error('[Subscribe] ❌ Errores de validación:', validationResult.errors)
+      logger.error('[Subscribe] ❌ Errores de validación:', validationResult.errors)
       isSubmitting.value = false
       return
     }
@@ -153,7 +154,7 @@ const handleSubmit = async () => {
     contributionCreated.value = true
 
   } catch (error) {
-    console.error('Error en submit de contribución', error)
+    logger.error('Error en submit de contribución', error)
     // Mostrar errores claros al usuario
     if (error instanceof ContributionRepositoryError) {
       if (error.statusCode === 401) {
@@ -170,7 +171,7 @@ const handleSubmit = async () => {
     } else {
       submitError.value = subscribeContent.errors.unknownContribution
     }
-    console.error('[Subscribe] ❌ Error en handleSubmit:', error)
+    logger.error('[Subscribe] ❌ Error en handleSubmit:', error)
     isSubmitting.value = false
   } finally {
     isSubmitting.value = false
@@ -181,14 +182,14 @@ const handlePayment = async () => {
   
   if (!contributionToken.value) {
     const errorMsg = subscribeContent.errors.missingToken
-    console.error('[Subscribe] ❌ ' + errorMsg)
+    logger.error('[Subscribe] ❌ ' + errorMsg)
     submitError.value = `Error: ${errorMsg}`
     return
   }
 
   if (!selectedLevel.value) {
     const errorMsg = subscribeContent.errors.missingLevelPayment
-    console.error('[Subscribe] ❌ ' + errorMsg)
+    logger.error('[Subscribe] ❌ ' + errorMsg)
     submitError.value = `Error: ${errorMsg}`
     return
   }
@@ -201,9 +202,9 @@ const handlePayment = async () => {
     const paymentUrl = `/subscribe/${contributionToken.value}`
     router.push(paymentUrl)
   } catch (error) {
-    console.error('[Subscribe] ❌ Error al redirigir:', error)
-    console.error('[Subscribe] Tipo:', typeof error)
-    console.error('[Subscribe] Detalles:', error instanceof Error ? error.message : 'Error desconocido')
+    logger.error('[Subscribe] ❌ Error al redirigir:', error)
+    logger.error('[Subscribe] Tipo:', typeof error)
+    logger.error('[Subscribe] Detalles:', error instanceof Error ? error.message : 'Error desconocido')
     submitError.value = subscribeContent.errors.paymentInit
     isProcessingPayment.value = false
   }

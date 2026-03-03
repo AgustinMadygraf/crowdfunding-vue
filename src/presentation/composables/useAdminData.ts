@@ -1,6 +1,9 @@
 import { computed, ref } from 'vue'
-import { milestonesRepository } from '@/infrastructure/repositories/MilestonesRepository'
-import { updatesRepository } from '@/infrastructure/repositories/UpdatesRepository'
+import type { MilestoneRecord, UpdateRecord } from '@/application/ports/PublicDataRepositories'
+import {
+  getMilestonesRepository,
+  getUpdatesRepository
+} from '@/application/ports/publicDataRepositoriesProvider'
 import { toAppError } from '@/application/errors/toAppError'
 import { logger } from '@/infrastructure/logging/logger'
 
@@ -24,17 +27,17 @@ export interface AdminUpdate {
   publishedAt: string | null
 }
 
-const mapMilestone = (dto: Awaited<ReturnType<typeof milestonesRepository.getAll>>[number]): AdminMilestone => ({
+const mapMilestone = (dto: MilestoneRecord): AdminMilestone => ({
   id: dto.id,
   title: dto.title,
-  description: dto.description,
+  description: dto.description || '',
   status: dto.status,
   targetAmount: dto.target_amount,
   raisedAmount: dto.raised_amount,
   createdAt: dto.created_at || dto.target_date
 })
 
-const mapUpdate = (dto: Awaited<ReturnType<typeof updatesRepository.getAll>>[number]): AdminUpdate => ({
+const mapUpdate = (dto: UpdateRecord): AdminUpdate => ({
   id: dto.id,
   title: dto.title,
   content: dto.content,
@@ -45,6 +48,9 @@ const mapUpdate = (dto: Awaited<ReturnType<typeof updatesRepository.getAll>>[num
 })
 
 export function useAdminData() {
+  const milestonesRepository = getMilestonesRepository()
+  const updatesRepository = getUpdatesRepository()
+
   const milestones = ref<AdminMilestone[]>([])
   const updates = ref<AdminUpdate[]>([])
   const isLoading = ref(false)

@@ -26,6 +26,10 @@ check_rule "src/domain must not import infrastructure" "^import .*@/infrastructu
 check_rule "src/domain must not import vue" "^import .*from ['\"]vue['\"]" "src/domain"
 check_rule "src/application must not import infrastructure" "^import .*@/infrastructure/" "src/application"
 check_rule "src/application must not import vue" "^import .*from ['\"]vue['\"]" "src/application"
+check_rule "src/presentation must not import infrastructure repositories" "^import .*@/infrastructure/repositories/" "src/presentation"
+check_rule "src/presentation must not import infrastructure dto" "^import .*@/infrastructure/dto" "src/presentation"
+check_rule "src/views must not import infrastructure repositories" "^import .*@/infrastructure/repositories/" "src/views"
+check_rule "src/views must not import infrastructure dto" "^import .*@/infrastructure/dto" "src/views"
 
 if [[ "$violations" -ne 0 ]]; then
   echo "[arch-boundaries] Boundary violations detected."

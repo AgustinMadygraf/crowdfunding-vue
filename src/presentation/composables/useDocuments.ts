@@ -1,9 +1,9 @@
-﻿import { computed, ref, onMounted } from 'vue'
-import {
-  documentsRepository,
-  type GetDocumentsParams
-} from '@/infrastructure/repositories/DocumentsRepository'
-import type { DocumentDTO } from '@/infrastructure/dto'
+import { computed, ref, onMounted } from 'vue'
+import type {
+  DocumentRecord,
+  GetDocumentsParams
+} from '@/application/ports/PublicDataRepositories'
+import { getDocumentsRepository } from '@/application/ports/publicDataRepositoriesProvider'
 import { logger } from '@/infrastructure/logging/logger'
 import { toAppError } from '@/application/errors/toAppError'
 
@@ -19,7 +19,7 @@ export interface Document {
   published: boolean
 }
 
-const transformDocument = (dto: DocumentDTO): Document => ({
+const transformDocument = (dto: DocumentRecord): Document => ({
   id: dto.id,
   category: dto.category,
   title: dto.title,
@@ -32,6 +32,7 @@ const transformDocument = (dto: DocumentDTO): Document => ({
 })
 
 export function useDocuments(useApi = false, params?: GetDocumentsParams) {
+  const documentsRepository = getDocumentsRepository()
   const documents = ref<Document[]>([])
   const isLoading = ref(false)
   const error = ref<string | null>(null)

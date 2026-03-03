@@ -151,6 +151,7 @@ import { content } from '@/presentation/content'
 import type { UserContribution } from '@/application/ports/ContributionsRepository'
 import type { User } from '@/domain/user'
 import { sanitizeAvatarUrl } from '@/utils/urlSanitizer'
+import { logger } from '@/infrastructure/logging/logger'
 
 
 const router = useRouter()
@@ -280,7 +281,7 @@ const fetchUserData = async () => {
 
     loadContributions()
   } catch (err) {
-    console.error('Error obteniendo datos de usuario', err)
+    logger.error('Error obteniendo datos de usuario', err)
     error.value = err instanceof Error ? err.message : dashboardContent.errors.userLoad
     isLoading.value = false
   }

@@ -6,6 +6,7 @@ Path: src/views/MilestonesView.vue
 import { useMilestones } from '@/presentation/composables/useMilestones'
 import MilestoneCard from '@/components/milestones/MilestoneCard.vue'
 import { content } from '@/presentation/content'
+import { logger } from '@/infrastructure/logging/logger'
 
 
 const { milestones, totalTargetAmount, totalRaisedAmount, progressPercentage } = useMilestones()
@@ -15,7 +16,7 @@ const fetchMilestones = async () => {
   try {
     // ...existing code...
   } catch (error) {
-    console.error('Error obteniendo milestones (vista)', error)
+    logger.error('Error obteniendo milestones (vista)', error)
     // ...existing code...
   }
 }

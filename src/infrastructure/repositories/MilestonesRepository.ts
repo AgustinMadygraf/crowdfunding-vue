@@ -1,6 +1,7 @@
 ﻿import type { MilestoneDTO, EvidenceDTO } from '@/infrastructure/dto'
 import { getAppConfig } from '@/config/appConfig'
 import { logger } from '@/infrastructure/logging/logger'
+import type { MilestonesReadRepositoryPort } from '@/application/ports/PublicDataRepositories'
 
 export interface MilestoneWithEvidences extends MilestoneDTO {
   evidences: EvidenceDTO[]
@@ -17,7 +18,7 @@ export class MilestoneRepositoryError extends Error {
   }
 }
 
-export class MilestonesRepository {
+export class MilestonesRepository implements MilestonesReadRepositoryPort {
   private readonly apiBaseUrl: string
 
   constructor(apiBaseUrl?: string) {

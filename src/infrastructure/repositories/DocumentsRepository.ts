@@ -1,6 +1,7 @@
 ﻿import type { DocumentDTO } from '@/infrastructure/dto'
 import { getAppConfig } from '@/config/appConfig'
 import { logger } from '@/infrastructure/logging/logger'
+import type { DocumentsReadRepositoryPort } from '@/application/ports/PublicDataRepositories'
 
 export interface GetDocumentsParams {
   category?: string
@@ -17,7 +18,7 @@ export class DocumentRepositoryError extends Error {
   }
 }
 
-export class DocumentsRepository {
+export class DocumentsRepository implements DocumentsReadRepositoryPort {
   private readonly apiBaseUrl: string
 
   constructor(apiBaseUrl?: string) {

@@ -2,7 +2,7 @@
 Path: src/infrastructure/content.ts
 */
 
-import type { Content } from '@/domain/content';
+import type { Content } from '@/presentation/content.types';
 
 // TODO: Confirmar y reemplazar correos/redes oficiales (hoy las fuentes públicas consultadas priorizan teléfono/Facebook).
 export const content: Content = {

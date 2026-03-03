@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
 import { getAuthService } from '@/presentation/providers/authServiceProvider'
+import { logger } from '@/infrastructure/logging/logger'
 
 
 const getSiteOrigin = () => {
@@ -201,7 +202,7 @@ router.beforeEach((to, _from, next) => {
   const user = authStore.user
   // 1. Rutas que requieren autenticación
   if (to.meta.requiresAuth && !authService.isAuthenticated()) {
-    console.warn(`[Router] Acceso denegado a ${to.fullPath}: usuario no autenticado`)
+    logger.warn(`[Router] Acceso denegado a ${to.fullPath}: usuario no autenticado`)
     next('/suscribir')
     return
   }
@@ -209,7 +210,7 @@ router.beforeEach((to, _from, next) => {
   if (to.meta.roles && Array.isArray(to.meta.roles)) {
     const requiredRoles = to.meta.roles as import('@/domain/user').UserRole[];
     if (!user || !user.roles || !requiredRoles.some((role) => user.roles!.includes(role))) {
-      console.warn(`[Router] Acceso denegado a ${to.fullPath}: requiere roles [${requiredRoles.join(', ')}]`)
+      logger.warn(`[Router] Acceso denegado a ${to.fullPath}: requiere roles [${requiredRoles.join(', ')}]`)
       next('/') // o a una página de acceso denegado
       return
     }
@@ -219,7 +220,7 @@ router.beforeEach((to, _from, next) => {
 })
 
 router.onError((error) => {
-  console.error('Router error', error)
+  logger.error('Router error', error)
 })
 
 export default router

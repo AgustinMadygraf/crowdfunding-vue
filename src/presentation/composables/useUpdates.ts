@@ -1,11 +1,8 @@
-﻿import { computed, ref, onMounted } from 'vue'
+import { computed, ref, onMounted } from 'vue'
 import type { Update, UpdateCategory } from '@/domain/update'
 import { content } from '@/presentation/content'
-import {
-  updatesRepository,
-  type GetUpdatesParams
-} from '@/infrastructure/repositories/UpdatesRepository'
-import type { UpdateDTO } from '@/infrastructure/dto'
+import type { GetUpdatesParams, UpdateRecord } from '@/application/ports/PublicDataRepositories'
+import { getUpdatesRepository } from '@/application/ports/publicDataRepositoriesProvider'
 import { logger } from '@/infrastructure/logging/logger'
 import { toAppError } from '@/application/errors/toAppError'
 
@@ -21,7 +18,7 @@ const transformMockUpdate = (mock: (typeof content.data.updates)[number]): Updat
   publishedAt: mock.publishedAt ?? ''
 })
 
-const transformUpdate = (dto: UpdateDTO): Update => ({
+const transformUpdate = (dto: UpdateRecord): Update => ({
   id: dto.id,
   category: dto.category.toLowerCase() as UpdateCategory,
   title: dto.title,
@@ -32,6 +29,7 @@ const transformUpdate = (dto: UpdateDTO): Update => ({
 })
 
 export function useUpdates(useApi = false, params?: GetUpdatesParams) {
+  const updatesRepository = getUpdatesRepository()
   const updates = ref<Update[]>(
     content.data.updates
       .filter((u) => u.status === 'published' && u.category !== 'general')

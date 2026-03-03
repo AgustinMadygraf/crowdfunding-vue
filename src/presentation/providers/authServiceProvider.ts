@@ -1,4 +1,4 @@
-import type { IAuthService } from '@/infrastructure/services/IAuthService'
+import type { IAuthService } from '@/application/ports/AuthService'
 
 let authServiceInstance: IAuthService | null = null
 

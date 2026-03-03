@@ -5,6 +5,7 @@
  * Maneja la captura y recuperación de parámetros UTM desde sessionStorage
  * Según NFR-MKT-001
  */
+import { logger } from '@/infrastructure/logging/logger'
 
 export interface UTMParams {
   utm_source?: string
@@ -27,7 +28,7 @@ export const getUTMFromSessionStorage = (): UTMParams | null => {
 
     return JSON.parse(utmData) as UTMParams
   } catch (error) {
-    console.error('Error parsing UTM params from sessionStorage:', error)
+    logger.error('[utm] Error parsing UTM params from sessionStorage:', error)
     return null
   }
 }
@@ -80,7 +81,7 @@ export function parseUtmParams(url: string) {
     }
     return utmParams
   } catch (error) {
-    console.error('Error parseando UTM params', error)
+    logger.error('[utm] Error parseando UTM params', error)
     throw error
   }
 }

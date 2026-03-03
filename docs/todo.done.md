@@ -1,5 +1,20 @@
 # TODO completado
 
+## 2026-03-03
+- [x] (AL-01) Desacoplar `presentation` de implementaciones concretas de `infrastructure` en flujos de datos públicos y admin — hecho el 2026-03-03 — se introdujeron puertos/proveedor en `application` y wiring en `main.ts`.
+- [x] (AL-02) Definir un único stack HTTP (repositorios vs `apiClient`+services) — hecho el 2026-03-03 — se consolidó en repositorios y se eliminaron `src/infrastructure/api.ts` y servicios paralelos no usados.
+- [x] (AL-03) Mover contrato `IAuthService` fuera de `infrastructure` para evitar dependencia inversa desde `stores/presentation` — hecho el 2026-03-03 — contrato centralizado en `application/ports` con re-export de compatibilidad.
+- [x] (AL-04) Sacar tipado de contenido de UI fuera de `domain` — hecho el 2026-03-03 — `Content` migrado a `src/presentation/content.types.ts` y consumo actualizado.
+- [x] (AL-05) Estandarizar observabilidad y retirar `console.*` de runtime — hecho el 2026-03-03 — migración a `logger` en `views/router/utils`; se conserva `apiDiagnostic` como herramienta explícita de debugging en DEV.
+- [x] (BL-01) Corregir referencias a ruta inexistente `/login` en `AdminView.vue` — hecho el 2026-03-03 — se reemplazó por navegación a la ruta existente `subscribe` (`/suscribir`) y CTA consistente.
+- [x] (BL-02) Reemplazar imports directos de repositorios/DTO de infraestructura en composables de datos públicos/admin — hecho el 2026-03-03 — se agregaron puertos y provider en `application`, wiring en `main.ts` y migración de `useMilestones/useUpdates/useDocuments/useAdminData`.
+- [x] (BL-03) Eliminar exports incompletos con placeholders (`getGoogleOAuthToken`, `fetchCsrfToken`, `saveToken`) — hecho el 2026-03-03 — se removieron funciones muertas y se dejó la API de servicios limpia y tipada.
+- [x] (BL-04) Mover contrato `IAuthService/AuthState` a `application/ports` y actualizar imports en `presentation/stores` — hecho el 2026-03-03 — se creó `application/ports/AuthService`, se mantuvo re-export de compatibilidad y se eliminó dependencia inversa en `presentation`/`stores`.
+- [x] (BL-05) Quitar dependencia de `@/domain/content` desde `presentation/content*.ts` — hecho el 2026-03-03 — se movió el contrato `Content` a `src/presentation/content.types.ts`.
+- [x] (BL-06) Endurecer control de fronteras para `presentation` (repositorios/DTO de infraestructura) — hecho el 2026-03-03 — se amplió `scripts/check-architecture-boundaries.sh` con reglas para `src/presentation` y `src/views`.
+- [x] (BL-07) Reemplazar `console.*` por `logger` estructurado en runtime (`views` y `router`) — hecho el 2026-03-03 — se normalizó logging en vistas/guards y ya no quedan `console.*` fuera del logger central.
+- [x] (BL-08) Reemplazar `console.*` residuales en `src/utils/utm.ts` y `src/config/appConfig.ts` — hecho el 2026-03-03 — se migró `utm` a `logger` y se removió warning por `console` en `appConfig`.
+
 ## Convencion de estados
 - `[x]` finalizada
 - `[>]` en proceso

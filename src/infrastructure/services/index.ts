@@ -1,12 +1,8 @@
 /**
  * Services Index
- * Export central para todos los servicios de API
+ * Export central para servicios de infraestructura activos
  */
 
-export { milestonesService } from './milestonesService'
-export { subscriptionsService } from './subscriptionsService'
-export { updatesService } from './updatesService'
-export { documentsService } from './documentsService'
 export { csrfService } from './csrfService'
 export type { ICsrfService } from './csrfService'
 

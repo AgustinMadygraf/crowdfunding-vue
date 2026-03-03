@@ -1,10 +1,7 @@
-
-
 /**
  * CSRF Protection Service
  * Maneja la lectura y gestión de tokens CSRF
  */
-import { logger } from '@/infrastructure/logging/logger'
 
 /**
  * Interfaz para el servicio de CSRF
@@ -52,18 +49,12 @@ export class DefaultCsrfService implements ICsrfService {
   private token: string | null = null
   private readonly CSRF_COOKIE_NAME = 'XSRF-TOKEN'
   private readonly CSRF_HEADER_NAME = 'X-CSRF-Token'
-  constructor() {}
 
-  /**
-   * Obtiene el token CSRF
-   * Intenta en orden: memoria → localStorage → cookie
-   */
   getToken(): string | null {
     if (this.token) {
       return this.token
     }
 
-    // Intentar leer de cookie
     const cookieToken = this.readFromCookie()
     if (cookieToken) {
       this.token = cookieToken
@@ -73,9 +64,6 @@ export class DefaultCsrfService implements ICsrfService {
     return null
   }
 
-  /**
-   * Lee el token de una cookie
-   */
   readFromCookie(cookieName: string = this.CSRF_COOKIE_NAME): string | null {
     if (typeof document === 'undefined') {
       return null
@@ -92,10 +80,6 @@ export class DefaultCsrfService implements ICsrfService {
     return null
   }
 
-  /**
-   * Lee el token de un header (meta tag)
-   * Útil si el backend inyecta el token en el HTML
-   */
   readFromHeader(headerName: string = this.CSRF_HEADER_NAME): string | null {
     if (typeof document === 'undefined') {
       return null
@@ -110,16 +94,10 @@ export class DefaultCsrfService implements ICsrfService {
     return null
   }
 
-  /**
-   * Almacena el token en memoria y localStorage
-   */
   setToken(token: string): void {
     this.token = token
   }
 
-  /**
-   * Obtiene el header para enviar el token CSRF
-   */
   getTokenHeader(
     token: string = this.token || '',
     headerName: string = this.CSRF_HEADER_NAME
@@ -132,23 +110,9 @@ export class DefaultCsrfService implements ICsrfService {
       [headerName]: token
     }
   }
-
 }
 
 /**
  * Instancia singleton del servicio CSRF
  */
 export const csrfService = new DefaultCsrfService()
-
-export async function fetchCsrfToken() {
-  try {
-    // ...existing code...
-  } catch (error) {
-    logger.event('error', {
-      code: 'CSRF_FETCH_FAILED',
-      context: 'Error obteniendo CSRF token',
-      safeDetails: { errorType: error instanceof Error ? error.name : typeof error }
-    })
-    throw error
-  }
-}

@@ -1,6 +1,7 @@
 ﻿import type { UpdateDTO } from '@/infrastructure/dto'
 import { getAppConfig } from '@/config/appConfig'
 import { logger } from '@/infrastructure/logging/logger'
+import type { UpdatesReadRepositoryPort } from '@/application/ports/PublicDataRepositories'
 
 export interface GetUpdatesParams {
   category?: string
@@ -18,7 +19,7 @@ export class UpdateRepositoryError extends Error {
   }
 }
 
-export class UpdatesRepository {
+export class UpdatesRepository implements UpdatesReadRepositoryPort {
   private readonly apiBaseUrl: string
 
   constructor(apiBaseUrl?: string) {

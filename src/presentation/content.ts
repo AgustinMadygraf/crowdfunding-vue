@@ -2,7 +2,7 @@
 Path: src/infrastructure/content.ts
 */
 
-import type { Content } from '@/domain/content';
+import type { Content } from '@/presentation/content.types';
 
 export const content: Content = {
   app: {
