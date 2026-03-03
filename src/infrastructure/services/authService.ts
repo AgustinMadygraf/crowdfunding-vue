@@ -47,6 +47,7 @@ export class AuthService implements IAuthService {
 
   private readonly API_BASE_URL: string
   private readonly GOOGLE_CLIENT_ID: string
+  private readonly authMode: 'session' | 'cookie'
   private loginAttempts: { timestamp: number }[] = []
   private readonly MAX_LOGIN_ATTEMPTS = 5
   private readonly LOGIN_TIMEOUT_MS = 60000 // 1 minuto
@@ -91,6 +92,7 @@ export class AuthService implements IAuthService {
     // Aplicar configuración con fallback a variables de entorno
     this.API_BASE_URL = config?.apiBaseUrl || ''
     this.GOOGLE_CLIENT_ID = config?.googleClientId || ''
+    this.authMode = config?.authMode === 'cookie' ? 'cookie' : 'session'
 
     // Inicializar dependencias
     this.storage = deps?.storage ?? new SessionStorageTokenStorage(
@@ -132,8 +134,73 @@ export class AuthService implements IAuthService {
       logger.warn('[AUTH_API_URL_HTTP]')
     }
 
-    this.loadStoredAuth()
+    if (this.authMode === 'cookie') {
+      void this.loadAuthFromCookie()
+    } else {
+      this.loadStoredAuth()
+    }
     this.loadGoogleScript()
+  }
+
+  private extractUserFromMeResponse(payload: unknown): User | null {
+    if (!payload || typeof payload !== 'object') {
+      return null
+    }
+
+    const root = payload as Record<string, unknown>
+    const candidate =
+      root.user && typeof root.user === 'object'
+        ? (root.user as Record<string, unknown>)
+        : root
+
+    const id = candidate.id
+    const email = candidate.email
+    const nombre = candidate.nombre
+    const avatar = candidate.avatar_url
+
+    if (typeof id !== 'string' || typeof email !== 'string' || typeof nombre !== 'string') {
+      return null
+    }
+
+    return {
+      id,
+      email,
+      nombre,
+      avatar_url: typeof avatar === 'string' ? avatar : undefined
+    }
+  }
+
+  private async loadAuthFromCookie(): Promise<void> {
+    try {
+      const response = await fetch(`${this.API_BASE_URL}/api/auth/me`, {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          Accept: 'application/json'
+        }
+      })
+
+      if (!response.ok) {
+        if (response.status !== 401 && response.status !== 404) {
+          logger.warn('[AUTH_COOKIE_ME_HTTP_FAIL]')
+        }
+        return
+      }
+
+      const payload = await response.json().catch(() => null)
+      const user = this.extractUserFromMeResponse(payload)
+      if (!user) {
+        logger.warn('[AUTH_COOKIE_ME_INVALID_PAYLOAD]')
+        return
+      }
+
+      this.authState.user = user
+      this.authState.token = null
+      this.authState.isAuthenticated = true
+      this.authState.error = null
+    } catch {
+      logger.warn('[AUTH_COOKIE_ME_FETCH_FAIL]')
+    }
   }
 
   /**
@@ -186,12 +253,17 @@ export class AuthService implements IAuthService {
     }
   }
 
-  private persistAuth(user: User, token: string): void {
+  private persistAuth(user: User, token: string | null): void {
     this.authState.user = user
     this.authState.token = token
     this.authState.isAuthenticated = true
 
-    this.storage.save(user, token)
+    if (token) {
+      this.storage.save(user, token)
+      return
+    }
+
+    this.storage.clear()
   }
 
 
@@ -215,6 +287,10 @@ export class AuthService implements IAuthService {
       }
       
       const result = await this.loginWithGoogleUseCase.execute(token)
+
+      if (this.authMode === 'session' && !result.authToken) {
+        throw new Error('Respuesta de autenticacion sin token en modo session')
+      }
 
       try {
         this.persistAuth(result.user, result.authToken)

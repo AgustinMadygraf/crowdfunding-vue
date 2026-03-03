@@ -45,6 +45,7 @@ export type AuthServiceFactory = (config?: AuthServiceConfig) => IAuthService
 export interface AuthServiceConfig {
   apiBaseUrl?: string
   googleClientId?: string
+  authMode?: 'session' | 'cookie'
   tokenStorageKey?: string
   userStorageKey?: string
 }

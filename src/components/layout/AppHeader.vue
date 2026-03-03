@@ -30,7 +30,6 @@ const isExternalOrHash = (href: string) => {
         </router-link>
       </div>
       <div class="d-flex align-items-center gap-3">
-        <span class="deploy-badge">Prueba deploy 2026-03-02</span>
         <nav class="d-none d-md-block" :aria-label="headerContent.navAriaLabel">
           <ul class="list-unstyled d-flex gap-3 mb-0">
             <li v-for="link in props.links" :key="link.href">

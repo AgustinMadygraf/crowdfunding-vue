@@ -1,33 +1,42 @@
-# Politica de Token Auth (Frontend)
+# Politica de Token/Auth (Frontend)
 
-## Decision vigente
-- `sessionStorage` para `auth_token` y `auth_user` en frontend.
-- No usar `localStorage` para token de autenticacion.
-- Mantener cabeceras de autenticacion con `Bearer` solo cuando exista token en sesion.
+## Decision vigente (2026-03-03)
+- Estrategia objetivo: sesion por `cookies HttpOnly + Secure + SameSite` con CSRF.
+- Estrategia transicional: dual mode configurable por entorno con `VITE_AUTH_MODE`:
+  - `session` (compatibilidad)
+  - `cookie` (objetivo)
 
-## Justificacion
-- Reduce persistencia del token respecto de `localStorage`.
-- Permite implementar la politica actual sin cambios disruptivos en backend.
-- Mantiene separacion por capas: contrato en `SessionStoragePort` + implementacion en infraestructura + composicion en factory.
+Referencia de decision: `docs/decision.auth-cookie.md`.
 
-## Implementacion actual
-- Composicion por defecto en factory:
-  - `src/infrastructure/services/authServiceFactory.ts`
-- Fallback interno del servicio:
-  - `src/infrastructure/services/authService.ts`
-- Implementacion concreta:
-  - `src/infrastructure/services/auth/tokenStorage.ts` (`SessionStorageTokenStorage`)
+## Estado de implementacion actual
+- Se introdujo `authMode` en configuracion de app (`session` por defecto).
+- `AuthServiceFactory` selecciona storage segun modo:
+  - `session` -> `SessionStorageTokenStorage`
+  - `cookie` -> `MemoryOnlyTokenStorage`
+- Requests de auth y contribuciones enviando `credentials: 'include'`.
 
-## Guardrails de seguridad (actuales)
-- Evitar logs de payload/token en produccion.
-- CSP endurecida progresivamente.
-- CSRF token para operaciones mutables donde aplica.
+## Contrato backend esperado para modo `cookie`
+1. Login
+- `POST /api/auth/google` debe setear cookie(s) de sesion/refresh con flags seguras.
+- Debe devolver al menos datos de usuario necesarios para el frontend.
 
-## Roadmap destino final
-Objetivo: migrar a cookies `HttpOnly` + `Secure` + `SameSite` con CSRF robusto.
+2. Sesion actual
+- `GET /api/auth/me` (o equivalente) para rehidratar sesion tras reload sin depender de JWT en storage.
 
-Fases:
-1. Backend emite refresh/session cookie `HttpOnly` y endpoint de refresh seguro.
-2. Frontend reduce dependencia de token persistido; access token en memoria (opcional) o sesion gestionada por cookie.
-3. Endurecer CSRF y validar CORS/credenciales por entorno.
-4. Eliminar almacenamiento de token en `sessionStorage` cuando el backend complete la migracion.
+3. Refresh
+- `POST /api/auth/refresh` debe renovar cookie(s) de sesion de forma segura.
+
+4. Logout
+- Endpoint que invalide sesion y expire cookies en servidor/cliente.
+
+5. Seguridad web
+- CORS habilitado con credenciales para origenes permitidos.
+- CSRF obligatorio en operaciones mutables.
+- Cookie flags recomendadas: `HttpOnly`, `Secure`, `SameSite=Lax` o `Strict` segun flujo.
+
+## Criterio de cutover a cookie por defecto
+- Backend expone `auth/me` estable en produccion.
+- Login/refresh/logout funcionan via cookies en E2E.
+- Flujos protegidos (`/account`, contribuciones) validados con recarga de pagina.
+- Luego cambiar `VITE_AUTH_MODE=cookie` en entornos objetivo.
+

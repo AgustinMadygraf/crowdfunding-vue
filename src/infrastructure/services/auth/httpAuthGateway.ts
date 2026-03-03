@@ -6,6 +6,7 @@ export class HttpAuthGateway implements AuthGatewayPort {
   async loginWithGoogle(token: string): Promise<AuthGatewayResponse> {
     const response = await fetch(`${this.apiBaseUrl}/api/auth/google`, {
       method: 'POST',
+      credentials: 'include',
       headers: {
         'Content-Type': 'application/json'
       },
@@ -20,7 +21,7 @@ export class HttpAuthGateway implements AuthGatewayPort {
     }
 
     const data = (await response.json()) as AuthGatewayResponse
-    if (!data.user_id || !data.email || !data.auth_token) {
+    if (!data.user_id || !data.email) {
       throw new Error('Respuesta del servidor incompleta')
     }
 
@@ -30,6 +31,7 @@ export class HttpAuthGateway implements AuthGatewayPort {
   async refreshToken(token: string): Promise<string> {
     const response = await fetch(`${this.apiBaseUrl}/api/auth/refresh`, {
       method: 'POST',
+      credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${token}`

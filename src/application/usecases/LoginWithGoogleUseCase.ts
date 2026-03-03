@@ -3,7 +3,7 @@ import type { AuthGatewayPort } from '@/application/ports/AuthGateway'
 
 export interface LoginWithGoogleResult {
   user: User
-  authToken: string
+  authToken: string | null
 }
 
 export class LoginWithGoogleUseCase {
@@ -19,6 +19,6 @@ export class LoginWithGoogleUseCase {
       avatar_url: data.avatar_url
     }
 
-    return { user, authToken: data.auth_token }
+    return { user, authToken: data.auth_token ?? null }
   }
 }

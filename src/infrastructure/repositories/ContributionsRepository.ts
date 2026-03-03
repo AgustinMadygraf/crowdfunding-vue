@@ -82,7 +82,12 @@ export class ContributionsRepository implements ContributionsRepositoryPort {
     }
     
     try {
-      const response = await fetch(input, { ...init, headers: requestHeaders, signal: controller.signal })
+      const response = await fetch(input, {
+        ...init,
+        headers: requestHeaders,
+        signal: controller.signal,
+        credentials: init?.credentials ?? 'include'
+      })
       const contentType = response.headers.get('content-type') || ''
       const elapsedMs = Date.now() - startedAt
 

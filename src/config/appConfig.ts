@@ -1,7 +1,10 @@
+export type AuthMode = 'session' | 'cookie'
+
 export type AppConfig = {
   apiBaseUrl: string
   siteUrl: string
   googleClientId: string
+  authMode: AuthMode
 }
 
 const resolveApiBaseUrl = (): string => {
@@ -35,6 +38,12 @@ const resolveGoogleClientId = (): string => {
   return import.meta.env.VITE_GOOGLE_CLIENT_ID || ''
 }
 
+const resolveAuthMode = (): AuthMode => {
+  const value = ((import.meta.env.VITE_AUTH_MODE as string | undefined) || '').trim().toLowerCase()
+  if (value === 'cookie') return 'cookie'
+  return 'session'
+}
+
 let cachedConfig: AppConfig | null = null
 
 export const getAppConfig = (): AppConfig => {
@@ -42,7 +51,8 @@ export const getAppConfig = (): AppConfig => {
     cachedConfig = {
       apiBaseUrl: resolveApiBaseUrl(),
       siteUrl: resolveSiteUrl(),
-      googleClientId: resolveGoogleClientId()
+      googleClientId: resolveGoogleClientId(),
+      authMode: resolveAuthMode()
     }
   }
 

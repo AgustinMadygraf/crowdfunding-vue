@@ -6,7 +6,7 @@
 import { AuthService } from './authService'
 import { getAppConfig } from '@/config/appConfig'
 import type { IAuthService, AuthServiceConfig } from './IAuthService'
-import { SessionStorageTokenStorage } from './auth/tokenStorage'
+import { MemoryOnlyTokenStorage, SessionStorageTokenStorage } from './auth/tokenStorage'
 import { GoogleSignInAdapter } from './auth/googleSignInAdapter'
 import { logger } from '@/infrastructure/logging/logger'
 
@@ -18,6 +18,7 @@ const appConfig = getAppConfig()
 const defaultConfig: AuthServiceConfig = {
   apiBaseUrl: appConfig.apiBaseUrl,
   googleClientId: appConfig.googleClientId,
+  authMode: appConfig.authMode,
   tokenStorageKey: 'auth_token',
   userStorageKey: 'auth_user'
 }
@@ -54,11 +55,13 @@ export function createAuthService(config?: Partial<AuthServiceConfig>): IAuthSer
       ...config
     }
 
-    // Política vigente: sessionStorage para token y usuario (intermedio hasta cookies httpOnly + CSRF)
-    const storage = new SessionStorageTokenStorage(
-      finalConfig.tokenStorageKey || 'auth_token',
-      finalConfig.userStorageKey || 'auth_user'
-    )
+    const storage =
+      finalConfig.authMode === 'cookie'
+        ? new MemoryOnlyTokenStorage()
+        : new SessionStorageTokenStorage(
+            finalConfig.tokenStorageKey || 'auth_token',
+            finalConfig.userStorageKey || 'auth_user'
+          )
     const googleSignIn = new GoogleSignInAdapter()
 
     return new AuthService(finalConfig, { storage, googleSignIn })
@@ -83,10 +86,14 @@ export function createAuthService(config?: Partial<AuthServiceConfig>): IAuthSer
 export const authService = new AuthService(
   {
     apiBaseUrl: appConfig.apiBaseUrl,
-    googleClientId: appConfig.googleClientId
+    googleClientId: appConfig.googleClientId,
+    authMode: appConfig.authMode
   },
   {
-    storage: new SessionStorageTokenStorage('auth_token', 'auth_user'),
+    storage:
+      appConfig.authMode === 'cookie'
+        ? new MemoryOnlyTokenStorage()
+        : new SessionStorageTokenStorage('auth_token', 'auth_user'),
     googleSignIn: new GoogleSignInAdapter()
   }
 )

@@ -14,6 +14,9 @@
 - [x] (BL-06) Endurecer control de fronteras para `presentation` (repositorios/DTO de infraestructura) — hecho el 2026-03-03 — se amplió `scripts/check-architecture-boundaries.sh` con reglas para `src/presentation` y `src/views`.
 - [x] (BL-07) Reemplazar `console.*` por `logger` estructurado en runtime (`views` y `router`) — hecho el 2026-03-03 — se normalizó logging en vistas/guards y ya no quedan `console.*` fuera del logger central.
 - [x] (BL-08) Reemplazar `console.*` residuales en `src/utils/utm.ts` y `src/config/appConfig.ts` — hecho el 2026-03-03 — se migró `utm` a `logger` y se removió warning por `console` en `appConfig`.
+- [x] (BL-09) Introducir `authMode` (`session`/`cookie`) en configuración y `AuthServiceFactory` — hecho el 2026-03-03 — se agregó `VITE_AUTH_MODE`, `appConfig.authMode` y selección de storage (`sessionStorage`/`memory`).
+- [x] (BL-10) Enviar `credentials: 'include'` en auth y endpoints protegidos de contribuciones — hecho el 2026-03-03 — se habilitó en `HttpAuthGateway` y por defecto en `ContributionsRepository.fetchWithGuard`.
+- [x] (BL-11) Actualizar política y contrato de auth para modo cookie — hecho el 2026-03-03 — se creó `docs/decision.auth-cookie.md` y se actualizó `docs/AUTH_TOKEN_POLICY.md` con contrato esperado (`auth/me`, flags, cutover).
 
 ## Convencion de estados
 - `[x]` finalizada

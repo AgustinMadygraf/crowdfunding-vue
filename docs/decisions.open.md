@@ -1,29 +1,5 @@
 # Decisiones y preguntas abiertas (alto nivel)
 
-## (DQ-02) Evolución de estrategia de autenticación/token en frontend
-- Estado: Abierta
-- Contexto:
-  - Existe implementación con `sessionStorage` y refresh token.
-  - También hay servicios CSRF y flujos `credentials: 'include'` que sugieren transición parcial a cookies.
-- Preguntas:
-  - ¿El objetivo definitivo es JWT en `sessionStorage` o cookies `httpOnly` + CSRF?
-  - ¿Qué timeline hay para backend y migración del frontend?
-- Opciones:
-  1) Mantener `sessionStorage` como estrategia estable.
-     - Pros: simple, sin dependencia de cambios backend.
-     - Contras: superficie XSS mayor que cookie `httpOnly`.
-  2) Migrar a cookies `httpOnly` + CSRF como estrategia final.
-     - Pros: mejor postura de seguridad del token.
-     - Contras: requiere coordinación backend, cambios de flujo y pruebas E2E.
-  3) Híbrido temporal con feature flag.
-     - Pros: transición gradual.
-     - Contras: complejidad operativa duplicada.
-- Información faltante / cómo decidir:
-  - Capacidades backend actuales y fecha objetivo.
-  - Requisitos de seguridad/compliance del producto.
-- Impacto / riesgos:
-  - Decisión tardía puede forzar refactors repetidos en auth/repositorios.
-
 ## (DQ-03) Gobernanza del contenido estático (hardcodeado vs backend/CMS)
 - Estado: Abierta
 - Contexto:

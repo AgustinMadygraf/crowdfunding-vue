@@ -3,7 +3,7 @@ export interface AuthGatewayResponse {
   email: string
   nombre: string
   avatar_url?: string
-  auth_token: string
+  auth_token?: string
 }
 
 export interface AuthGatewayPort {
