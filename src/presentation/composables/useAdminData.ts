@@ -5,7 +5,9 @@ import {
   getUpdatesRepository
 } from '@/application/ports/publicDataRepositoriesProvider'
 import { toAppError } from '@/application/errors/toAppError'
-import { logger } from '@/infrastructure/logging/logger'
+import { getLogger } from '@/application/ports/loggerProvider'
+
+const logger = getLogger()
 
 export interface AdminMilestone {
   id: number
@@ -101,3 +103,4 @@ export function useAdminData() {
     loadData
   }
 }
+

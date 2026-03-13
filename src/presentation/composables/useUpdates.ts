@@ -3,8 +3,10 @@ import type { Update, UpdateCategory } from '@/domain/update'
 import { content } from '@/presentation/content'
 import type { GetUpdatesParams, UpdateRecord } from '@/application/ports/PublicDataRepositories'
 import { getUpdatesRepository } from '@/application/ports/publicDataRepositoriesProvider'
-import { logger } from '@/infrastructure/logging/logger'
+import { getLogger } from '@/application/ports/loggerProvider'
 import { toAppError } from '@/application/errors/toAppError'
+
+const logger = getLogger()
 
 const transformMockUpdate = (mock: (typeof content.data.updates)[number]): Update => ({
   id: mock.id,
@@ -108,3 +110,4 @@ export function useUpdates(useApi = false, params?: GetUpdatesParams) {
     reload: loadUpdates
   }
 }
+

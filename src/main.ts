@@ -12,7 +12,9 @@ import { authService } from '@/infrastructure/services/authServiceFactory'
 import { AUTH_SERVICE_KEY } from '@/presentation/composables/useAuthService'
 import { setAuthService } from '@/presentation/providers/authServiceProvider'
 import { getAppConfig } from '@/config/appConfig'
+import { setCsrfService } from '@/application/ports/csrfProvider'
 import { setContributionsRepository } from '@/application/ports/contributionsRepositoryProvider'
+import { getLogger, setLogger } from '@/application/ports/loggerProvider'
 import {
   setDocumentsRepository,
   setMilestonesRepository,
@@ -22,8 +24,13 @@ import { contributionsRepository } from '@/infrastructure/repositories/Contribut
 import { documentsRepository } from '@/infrastructure/repositories/DocumentsRepository'
 import { milestonesRepository } from '@/infrastructure/repositories/MilestonesRepository'
 import { updatesRepository } from '@/infrastructure/repositories/UpdatesRepository'
-import { logger } from '@/infrastructure/logging/logger'
+import { loggerAdapter } from '@/infrastructure/logging/loggerAdapter'
+import { csrfServiceAdapter } from '@/infrastructure/services/csrfServiceAdapter'
 import { initChatwoot } from '@/infrastructure/services/chatwootBootstrap'
+
+setLogger(loggerAdapter)
+setCsrfService(csrfServiceAdapter)
+const logger = getLogger()
 
 if (import.meta.env.DEV) {
   import('@/utils/apiDiagnostic').catch((err) => {

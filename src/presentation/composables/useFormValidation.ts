@@ -1,6 +1,8 @@
 import { ref } from 'vue'
 import { z, type ZodIssue, type ZodObject, type ZodRawShape } from 'zod'
-import { logger } from '@/infrastructure/logging/logger'
+import { getLogger } from '@/application/ports/loggerProvider'
+
+const logger = getLogger()
 
 
 /**
@@ -131,3 +133,4 @@ export function useFormValidation<T extends ZodRawShape>(schema: ZodObject<T>) {
     hasFieldError
   }
 }
+

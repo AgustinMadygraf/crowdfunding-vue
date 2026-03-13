@@ -7,7 +7,9 @@ import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useSubscription } from '@/presentation/composables/useSubscription'
 import { content } from '@/presentation/content'
-import { logger } from '@/infrastructure/logging/logger'
+import { getLogger } from '@/application/ports/loggerProvider'
+
+const logger = getLogger()
 
 
 const route = useRoute()
@@ -195,3 +197,4 @@ onMounted(() => {
   background: linear-gradient(135deg, #42b983 0%, #2c3e50 100%);
 }
 </style>
+

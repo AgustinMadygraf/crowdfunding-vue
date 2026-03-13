@@ -12,7 +12,7 @@ interface DiagnosticResult {
   timestamp: string
   testName: string
   status: 'PASS' | 'FAIL' | 'WARNING'
-  details: Record<string, any>
+  details: Record<string, unknown>
   error?: string
 }
 
@@ -433,7 +433,7 @@ const apiDiagnostic = new ApiDiagnostic()
 
 // Hacer disponible globalmente en desarrollo
 if (import.meta.env.DEV) {
-  ;(window as any).__apiDiagnostic = {
+  ;(window as Window & { __apiDiagnostic?: ApiDiagnosticPublicApi }).__apiDiagnostic = {
     test: () => apiDiagnostic.runFullDiagnostics(),
     testEndpoint: (endpoint: string, token?: string) =>
       apiDiagnostic.testCustomEndpoint(endpoint, token)
@@ -446,3 +446,7 @@ if (import.meta.env.DEV) {
 }
 
 export default apiDiagnostic
+type ApiDiagnosticPublicApi = {
+  test: () => Promise<void>
+  testEndpoint: (endpoint: string, token?: string) => Promise<void>
+}

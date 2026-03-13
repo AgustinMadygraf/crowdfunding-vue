@@ -1,10 +1,12 @@
-﻿import { computed, ref, onMounted } from 'vue'
+import { computed, ref, onMounted } from 'vue'
 import type { Milestone } from '@/domain/milestone'
 import { content } from '@/presentation/content'
 import type { MilestoneRecord } from '@/application/ports/PublicDataRepositories'
 import { getMilestonesRepository } from '@/application/ports/publicDataRepositoriesProvider'
-import { logger } from '@/infrastructure/logging/logger'
+import { getLogger } from '@/application/ports/loggerProvider'
 import { toAppError } from '@/application/errors/toAppError'
+
+const logger = getLogger()
 
 const transformMockMilestone = (
   mock: (typeof content.data.milestones)[number]
@@ -102,3 +104,4 @@ export function useMilestones(useApi = false) {
     reload: loadMilestones
   }
 }
+

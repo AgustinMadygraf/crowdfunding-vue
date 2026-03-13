@@ -3,9 +3,12 @@
  */
 
 import { onMounted } from 'vue'
-import { csrfService } from '@/infrastructure/services/csrfService'
+import { getCsrfService } from '@/application/ports/csrfProvider'
 import { getAppConfig } from '@/config/appConfig'
-import { logger } from '@/infrastructure/logging/logger'
+import { getLogger } from '@/application/ports/loggerProvider'
+
+const csrfService = getCsrfService()
+const logger = getLogger()
 
 
 /**
@@ -162,3 +165,5 @@ export function useCsrfToken() {
     getToken: () => csrfService.getToken()
   }
 }
+
+

@@ -7,7 +7,9 @@ import { computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useMilestones } from '@/presentation/composables/useMilestones';
 import { content } from '@/presentation/content';
-import { logger } from '@/infrastructure/logging/logger';
+import { getLogger } from '@/application/ports/loggerProvider'
+
+const logger = getLogger();
 
 const route = useRoute();
 const router = useRouter();
@@ -286,4 +288,5 @@ const fetchMilestoneDetail = async () => {
   height: 10px;
 }
 </style>
+
 

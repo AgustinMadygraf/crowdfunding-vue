@@ -1,12 +1,11 @@
-# TODO
+﻿# Agenda de Tareas Frontend (`docs/todo.md`)
 
-## Alto nivel (certezas)
-- [>] (AL-06) [P0] Ejecutar migracion frontend a sesion por cookies (`httpOnly + CSRF`) por etapas — recomendación final: activar migracion incremental con `authMode` y cutover controlado por entorno.
+Backlog activo. Las tareas cerradas se registran en `docs/todo.done.md`.
 
-## Bajo nivel (certezas)
-- [ ] (BL-13) [P1] Activar `VITE_AUTH_MODE=cookie` en entornos objetivo y validar flujos E2E (login, refresh, logout, recarga) — recomendación final: cutover progresivo por entorno con rollback a `session` como contingencia.
+## Tareas Pendientes
 
-## Notas
-- Soporte de auditoría y opciones: `docs/clean-architecture.audit.md`.
-- Dudas estratégicas abiertas: `docs/decisions.open.md`.
-- Decisión cerrada DQ-02: `docs/decision.auth-cookie.md`.
+*No hay tareas activas actualmente.*
+
+## Dudas de Alto Nivel (Registradas en docs/decisions/)
+
+Ver `docs/decisions/preguntas-arquitectura.md` para decisiones arquitectónicas pendientes.

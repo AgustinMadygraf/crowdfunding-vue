@@ -49,11 +49,12 @@ import { useAuthStore } from '@/stores/authStore'
 import { content } from '@/presentation/content'
 import { logger } from '@/infrastructure/logging/logger'
 
-const props = defineProps({
-  buttonContainerId: {
-    type: String,
-    default: 'google-signin-button'
-  }
+interface Props {
+  buttonContainerId?: string
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  buttonContainerId: 'google-signin-button'
 })
 
 const emit = defineEmits<{

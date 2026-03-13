@@ -5,7 +5,9 @@ Path: src/views/NotFoundView.vue
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
 import { content } from '@/presentation/content'
-import { logger } from '@/infrastructure/logging/logger'
+import { getLogger } from '@/application/ports/loggerProvider'
+
+const logger = getLogger()
 
 
 const router = useRouter()
@@ -41,3 +43,4 @@ const handleNotFound = () => {
   max-width: 600px;
 }
 </style>
+

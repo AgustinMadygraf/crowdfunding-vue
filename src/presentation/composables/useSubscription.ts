@@ -12,7 +12,9 @@ import { CreateContributionUseCase } from '@/application/usecases/CreateContribu
 import { GetContributionByTokenUseCase } from '@/application/usecases/GetContributionByTokenUseCase'
 import { ListUserContributionsUseCase } from '@/application/usecases/ListUserContributionsUseCase'
 import { mapContributionError } from '@/application/errors/contributionErrorMapper'
-import { logger } from '@/infrastructure/logging/logger'
+import { getLogger } from '@/application/ports/loggerProvider'
+
+const logger = getLogger()
 
 
 export interface ContributionState {
@@ -133,3 +135,4 @@ export function useSubscription() {
     reset
   }
 }
+

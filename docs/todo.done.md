@@ -88,3 +88,22 @@ DoD: casos de uso de `src/application/usecases/*` y adaptadores clave de infraes
 - [x] Crear `deploy-preflight` para validar vars/secrets FTP, resolver IPv4 y chequear puerto.
 - [x] Crear `deploy-release` que consuma artifact y haga deploy.
 - [x] Pinnear actions por SHA para reducir riesgo de supply chain.
+
+## 2026-03-13
+- [x] (AL-06) Ejecutar migracion frontend a sesion por cookies por etapas - hecho el 2026-03-13 - se activo `VITE_AUTH_MODE=cookie` en `.env.production`, se mantuvo enfoque incremental por entorno y se valido integridad tecnica con `npm run test`, `npm run type-check` y `npm run check:arch-boundaries`.
+- [x] (BL-13) Activar `VITE_AUTH_MODE=cookie` en entornos objetivo - hecho el 2026-03-13 - configuracion aplicada en entorno de produccion del repo (`.env.production`).
+- [x] [media] [frontend-best-practices-audit] Tipar props de `GoogleAuthButton.vue` con `defineProps<Props>()` + `withDefaults` para eliminar configuracion runtime no tipada.
+- [x] [media] [code-audit] Reemplazar chequeo de fronteras dependiente de Bash/WSL por script Node cross-platform (`scripts/check-architecture-boundaries.mjs`) y actualizar `package.json`.
+- [x] [baja] [frontend-best-practices-audit] Reducir uso de `any` en `src/utils/apiDiagnostic.ts` (migracion a `Record<string, unknown>` y API global tipada).
+
+### Riesgos/pendientes operativos detectados (sin bloqueo)
+- Validacion E2E real de login/refresh/logout/recarga en entorno integrado backend+cookies queda como verificacion operativa post-deploy.
+
+## 2026-03-13 (todo-workflow ADR-001)
+- [x] [ADR-001][P1] Crear puertos de observabilidad y CSRF en `application` - hecho el 2026-03-13 - se agregaron `src/application/ports/LoggerPort.ts` y `src/application/ports/CsrfPort.ts`.
+- [x] [ADR-001][P1] Crear providers de aplicación para logger/csrf - hecho el 2026-03-13 - se agregaron `src/application/ports/loggerProvider.ts` y `src/application/ports/csrfProvider.ts`.
+- [x] [ADR-001][P1] Crear adaptadores de infraestructura para logger/csrf - hecho el 2026-03-13 - se agregaron `src/infrastructure/logging/loggerAdapter.ts` y `src/infrastructure/services/csrfServiceAdapter.ts`.
+- [x] [ADR-001][P1] Inyectar providers en composition root - hecho el 2026-03-13 - `src/main.ts` ahora configura `setLogger(loggerAdapter)` y `setCsrfService(csrfServiceAdapter)`.
+- [x] [ADR-001][P1] Migrar presentation/views/stores para evitar imports directos a infraestructura - hecho el 2026-03-13 - se reemplazaron imports por `getLogger()` y `getCsrfService()`.
+- [x] [ADR-001][P1] Endurecer control de fronteras para logger/csrf en UI - hecho el 2026-03-13 - `scripts/check-architecture-boundaries.mjs` incorpora reglas explícitas para `presentation/views/stores`.
+- [x] [ADR-001][P1] Validación final - hecho el 2026-03-13 - pasaron `npm run check:arch-boundaries`, `npm run test` y `npm run type-check`.

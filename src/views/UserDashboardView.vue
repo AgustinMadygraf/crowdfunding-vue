@@ -151,7 +151,9 @@ import { content } from '@/presentation/content'
 import type { UserContribution } from '@/application/ports/ContributionsRepository'
 import type { User } from '@/domain/user'
 import { sanitizeAvatarUrl } from '@/utils/urlSanitizer'
-import { logger } from '@/infrastructure/logging/logger'
+import { getLogger } from '@/application/ports/loggerProvider'
+
+const logger = getLogger()
 
 
 const router = useRouter()
@@ -287,4 +289,5 @@ const fetchUserData = async () => {
   }
 }
 </script>
+
 

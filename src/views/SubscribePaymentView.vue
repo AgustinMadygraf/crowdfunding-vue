@@ -1,4 +1,4 @@
-﻿<!--
+<!--
 Path: src/views/SubscribePaymentView.vue
 -->
 
@@ -145,7 +145,9 @@ import { useAuthService } from '@/presentation/composables/useAuthService'
 import { toAppError } from '@/application/errors/toAppError'
 import type { User } from '@/domain/user'
 import { content } from '@/presentation/content'
-import { logger } from '@/infrastructure/logging/logger'
+import { getLogger } from '@/application/ports/loggerProvider'
+
+const logger = getLogger()
 
 interface Contribution {
   id: string
@@ -290,3 +292,4 @@ onMounted(() => {
   max-width: 700px;
 }
 </style>
+

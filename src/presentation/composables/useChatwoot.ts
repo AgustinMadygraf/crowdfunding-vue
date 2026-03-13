@@ -6,7 +6,9 @@
  */
 
 import { ref, onMounted } from 'vue'
-import { logger } from '@/infrastructure/logging/logger'
+import { getLogger } from '@/application/ports/loggerProvider'
+
+const logger = getLogger()
 
 
 /**
@@ -303,3 +305,4 @@ export function useChatwoot() {
     sendChatwootMessage
   }
 }
+

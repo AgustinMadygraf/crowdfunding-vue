@@ -16,7 +16,9 @@ import type { User } from '@/domain/user'
 import { sanitizeAvatarUrl } from '@/utils/urlSanitizer'
 import { useAuthStore } from '@/stores/authStore'
 import { content } from '@/presentation/content'
-import { logger } from '@/infrastructure/logging/logger'
+import { getLogger } from '@/application/ports/loggerProvider'
+
+const logger = getLogger()
 
 
 const router = useRouter()
@@ -364,3 +366,4 @@ const handlePayment = async () => {
   max-width: 700px;
 }
 </style>
+

@@ -8,8 +8,9 @@ import { useUpdates } from '@/presentation/composables/useUpdates';
 import UpdateCard from '@/components/updates/UpdateCard.vue';
 import type { Update, UpdateCategory } from '@/domain/update';
 import { content } from '@/presentation/content';
-import { logger } from '@/infrastructure/logging/logger';
-;
+import { getLogger } from '@/application/ports/loggerProvider'
+
+const logger = getLogger();
 
 const { updates, categoryCounts } = useUpdates(false); // false = usar mocks
 const selectedCategory = ref<UpdateCategory | 'all'>('all');
@@ -188,4 +189,5 @@ fetchUpdates();
   background-color: var(--category-legal);
 }
 </style>
+
 

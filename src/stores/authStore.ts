@@ -1,14 +1,16 @@
-﻿/**
+/**
  * Auth Store (Pinia)
  * Estado reactivo sincronizado con AuthService
  */
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import { toAppError } from '@/application/errors/toAppError'
-import { logger } from '@/infrastructure/logging/logger'
+import { getLogger } from '@/application/ports/loggerProvider'
 import type { User } from '@/domain/user'
 import type { AuthState } from '@/application/ports/AuthService'
 import { getAuthService } from '@/presentation/providers/authServiceProvider'
+
+const logger = getLogger()
 
 const mapStateFromService = (): AuthState => {
   const authService = getAuthService()
@@ -83,3 +85,4 @@ export const useAuthStore = defineStore('auth', () => {
     logout
   }
 })
+

@@ -6,7 +6,9 @@ Path: src/views/MilestonesView.vue
 import { useMilestones } from '@/presentation/composables/useMilestones'
 import MilestoneCard from '@/components/milestones/MilestoneCard.vue'
 import { content } from '@/presentation/content'
-import { logger } from '@/infrastructure/logging/logger'
+import { getLogger } from '@/application/ports/loggerProvider'
+
+const logger = getLogger()
 
 
 const { milestones, totalTargetAmount, totalRaisedAmount, progressPercentage } = useMilestones()
@@ -61,3 +63,4 @@ const fetchMilestones = async () => {
   background: linear-gradient(135deg, #42b983 0%, #2c3e50 100%);
 }
 </style>
+

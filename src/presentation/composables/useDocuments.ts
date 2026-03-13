@@ -4,8 +4,10 @@ import type {
   GetDocumentsParams
 } from '@/application/ports/PublicDataRepositories'
 import { getDocumentsRepository } from '@/application/ports/publicDataRepositoriesProvider'
-import { logger } from '@/infrastructure/logging/logger'
+import { getLogger } from '@/application/ports/loggerProvider'
 import { toAppError } from '@/application/errors/toAppError'
+
+const logger = getLogger()
 
 export interface Document {
   id: number
@@ -99,3 +101,4 @@ export function useDocuments(useApi = false, params?: GetDocumentsParams) {
     reload: loadDocuments
   }
 }
+
