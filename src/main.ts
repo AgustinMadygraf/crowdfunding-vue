@@ -45,6 +45,8 @@ const diagnosticInfo = {
   dev: import.meta.env.DEV,
   apiBaseUrl: appConfig.apiBaseUrl,
   siteUrl: appConfig.siteUrl,
+  devBackendRequired: appConfig.devBackendRequired,
+  enableChatwoot: appConfig.enableChatwoot,
   timestamp: new Date().toISOString(),
   userAgent: navigator.userAgent
 }

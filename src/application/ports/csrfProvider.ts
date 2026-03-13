@@ -1,14 +1,19 @@
 import type { CsrfPort } from './CsrfPort'
 
-let csrfService: CsrfPort | null = null
+const noopCsrfService: CsrfPort = {
+  getToken: () => null,
+  readFromCookie: () => null,
+  readFromHeader: () => null,
+  setToken: () => {},
+  getTokenHeader: () => ({})
+}
+
+let csrfService: CsrfPort = noopCsrfService
 
 export function setCsrfService(service: CsrfPort): void {
   csrfService = service
 }
 
 export function getCsrfService(): CsrfPort {
-  if (!csrfService) {
-    throw new Error('CsrfService not configured')
-  }
   return csrfService
 }

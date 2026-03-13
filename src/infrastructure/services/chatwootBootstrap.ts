@@ -1,6 +1,12 @@
 import { logger } from '@/infrastructure/logging/logger'
+import { getAppConfig } from '@/config/appConfig'
 
 export function initChatwoot(): void {
+  const { enableChatwoot } = getAppConfig()
+  if (!enableChatwoot) {
+    return
+  }
+
   const baseUrlRaw = (import.meta.env.VITE_CHATWOOT_BASE_URL as string | undefined) || ''
   const token = (import.meta.env.VITE_CHATWOOT_TOKEN as string | undefined) || ''
   const integrity = (import.meta.env.VITE_CHATWOOT_SDK_INTEGRITY as string | undefined) || ''

@@ -5,6 +5,8 @@ export type AppConfig = {
   siteUrl: string
   googleClientId: string
   authMode: AuthMode
+  devBackendRequired: boolean
+  enableChatwoot: boolean
 }
 
 const resolveApiBaseUrl = (): string => {
@@ -44,6 +46,22 @@ const resolveAuthMode = (): AuthMode => {
   return 'session'
 }
 
+const resolveDevBackendRequired = (): boolean => {
+  const value = ((import.meta.env.VITE_DEV_BACKEND_REQUIRED as string | undefined) || '')
+    .trim()
+    .toLowerCase()
+  if (!value) return true
+  return value !== 'false'
+}
+
+const resolveEnableChatwoot = (): boolean => {
+  const value = ((import.meta.env.VITE_ENABLE_CHATWOOT as string | undefined) || '')
+    .trim()
+    .toLowerCase()
+  if (!value) return true
+  return value !== 'false'
+}
+
 let cachedConfig: AppConfig | null = null
 
 export const getAppConfig = (): AppConfig => {
@@ -52,7 +70,9 @@ export const getAppConfig = (): AppConfig => {
       apiBaseUrl: resolveApiBaseUrl(),
       siteUrl: resolveSiteUrl(),
       googleClientId: resolveGoogleClientId(),
-      authMode: resolveAuthMode()
+      authMode: resolveAuthMode(),
+      devBackendRequired: resolveDevBackendRequired(),
+      enableChatwoot: resolveEnableChatwoot()
     }
   }
 

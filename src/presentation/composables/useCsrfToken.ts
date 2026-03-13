@@ -6,9 +6,12 @@ import { onMounted } from 'vue'
 import { getCsrfService } from '@/application/ports/csrfProvider'
 import { getAppConfig } from '@/config/appConfig'
 import { getLogger } from '@/application/ports/loggerProvider'
+import { getBackendOfflineReason, isBackendTemporarilyOffline } from '@/utils/backendAvailability'
+import { isNetworkUnavailableError } from '@/utils/networkDiagnostics'
 
 const csrfService = getCsrfService()
 const logger = getLogger()
+let lastCsrfOfflineWarningAt = 0
 
 
 /**
@@ -20,8 +23,23 @@ export function useCsrfToken() {
    * Solicita el token CSRF del backend
    * Intenta primero el endpoint dedicado, luego fallback a contributions
    */
-  const fetchCsrfTokenFromBackend = async (): Promise<void> => {
-    const apiBaseUrl = getAppConfig().apiBaseUrl
+const fetchCsrfTokenFromBackend = async (): Promise<void> => {
+    const appConfig = getAppConfig()
+    const apiBaseUrl = appConfig.apiBaseUrl
+
+    if (import.meta.env.DEV && !appConfig.devBackendRequired) {
+      return
+    }
+    if (import.meta.env.DEV && isBackendTemporarilyOffline()) {
+      const now = Date.now()
+      if (now - lastCsrfOfflineWarningAt > 10000) {
+        lastCsrfOfflineWarningAt = now
+        logger.warn(
+          `[useCsrfToken] Backend offline detectado (${getBackendOfflineReason() || 'network'}). Se omite init CSRF temporalmente.`
+        )
+      }
+      return
+    }
     
     // Estrategia 1: Endpoint dedicado /api/csrf-token (RECOMENDADO)
     // Si backend implementa este endpoint, es la forma más eficiente
@@ -53,7 +71,15 @@ export function useCsrfToken() {
         }
       }
     } catch (error) {
-      if (import.meta.env.DEV) {
+      if (isNetworkUnavailableError(error)) {
+        const now = Date.now()
+        if (now - lastCsrfOfflineWarningAt > 10000) {
+          lastCsrfOfflineWarningAt = now
+          logger.warn(
+            '[useCsrfToken] Backend no disponible. Se omite fallback CSRF para evitar ruido de consola.'
+          )
+        }
+        return
       }
     }
     

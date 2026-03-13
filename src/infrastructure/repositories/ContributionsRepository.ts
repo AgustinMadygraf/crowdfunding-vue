@@ -14,15 +14,19 @@ import { csrfService } from '@/infrastructure/services/csrfService'
 import { DEFAULT_TIMEOUT_MS } from '@/config/api'
 import { getAppConfig } from '@/config/appConfig'
 import { logger } from '@/infrastructure/logging/logger'
+import { isBackendTemporarilyOffline, markBackendOffline } from '@/utils/backendAvailability'
+import { getErrorMessage, isNetworkUnavailableError } from '@/utils/networkDiagnostics'
 
 export class ContributionsRepository implements ContributionsRepositoryPort {
   private readonly apiBaseUrl: string
   private readonly debugHttp: boolean
+  private lastBackendOfflineWarningAt = 0
 
   constructor(apiBaseUrl?: string) {
-    this.apiBaseUrl = apiBaseUrl || getAppConfig().apiBaseUrl
+    const appConfig = getAppConfig()
+    this.apiBaseUrl = apiBaseUrl || appConfig.apiBaseUrl
     this.debugHttp = import.meta.env.VITE_DEBUG_HTTP === 'true'
-    if (import.meta.env.DEV) {
+    if (import.meta.env.DEV && appConfig.devBackendRequired) {
       this.pingHealth().catch(() => {})
     }
   }
@@ -32,12 +36,26 @@ export class ContributionsRepository implements ContributionsRepositoryPort {
     try {
       await this.fetchWithGuard(url, { method: 'GET' })
     } catch (error) {
+      if (error instanceof ContributionRepositoryError && error.message.includes('No se pudo conectar')) {
+        return
+      }
       logger.warn('[ContributionsRepository] Health check failed:', url, error)
     }
   }
 
   private sanitizeUrlForLogs(url: string): string {
     return url.replace(/(\/api\/contributions\/)[^/?#]+/i, '$1[redacted]')
+  }
+
+  private notifyBackendOffline(url: string): void {
+    const now = Date.now()
+    if (now - this.lastBackendOfflineWarningAt < 10000) {
+      return
+    }
+    this.lastBackendOfflineWarningAt = now
+    logger.warn(
+      `[ContributionsRepository] Backend no disponible (${url}). Verifica que el backend este iniciado y que VITE_API_BASE_URL sea correcto.`
+    )
   }
 
   private extractErrorMessage(errorData: unknown): string | null {
@@ -60,6 +78,12 @@ export class ContributionsRepository implements ContributionsRepositoryPort {
    * Captura detalles de error para diagnÃ³stico en producciÃ³n
    */
   private async fetchWithGuard(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
+    if (import.meta.env.DEV && isBackendTemporarilyOffline()) {
+      throw new ContributionRepositoryError(
+        'Backend temporalmente marcado como offline en desarrollo. Reintenta en unos segundos.'
+      )
+    }
+
     const controller = new AbortController()
     const timeout = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT_MS)
     const urlStr = typeof input === 'string' ? input : input.toString()
@@ -190,6 +214,16 @@ export class ContributionsRepository implements ContributionsRepositoryPort {
         )
       }
 
+      if (isNetworkUnavailableError(error)) {
+        markBackendOffline('network-unavailable')
+        this.notifyBackendOffline(safeUrlForLogs)
+        throw new ContributionRepositoryError(
+          `No se pudo conectar con ${safeUrlForLogs}. Inicia el backend o ajusta VITE_API_BASE_URL.`,
+          undefined,
+          { url: safeUrlForLogs, originalError: getErrorMessage(error) }
+        )
+      }
+
       logger.error('[ContributionsRepository] ðŸ”Œ Fetch error:', error)
       throw error
     } finally {
@@ -251,7 +285,7 @@ export class ContributionsRepository implements ContributionsRepositoryPort {
         throw error
       }
 
-      const errMsg = error instanceof Error ? error.message : 'Error desconocido'
+      const errMsg = getErrorMessage(error)
       logger.error('[ContributionsRepository] âŒ ConexiÃ³n o parsing error:', errMsg)
       logger.error('[ContributionsRepository] Error details:', error)
       throw new ContributionRepositoryError(
@@ -356,7 +390,7 @@ export class ContributionsRepository implements ContributionsRepositoryPort {
         throw error
       }
 
-      const errMsg = error instanceof Error ? error.message : 'Error desconocido'
+      const errMsg = getErrorMessage(error)
       logger.error('[ContributionsRepository] âŒ ConexiÃ³n o parsing error:', errMsg)
       logger.error('[ContributionsRepository] Error details:', error)
       logger.error('[ContributionsRepository] URL:', this.sanitizeUrlForLogs(url))
