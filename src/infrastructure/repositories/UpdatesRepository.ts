@@ -1,5 +1,6 @@
 ﻿import type { UpdateDTO } from '@/infrastructure/dto'
 import { getAppConfig } from '@/config/appConfig'
+import { DEFAULT_TIMEOUT_MS } from '@/config/api'
 import { logger } from '@/infrastructure/logging/logger'
 import type { UpdatesReadRepositoryPort } from '@/application/ports/PublicDataRepositories'
 
@@ -37,6 +38,20 @@ export class UpdatesRepository implements UpdatesReadRepositoryPort {
     return null
   }
 
+  private async fetchWithTimeout(url: string, init?: RequestInit): Promise<Response> {
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT_MS)
+
+    try {
+      return await fetch(url, {
+        ...init,
+        signal: controller.signal
+      })
+    } finally {
+      clearTimeout(timeout)
+    }
+  }
+
   async getAll(params?: GetUpdatesParams): Promise<UpdateDTO[]> {
     const queryParams = new URLSearchParams()
     if (params?.category) queryParams.set('category', params.category)
@@ -46,7 +61,7 @@ export class UpdatesRepository implements UpdatesReadRepositoryPort {
     const url = `${this.apiBaseUrl}/api/updates${queryString ? `?${queryString}` : ''}`
 
     try {
-      const response = await fetch(url, {
+      const response = await this.fetchWithTimeout(url, {
         headers: {
           'Content-Type': 'application/json'
         }
@@ -105,7 +120,7 @@ export class UpdatesRepository implements UpdatesReadRepositoryPort {
     const url = `${this.apiBaseUrl}/api/updates/${id}`
 
     try {
-      const response = await fetch(url, {
+      const response = await this.fetchWithTimeout(url, {
         headers: {
           'Content-Type': 'application/json'
         }

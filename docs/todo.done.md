@@ -107,3 +107,14 @@ DoD: casos de uso de `src/application/usecases/*` y adaptadores clave de infraes
 - [x] [ADR-001][P1] Migrar presentation/views/stores para evitar imports directos a infraestructura - hecho el 2026-03-13 - se reemplazaron imports por `getLogger()` y `getCsrfService()`.
 - [x] [ADR-001][P1] Endurecer control de fronteras para logger/csrf en UI - hecho el 2026-03-13 - `scripts/check-architecture-boundaries.mjs` incorpora reglas explícitas para `presentation/views/stores`.
 - [x] [ADR-001][P1] Validación final - hecho el 2026-03-13 - pasaron `npm run check:arch-boundaries`, `npm run test` y `npm run type-check`.
+
+## 2026-03-13 (todo-workflow frontend-best-practices)
+- [x] [FBP-01][media] Alinear logger en `GoogleAuthButton.vue` al provider de aplicacion (`getLogger`) y eliminar import directo de infraestructura.
+- [x] [FBP-02][media] Reemplazar keys por indice en listas dinamicas (`AppFooter.vue`, `MilestoneDetailView.vue`) por claves estables derivadas de datos.
+- [x] [FBP-03][media] Homogeneizar estrategia HTTP en `UpdatesRepository` agregando timeout/cancelacion con `AbortController` y `DEFAULT_TIMEOUT_MS`.
+- [x] [FBP-04][media] Remover `any` en rutas frontend criticas:
+  - `authService.ts`: callback de error GSI tipado como `unknown` + contratos globales de Google ID tipados.
+  - `chatwootBootstrap.ts`: tipado de `window.chatwootSDK` via tipo explicito.
+  - `performanceObserverAdapter.ts`: reemplazo de cast `any` por tipo extendido seguro.
+- [x] [FBP-05][baja] Limpiar bloques `if (import.meta.env.DEV) {}` vacios en `useCsrfToken.ts` y simplificar flujo de inicializacion.
+- [x] [FBP-06][validacion] Verificaciones finales exitosas: `npm run check:arch-boundaries`, `npm run test`, `npm run type-check`.

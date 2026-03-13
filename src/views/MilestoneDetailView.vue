@@ -173,7 +173,7 @@ const fetchMilestoneDetail = async () => {
           {{ milestoneDetailContent.timelineTitle }}
         </h2>
         <ul class="list-unstyled m-0 d-grid gap-3">
-          <li v-for="(item, idx) in milestone.timeline" :key="idx" class="d-flex gap-3">
+          <li v-for="item in milestone.timeline" :key="`${item.date}-${item.title}`" class="d-flex gap-3">
             <div class="timeline-marker" :class="item.status"></div>
             <div class="timeline-content" :class="item.status">
               <time class="d-block small text-muted mb-1">

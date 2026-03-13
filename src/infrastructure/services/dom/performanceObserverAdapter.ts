@@ -1,5 +1,9 @@
 import type { PerformanceObserverEntry, PerformanceObserverPort } from '@/application/ports/PerformanceObserverPort'
 
+type PerformanceEntryWithResponseStatus = PerformanceEntry & {
+  responseStatus?: number
+}
+
 export class PerformanceObserverAdapter implements PerformanceObserverPort {
   observeResourceEntries(
     onEntries: (entries: PerformanceObserverEntry[]) => void
@@ -7,10 +11,14 @@ export class PerformanceObserverAdapter implements PerformanceObserverPort {
     let observer: PerformanceObserver | null = null
     try {
       observer = new PerformanceObserver((list) => {
-        const entries = list.getEntries().map((entry) => ({
+        const entries = list.getEntries().map((entry) => {
+          const withStatus = entry as PerformanceEntryWithResponseStatus
+          return {
           name: entry.name,
-          responseStatus: (entry as any).responseStatus
-        }))
+          responseStatus:
+            typeof withStatus.responseStatus === 'number' ? withStatus.responseStatus : undefined
+          }
+        })
         onEntries(entries)
       })
       observer.observe({ entryTypes: ['resource'] })

@@ -1,6 +1,14 @@
 import { logger } from '@/infrastructure/logging/logger'
 import { getAppConfig } from '@/config/appConfig'
 
+type ChatwootSDK = {
+  run(config: { websiteToken: string; baseUrl: string }): void
+}
+
+type ChatwootWindow = Window & {
+  chatwootSDK?: ChatwootSDK
+}
+
 export function initChatwoot(): void {
   const { enableChatwoot } = getAppConfig()
   if (!enableChatwoot) {
@@ -39,7 +47,7 @@ export function initChatwoot(): void {
   }
 
   script.onload = () => {
-    const sdk = (window as any).chatwootSDK
+    const sdk = (window as ChatwootWindow).chatwootSDK
     if (!sdk || typeof sdk.run !== 'function') {
       return
     }

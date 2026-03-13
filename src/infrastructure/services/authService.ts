@@ -491,7 +491,7 @@ export class AuthService implements IAuthService {
               this.authState.error = 'Error procesando autenticación'
             }
           },
-          (error: any) => {
+          (_error: unknown) => {
             logger.error('[AUTH_GSI_ORIGIN_NOT_ALLOWED]')
             const origin = this.runtimeEnv.getOrigin()
             this.authState.error = `Origen ${origin} no autorizado en Google Cloud Console. Ver consola para instrucciones.`
@@ -549,12 +549,32 @@ export class AuthService implements IAuthService {
 }
 
 declare global {
+  interface GoogleIdInitializeConfig {
+    client_id: string
+    callback: (response: { credential: string }) => void
+    error_callback?: (error: unknown) => void
+    auto_select?: boolean
+    cancel_on_tap_outside?: boolean
+    ux_mode?: 'popup' | 'redirect'
+  }
+
+  interface GoogleIdRenderButtonOptions {
+    theme?: 'outline' | 'filled_blue' | 'filled_black'
+    size?: 'large' | 'medium' | 'small'
+    type?: 'standard' | 'icon'
+    shape?: 'rectangular' | 'pill' | 'circle' | 'square'
+    text?: 'signin_with' | 'signup_with' | 'continue_with' | 'signin'
+    logo_alignment?: 'left' | 'center'
+    width?: number | string
+    locale?: string
+  }
+
   interface Window {
     google?: {
       accounts: {
         id: {
-          initialize: (config: any) => void
-          renderButton: (element: HTMLElement, options: any) => void
+          initialize: (config: GoogleIdInitializeConfig) => void
+          renderButton: (element: HTMLElement, options: GoogleIdRenderButtonOptions) => void
           disableAutoSelect: () => void
         }
       }

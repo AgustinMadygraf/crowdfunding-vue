@@ -19,7 +19,7 @@ const footerContent = content.app.footer;
         <div class="col-12 col-md-4">
           <h4 class="h6 text-uppercase text-white-50 mb-3">{{ footerContent.links.title }}</h4>
           <ul class="list-unstyled mb-0">
-            <li v-for="(item, idx) in footerContent.links.items" :key="idx">
+            <li v-for="item in footerContent.links.items" :key="`${item.label}-${item.href}`">
               <a :href="item.href" class="text-decoration-none text-white-50">{{ item.label }}</a>
             </li>
           </ul>
@@ -28,7 +28,7 @@ const footerContent = content.app.footer;
           <h4 class="h6 text-uppercase text-white-50 mb-3">{{ footerContent.contact.title }}</h4>
           <p class="mb-2 text-white-50">{{ footerContent.contact.emailLabel }} {{ footerContent.contact.email }}</p>
           <div class="d-flex gap-3">
-            <a v-for="(social, idx) in footerContent.contact.social" :key="idx" :href="social.href" :aria-label="social.aria" class="text-decoration-none text-white-50">{{ social.short }}</a>
+            <a v-for="social in footerContent.contact.social" :key="social.href" :href="social.href" :aria-label="social.aria" class="text-decoration-none text-white-50">{{ social.short }}</a>
           </div>
         </div>
       </div>
